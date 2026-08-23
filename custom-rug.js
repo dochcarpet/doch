@@ -6,49 +6,121 @@
 (() => {
     "use strict";
 
+
     /* ---------------------------------------------------------
        ELEMENTS
-    --------------------------------------------------------- */
+       --------------------------------------------------------- */
 
-    const imageInput = document.getElementById("imageInput");
-    const fileName = document.getElementById("fileName");
+    const imageInput =
+        document.getElementById("imageInput");
 
-    const keepBackground = document.getElementById("keepBackground");
-    const removeBackground = document.getElementById("removeBackground");
+    const fileName =
+        document.getElementById("fileName");
 
-    const colorCounts = document.getElementById("colorCounts");
-    const paletteElement = document.getElementById("palette");
-    const resetPalette = document.getElementById("resetPalette");
+    const keepBackground =
+        document.getElementById("keepBackground");
 
-    const widthInput = document.getElementById("widthInput");
-    const heightInput = document.getElementById("heightInput");
-    const lockRatio = document.getElementById("lockRatio");
+    const removeBackground =
+        document.getElementById("removeBackground");
 
-    const contrastInput = document.getElementById("contrastInput");
-    const brightnessInput = document.getElementById("brightnessInput");
+    const colorCounts =
+        document.getElementById("colorCounts");
 
-    const contrastValue = document.getElementById("contrastValue");
-    const brightnessValue = document.getElementById("brightnessValue");
+    const paletteElement =
+        document.getElementById("palette");
 
-    const generateButton = document.getElementById("generateButton");
+    const resetPalette =
+        document.getElementById("resetPalette");
 
-    const canvas = document.getElementById("rugCanvas");
-    const ctx = canvas.getContext("2d", {
-        willReadFrequently: true
-    });
+    const widthInput =
+        document.getElementById("widthInput");
 
-    const emptyPreview = document.getElementById("emptyPreview");
-    const previewStatus = document.getElementById("previewStatus");
+    const heightInput =
+        document.getElementById("heightInput");
 
-    const statColors = document.getElementById("statColors");
-    const statSize = document.getElementById("statSize");
-    const statGrid = document.getElementById("statGrid");
-    const statLoops = document.getElementById("statLoops");
+    const lockRatio =
+        document.getElementById("lockRatio");
+
+    const contrastInput =
+        document.getElementById("contrastInput");
+
+    const brightnessInput =
+        document.getElementById("brightnessInput");
+
+    const contrastValue =
+        document.getElementById("contrastValue");
+
+    const brightnessValue =
+        document.getElementById("brightnessValue");
+
+    const generateButton =
+        document.getElementById("generateButton");
+
+    const canvas =
+        document.getElementById("rugCanvas");
+
+    const ctx =
+        canvas.getContext("2d", {
+            willReadFrequently: true
+        });
+
+    const emptyPreview =
+        document.getElementById("emptyPreview");
+
+    const previewStatus =
+        document.getElementById("previewStatus");
+
+    const statColors =
+        document.getElementById("statColors");
+
+    const statSize =
+        document.getElementById("statSize");
+
+    const statGrid =
+        document.getElementById("statGrid");
+
+    const statLoops =
+        document.getElementById("statLoops");
+
+
+    /*
+       New grid / zoom elements.
+
+       These are optional so the old page does not completely
+       break if the new HTML hasn't been pasted yet.
+    */
+
+    const rugWorkspace =
+        document.getElementById("rugWorkspace");
+
+    const rugCanvasWrap =
+        document.getElementById("rugCanvasWrap");
+
+    const gridTopLabels =
+        document.getElementById("gridTopLabels");
+
+    const gridLeftLabels =
+        document.getElementById("gridLeftLabels");
+
+    const colorLegend =
+        document.getElementById("colorLegend");
+
+    const zoomIn =
+        document.getElementById("zoomIn");
+
+    const zoomOut =
+        document.getElementById("zoomOut");
+
+    const zoomReset =
+        document.getElementById("zoomReset");
+
+    const zoomValue =
+        document.getElementById("zoomValue");
 
 
     /* ---------------------------------------------------------
        STATE
-    --------------------------------------------------------- */
+       --------------------------------------------------------- */
 
     let sourceImage = null;
 
@@ -65,16 +137,31 @@
     let isGenerating = false;
 
     let currentGridData = null;
+
     let currentGrid = null;
+
+    let zoomLevel = 1;
 
 
     /*
-       Maximum number of rug cells.
+       Zoom settings.
 
-       This controls the manufacturing preview resolution.
+       100% = 12 screen pixels per rug cell.
+    */
+
+    const MIN_ZOOM = 0.5;
+
+    const MAX_ZOOM = 5;
+
+    const ZOOM_STEP = 0.25;
+
+
+    /*
+       Maximum manufacturing preview resolution.
     */
 
     const MAX_GRID_WIDTH = 140;
+
     const MAX_GRID_HEIGHT = 140;
 
 
@@ -92,24 +179,45 @@
 
     /* ---------------------------------------------------------
        HELPERS
-    --------------------------------------------------------- */
+       --------------------------------------------------------- */
 
-    function clamp(value, min, max) {
-        return Math.max(min, Math.min(max, value));
+    function clamp(
+        value,
+        min,
+        max
+    ) {
+
+        return Math.max(
+            min,
+            Math.min(max, value)
+        );
     }
 
 
     function hexToRgb(hex) {
-        hex = hex.replace("#", "").trim();
+
+        hex =
+            hex
+                .replace("#", "")
+                .trim();
+
 
         if (hex.length === 3) {
-            hex = hex
-                .split("")
-                .map(char => char + char)
-                .join("");
+
+            hex =
+                hex
+                    .split("")
+                    .map(
+                        char =>
+                            char + char
+                    )
+                    .join("");
         }
 
-        const value = parseInt(hex, 16);
+
+        const value =
+            parseInt(hex, 16);
+
 
         return {
             r: (value >> 16) & 255,
@@ -119,25 +227,49 @@
     }
 
 
-    function rgbToHex(r, g, b) {
+    function rgbToHex(
+        r,
+        g,
+        b
+    ) {
+
         return (
             "#" +
-            [r, g, b]
-                .map(value =>
-                    clamp(Math.round(value), 0, 255)
-                        .toString(16)
-                        .padStart(2, "0")
-                        .toUpperCase()
+            [
+                r,
+                g,
+                b
+            ]
+                .map(
+                    value =>
+                        clamp(
+                            Math.round(value),
+                            0,
+                            255
+                        )
+                            .toString(16)
+                            .padStart(2, "0")
+                            .toUpperCase()
                 )
                 .join("")
         );
     }
 
 
-    function colorDistance(a, b) {
-        const dr = a.r - b.r;
-        const dg = a.g - b.g;
-        const db = a.b - b.b;
+    function colorDistance(
+        a,
+        b
+    ) {
+
+        const dr =
+            a.r - b.r;
+
+        const dg =
+            a.g - b.g;
+
+        const db =
+            a.b - b.b;
+
 
         return Math.sqrt(
             dr * dr * 0.299 +
@@ -147,14 +279,24 @@
     }
 
 
-    function normalizeHex(value) {
-        value = String(value || "").trim();
+    function normalizeHex(
+        value
+    ) {
+
+        value =
+            String(value || "")
+                .trim();
+
 
         if (!value.startsWith("#")) {
             value = "#" + value;
         }
 
-        if (/^#[0-9a-fA-F]{3}$/.test(value)) {
+
+        if (
+            /^#[0-9a-fA-F]{3}$/.test(value)
+        ) {
+
             return (
                 "#" +
                 value[1] + value[1] +
@@ -163,11 +305,332 @@
             ).toUpperCase();
         }
 
-        if (/^#[0-9a-fA-F]{6}$/.test(value)) {
+
+        if (
+            /^#[0-9a-fA-F]{6}$/.test(value)
+        ) {
+
             return value.toUpperCase();
         }
 
+
         return "#000000";
+    }
+
+
+    /* ---------------------------------------------------------
+       COLUMN LABELS
+       A B C ... Z AA AB ...
+       --------------------------------------------------------- */
+
+    function columnLabel(
+        number
+    ) {
+
+        let label = "";
+
+        let n = number + 1;
+
+
+        while (n > 0) {
+
+            const remainder =
+                (n - 1) % 26;
+
+
+            label =
+                String.fromCharCode(
+                    65 + remainder
+                ) + label;
+
+
+            n =
+                Math.floor(
+                    (n - 1) / 26
+                );
+        }
+
+
+        return label;
+    }
+
+
+    /* ---------------------------------------------------------
+       GRID LABELS
+       --------------------------------------------------------- */
+
+    function renderGridLabels(
+        grid
+    ) {
+
+        if (
+            !gridTopLabels ||
+            !gridLeftLabels
+        ) {
+            return;
+        }
+
+
+        gridTopLabels.innerHTML = "";
+
+        gridLeftLabels.innerHTML = "";
+
+
+        for (
+            let x = 0;
+            x < grid.width;
+            x++
+        ) {
+
+            const label =
+                document.createElement("span");
+
+
+            label.textContent =
+                columnLabel(x);
+
+
+            gridTopLabels.appendChild(
+                label
+            );
+        }
+
+
+        for (
+            let y = 0;
+            y < grid.height;
+            y++
+        ) {
+
+            const label =
+                document.createElement("span");
+
+
+            label.textContent =
+                y + 1;
+
+
+            gridLeftLabels.appendChild(
+                label
+            );
+        }
+    }
+
+
+    /* ---------------------------------------------------------
+       ZOOM
+       --------------------------------------------------------- */
+
+    function updateZoom() {
+
+        if (
+            !currentGrid ||
+            !rugWorkspace
+        ) {
+            return;
+        }
+
+
+        const baseCellSize = 12;
+
+
+        const cellSize =
+            baseCellSize *
+            zoomLevel;
+
+
+        rugWorkspace.style
+            .setProperty(
+                "--cell-size",
+                `${cellSize}px`
+            );
+
+
+        rugWorkspace.style
+            .setProperty(
+                "--grid-width",
+                currentGrid.width
+            );
+
+
+        rugWorkspace.style
+            .setProperty(
+                "--grid-height",
+                currentGrid.height
+            );
+
+
+        if (zoomValue) {
+
+            zoomValue.textContent =
+                `${Math.round(zoomLevel * 100)}%`;
+        }
+    }
+
+
+    if (zoomIn) {
+
+        zoomIn.addEventListener(
+            "click",
+            () => {
+
+                zoomLevel =
+                    clamp(
+                        zoomLevel +
+                        ZOOM_STEP,
+                        MIN_ZOOM,
+                        MAX_ZOOM
+                    );
+
+
+                updateZoom();
+            }
+        );
+    }
+
+
+    if (zoomOut) {
+
+        zoomOut.addEventListener(
+            "click",
+            () => {
+
+                zoomLevel =
+                    clamp(
+                        zoomLevel -
+                        ZOOM_STEP,
+                        MIN_ZOOM,
+                        MAX_ZOOM
+                    );
+
+
+                updateZoom();
+            }
+        );
+    }
+
+
+    if (zoomReset) {
+
+        zoomReset.addEventListener(
+            "click",
+            () => {
+
+                zoomLevel = 1;
+
+                updateZoom();
+
+
+                if (rugWorkspace) {
+
+                    rugWorkspace.scrollIntoView({
+                        behavior: "smooth",
+                        block: "nearest",
+                        inline: "center"
+                    });
+                }
+            }
+        );
+    }
+
+
+    /* ---------------------------------------------------------
+       COLOR LEGEND
+       --------------------------------------------------------- */
+
+    function renderColorLegend(
+        gridData,
+        palette
+    ) {
+
+        if (!colorLegend) {
+            return;
+        }
+
+
+        colorLegend.innerHTML = "";
+
+
+        const counts =
+            new Map();
+
+
+        gridData.forEach(
+            row => {
+
+                row.forEach(
+                    color => {
+
+                        if (!color) {
+                            return;
+                        }
+
+
+                        counts.set(
+                            color,
+                            (
+                                counts.get(color) ||
+                                0
+                            ) + 1
+                        );
+                    }
+                );
+            }
+        );
+
+
+        palette.forEach(
+            (hex, index) => {
+
+                const normalized =
+                    normalizeHex(hex);
+
+
+                const count =
+                    counts.get(
+                        normalized
+                    ) || 0;
+
+
+                const item =
+                    document.createElement(
+                        "div"
+                    );
+
+
+                item.className =
+                    "legend-item";
+
+
+                item.innerHTML = `
+                    <div
+                        class="legend-color"
+                        style="background:${normalized}"
+                    ></div>
+
+                    <div class="legend-main">
+
+                        <span class="legend-label">
+                            COLOR ${index + 1}
+                        </span>
+
+                        <span class="legend-hex">
+                            ${normalized}
+                        </span>
+
+                    </div>
+
+                    <div class="legend-count">
+                        ${count.toLocaleString()} LOOPS
+                    </div>
+                `;
+
+
+                colorLegend.appendChild(
+                    item
+                );
+            }
+        );
     }
 
 
@@ -177,19 +640,22 @@
 
     function createExportControls() {
 
-        /*
-           Don't create them twice.
-        */
-
-        if (document.getElementById("rugExportControls")) {
+        if (
+            document.getElementById(
+                "rugExportControls"
+            )
+        ) {
             return;
         }
+
 
         const container =
             document.createElement("div");
 
+
         container.id =
             "rugExportControls";
+
 
         container.style.cssText = `
             display: grid;
@@ -202,9 +668,14 @@
         const downloadButton =
             document.createElement("button");
 
-        downloadButton.type = "button";
+
+        downloadButton.type =
+            "button";
+
+
         downloadButton.textContent =
             "DOWNLOAD PNG";
+
 
         downloadButton.style.cssText = `
             min-height: 52px;
@@ -220,9 +691,14 @@
         const projectorButton =
             document.createElement("button");
 
-        projectorButton.type = "button";
+
+        projectorButton.type =
+            "button";
+
+
         projectorButton.textContent =
             "PROJECTOR MODE";
+
 
         projectorButton.style.cssText = `
             min-height: 52px;
@@ -238,14 +714,17 @@
         downloadButton.addEventListener(
             "mouseenter",
             () => {
+
                 downloadButton.style.borderColor =
                     "#f2f0ea";
             }
         );
 
+
         downloadButton.addEventListener(
             "mouseleave",
             () => {
+
                 downloadButton.style.borderColor =
                     "#292925";
             }
@@ -255,14 +734,17 @@
         projectorButton.addEventListener(
             "mouseenter",
             () => {
+
                 projectorButton.style.background =
                     "#b9ff4a";
             }
         );
 
+
         projectorButton.addEventListener(
             "mouseleave",
             () => {
+
                 projectorButton.style.background =
                     "#f2f0ea";
             }
@@ -274,104 +756,142 @@
             downloadRugPNG
         );
 
+
         projectorButton.addEventListener(
             "click",
             openProjectorMode
         );
 
 
-        container.appendChild(downloadButton);
-        container.appendChild(projectorButton);
+        container.appendChild(
+            downloadButton
+        );
 
 
-        /*
-           Put controls directly below preview.
-        */
+        container.appendChild(
+            projectorButton
+        );
+
 
         const previewPanel =
-            document.querySelector(".preview-panel");
+            document.querySelector(
+                ".preview-panel"
+            );
+
 
         if (previewPanel) {
-            previewPanel.appendChild(container);
+
+            previewPanel.appendChild(
+                container
+            );
         }
     }
 
 
     /* ---------------------------------------------------------
        IMAGE UPLOAD
-    --------------------------------------------------------- */
+       --------------------------------------------------------- */
 
-    imageInput.addEventListener("change", event => {
+    imageInput.addEventListener(
+        "change",
+        event => {
 
-        const file =
-            event.target.files?.[0];
+            const file =
+                event.target.files?.[0];
 
-        if (!file) {
-            return;
+
+            if (!file) {
+                return;
+            }
+
+
+            if (
+                !file.type.startsWith("image/")
+            ) {
+
+                alert(
+                    "Please select an image."
+                );
+
+                return;
+            }
+
+
+            fileName.textContent =
+                file.name;
+
+
+            const reader =
+                new FileReader();
+
+
+            reader.onload =
+                event => {
+
+                    const img =
+                        new Image();
+
+
+                    img.onload =
+                        () => {
+
+                            sourceImage =
+                                img;
+
+
+                            originalRatio =
+                                img.naturalWidth /
+                                img.naturalHeight;
+
+
+                            if (
+                                lockRatio.checked
+                            ) {
+
+                                updateHeightFromWidth();
+                            }
+
+
+                            previewStatus.textContent =
+                                "IMAGE LOADED";
+
+
+                            emptyPreview.style.display =
+                                "none";
+
+
+                            canvas.style.display =
+                                "block";
+
+
+                            generateRug();
+                        };
+
+
+                    img.onerror =
+                        () => {
+
+                            alert(
+                                "Could not load this image."
+                            );
+                        };
+
+
+                    img.src =
+                        event.target.result;
+                };
+
+
+            reader.readAsDataURL(
+                file
+            );
         }
-
-        if (!file.type.startsWith("image/")) {
-            alert("Please select an image.");
-            return;
-        }
-
-        fileName.textContent =
-            file.name;
-
-        const reader =
-            new FileReader();
-
-        reader.onload = event => {
-
-            const img =
-                new Image();
-
-            img.onload = () => {
-
-                sourceImage = img;
-
-                originalRatio =
-                    img.naturalWidth /
-                    img.naturalHeight;
-
-
-                if (lockRatio.checked) {
-                    updateHeightFromWidth();
-                }
-
-
-                previewStatus.textContent =
-                    "IMAGE LOADED";
-
-
-                emptyPreview.style.display =
-                    "none";
-
-                canvas.style.display =
-                    "block";
-
-
-                generateRug();
-            };
-
-
-            img.onerror = () => {
-                alert("Could not load this image.");
-            };
-
-
-            img.src =
-                event.target.result;
-        };
-
-
-        reader.readAsDataURL(file);
-    });
+    );
 
 
     /* ---------------------------------------------------------
        BACKGROUND
-    --------------------------------------------------------- */
+       --------------------------------------------------------- */
 
     keepBackground.addEventListener(
         "click",
@@ -380,8 +900,16 @@
             backgroundMode =
                 "keep";
 
-            keepBackground.classList.add("active");
-            removeBackground.classList.remove("active");
+
+            keepBackground.classList.add(
+                "active"
+            );
+
+
+            removeBackground.classList.remove(
+                "active"
+            );
+
 
             generateRug();
         }
@@ -395,8 +923,16 @@
             backgroundMode =
                 "remove";
 
-            removeBackground.classList.add("active");
-            keepBackground.classList.remove("active");
+
+            removeBackground.classList.add(
+                "active"
+            );
+
+
+            keepBackground.classList.remove(
+                "active"
+            );
+
 
             generateRug();
         }
@@ -405,7 +941,7 @@
 
     /* ---------------------------------------------------------
        COLOR COUNT
-    --------------------------------------------------------- */
+       --------------------------------------------------------- */
 
     colorCounts.addEventListener(
         "click",
@@ -416,36 +952,42 @@
                     "[data-colors]"
                 );
 
+
             if (!button) {
                 return;
             }
 
+
             numberOfColors =
-                Number(button.dataset.colors);
+                Number(
+                    button.dataset.colors
+                );
 
 
             document
                 .querySelectorAll(
                     "#colorCounts button"
                 )
-                .forEach(item =>
-                    item.classList.remove("active")
+                .forEach(
+                    item =>
+                        item.classList.remove(
+                            "active"
+                        )
                 );
 
 
-            button.classList.add("active");
+            button.classList.add(
+                "active"
+            );
 
-
-            /*
-               Reset manually modified palette when changing
-               number of colors.
-            */
 
             customPalette = [];
 
 
             if (sourceImage) {
+
                 generateRug();
+
             } else {
 
                 generatedPalette =
@@ -453,6 +995,7 @@
                         0,
                         numberOfColors
                     );
+
 
                 renderPalette(
                     generatedPalette
@@ -466,48 +1009,59 @@
        PALETTE
        --------------------------------------------------------- */
 
-    function renderPalette(palette) {
+    function renderPalette(
+        palette
+    ) {
 
-        paletteElement.innerHTML = "";
-
-        palette.forEach((hex, index) => {
-
-            const row =
-                document.createElement("div");
-
-            row.className =
-                "palette-row";
+        paletteElement.innerHTML =
+            "";
 
 
-            row.innerHTML = `
-                <input
-                    class="palette-color"
-                    type="color"
-                    value="${normalizeHex(hex)}"
-                    data-palette-index="${index}"
-                >
+        palette.forEach(
+            (hex, index) => {
 
-                <input
-                    class="palette-hex"
-                    type="text"
-                    value="${normalizeHex(hex)}"
-                    data-palette-index="${index}"
-                    maxlength="7"
-                    spellcheck="false"
-                >
-
-                <button
-                    class="palette-delete"
-                    type="button"
-                    data-palette-delete="${index}"
-                >
-                    ×
-                </button>
-            `;
+                const row =
+                    document.createElement(
+                        "div"
+                    );
 
 
-            paletteElement.appendChild(row);
-        });
+                row.className =
+                    "palette-row";
+
+
+                row.innerHTML = `
+                    <input
+                        class="palette-color"
+                        type="color"
+                        value="${normalizeHex(hex)}"
+                        data-palette-index="${index}"
+                    >
+
+                    <input
+                        class="palette-hex"
+                        type="text"
+                        value="${normalizeHex(hex)}"
+                        data-palette-index="${index}"
+                        maxlength="7"
+                        spellcheck="false"
+                    >
+
+                    <button
+                        class="palette-delete"
+                        type="button"
+                        data-palette-delete="${index}"
+                    >
+                        ×
+                    </button>
+                `;
+
+
+                paletteElement.appendChild(
+                    row
+                );
+            }
+        );
     }
 
 
@@ -516,19 +1070,25 @@
         event => {
 
             const index =
-                event.target.dataset.paletteIndex;
+                event.target.dataset
+                    .paletteIndex;
 
-            if (index === undefined) {
+
+            if (
+                index === undefined
+            ) {
                 return;
             }
 
 
             if (
-                event.target.type === "color"
+                event.target.type ===
+                "color"
             ) {
 
                 customPalette[index] =
-                    event.target.value.toUpperCase();
+                    event.target.value
+                        .toUpperCase();
 
 
                 const textInput =
@@ -538,8 +1098,10 @@
 
 
                 if (textInput) {
+
                     textInput.value =
-                        event.target.value.toUpperCase();
+                        event.target.value
+                            .toUpperCase();
                 }
 
 
@@ -554,9 +1116,13 @@
         event => {
 
             const index =
-                event.target.dataset.paletteIndex;
+                event.target.dataset
+                    .paletteIndex;
 
-            if (index === undefined) {
+
+            if (
+                index === undefined
+            ) {
                 return;
             }
 
@@ -576,6 +1142,7 @@
                 customPalette[index] =
                     value;
 
+
                 event.target.value =
                     value;
 
@@ -587,6 +1154,7 @@
 
 
                 if (colorInput) {
+
                     colorInput.value =
                         value;
                 }
@@ -607,6 +1175,7 @@
                     "[data-palette-delete]"
                 );
 
+
             if (!deleteButton) {
                 return;
             }
@@ -614,13 +1183,19 @@
 
             const index =
                 Number(
-                    deleteButton.dataset.paletteDelete
+                    deleteButton.dataset
+                        .paletteDelete
                 );
 
 
-            if (!customPalette.length) {
+            if (
+                !customPalette.length
+            ) {
+
                 customPalette =
-                    [...generatedPalette];
+                    [
+                        ...generatedPalette
+                    ];
             }
 
 
@@ -630,7 +1205,10 @@
             );
 
 
-            if (!customPalette.length) {
+            if (
+                !customPalette.length
+            ) {
+
                 customPalette =
                     ["#000000"];
             }
@@ -639,13 +1217,17 @@
             numberOfColors =
                 customPalette.length;
 
+
             generatedPalette =
-                [...customPalette];
+                [
+                    ...customPalette
+                ];
 
 
             renderPalette(
                 generatedPalette
             );
+
 
             generateRug();
         }
@@ -658,8 +1240,11 @@
 
             customPalette = [];
 
+
             if (sourceImage) {
+
                 generateRug();
+
             } else {
 
                 generatedPalette =
@@ -667,6 +1252,7 @@
                         0,
                         numberOfColors
                     );
+
 
                 renderPalette(
                     generatedPalette
@@ -682,22 +1268,30 @@
 
     function updateHeightFromWidth() {
 
-        if (!lockRatio.checked) {
+        if (
+            !lockRatio.checked
+        ) {
             return;
         }
 
 
         const width =
-            Number(widthInput.value);
+            Number(
+                widthInput.value
+            );
 
 
-        if (!width || !originalRatio) {
+        if (
+            !width ||
+            !originalRatio
+        ) {
             return;
         }
 
 
         const height =
-            width / originalRatio;
+            width /
+            originalRatio;
 
 
         heightInput.value =
@@ -714,6 +1308,7 @@
 
             updateHeightFromWidth();
 
+
             if (sourceImage) {
                 generateRug();
             }
@@ -729,6 +1324,7 @@
                 sourceImage &&
                 !lockRatio.checked
             ) {
+
                 generateRug();
             }
         }
@@ -739,9 +1335,13 @@
         "change",
         () => {
 
-            if (lockRatio.checked) {
+            if (
+                lockRatio.checked
+            ) {
+
                 updateHeightFromWidth();
             }
+
 
             if (sourceImage) {
                 generateRug();
@@ -761,6 +1361,7 @@
             contrastValue.textContent =
                 contrastInput.value;
 
+
             generateRug();
         }
     );
@@ -772,6 +1373,7 @@
 
             brightnessValue.textContent =
                 brightnessInput.value;
+
 
             generateRug();
         }
@@ -791,8 +1393,10 @@
 
         const maxSize = 500;
 
+
         let width =
             sourceImage.naturalWidth;
+
 
         let height =
             sourceImage.naturalHeight;
@@ -809,14 +1413,18 @@
         width =
             Math.max(
                 1,
-                Math.round(width * ratio)
+                Math.round(
+                    width * ratio
+                )
             );
 
 
         height =
             Math.max(
                 1,
-                Math.round(height * ratio)
+                Math.round(
+                    height * ratio
+                )
             );
 
 
@@ -828,6 +1436,7 @@
 
         tempCanvas.width =
             width;
+
 
         tempCanvas.height =
             height;
@@ -877,8 +1486,14 @@
 
 
         const factor =
-            (259 * (contrast + 255)) /
-            (255 * (259 - contrast));
+            (
+                259 *
+                (contrast + 255)
+            ) /
+            (
+                255 *
+                (259 - contrast)
+            );
 
 
         for (
@@ -887,16 +1502,23 @@
             i += 4
         ) {
 
-            let r = data[i];
-            let g = data[i + 1];
-            let b = data[i + 2];
+            let r =
+                data[i];
+
+            let g =
+                data[i + 1];
+
+            let b =
+                data[i + 2];
 
 
             r +=
                 brightness * 2.55;
 
+
             g +=
                 brightness * 2.55;
+
 
             b +=
                 brightness * 2.55;
@@ -907,10 +1529,12 @@
                 (r - 128) +
                 128;
 
+
             g =
                 factor *
                 (g - 128) +
                 128;
+
 
             b =
                 factor *
@@ -919,13 +1543,27 @@
 
 
             data[i] =
-                clamp(r, 0, 255);
+                clamp(
+                    r,
+                    0,
+                    255
+                );
+
 
             data[i + 1] =
-                clamp(g, 0, 255);
+                clamp(
+                    g,
+                    0,
+                    255
+                );
+
 
             data[i + 2] =
-                clamp(b, 0, 255);
+                clamp(
+                    b,
+                    0,
+                    255
+                );
         }
 
 
@@ -952,7 +1590,8 @@
     ) {
 
         if (
-            backgroundMode !== "remove"
+            backgroundMode !==
+            "remove"
         ) {
             return;
         }
@@ -965,16 +1604,20 @@
         const width =
             imageData.width;
 
+
         const height =
             imageData.height;
 
 
         const cornerPositions = [
             0,
+
             (width - 1) * 4,
+
             (height - 1) *
                 width *
                 4,
+
             (
                 (height - 1) *
                 width +
@@ -1035,8 +1678,10 @@
 
 
             if (
-                distance < threshold
+                distance <
+                threshold
             ) {
+
                 data[i + 3] = 0;
             }
         }
@@ -1073,7 +1718,9 @@
                 data[i + 3];
 
 
-            if (alpha < 30) {
+            if (
+                alpha < 30
+            ) {
                 continue;
             }
 
@@ -1089,16 +1736,21 @@
 
 
             r =
-                Math.floor(r / 16) *
-                16;
+                Math.floor(
+                    r / 16
+                ) * 16;
+
 
             g =
-                Math.floor(g / 16) *
-                16;
+                Math.floor(
+                    g / 16
+                ) * 16;
+
 
             b =
-                Math.floor(b / 16) *
-                16;
+                Math.floor(
+                    b / 16
+                ) * 16;
 
 
             const key =
@@ -1107,7 +1759,10 @@
 
             buckets.set(
                 key,
-                (buckets.get(key) || 0) + 1
+                (
+                    buckets.get(key) ||
+                    0
+                ) + 1
             );
         }
 
@@ -1116,7 +1771,8 @@
             [...buckets.entries()]
                 .sort(
                     (a, b) =>
-                        b[1] - a[1]
+                        b[1] -
+                        a[1]
                 )
                 .slice(0, 60)
                 .map(
@@ -1142,7 +1798,10 @@
                 );
 
 
-        if (!sorted.length) {
+        if (
+            !sorted.length
+        ) {
+
             return DEFAULT_PALETTE.slice(
                 0,
                 count
@@ -1156,12 +1815,18 @@
 
 
         while (
-            result.length < count &&
-            result.length < sorted.length
+            result.length <
+            count &&
+            result.length <
+            sorted.length
         ) {
 
-            let bestCandidate = null;
-            let bestScore = -Infinity;
+            let bestCandidate =
+                null;
+
+
+            let bestScore =
+                -Infinity;
 
 
             for (
@@ -1179,7 +1844,9 @@
                     );
 
 
-                if (alreadySelected) {
+                if (
+                    alreadySelected
+                ) {
                     continue;
                 }
 
@@ -1211,11 +1878,13 @@
 
 
                 if (
-                    score > bestScore
+                    score >
+                    bestScore
                 ) {
 
                     bestScore =
                         score;
+
 
                     bestCandidate =
                         candidate;
@@ -1223,7 +1892,9 @@
             }
 
 
-            if (!bestCandidate) {
+            if (
+                !bestCandidate
+            ) {
                 break;
             }
 
@@ -1252,17 +1923,20 @@
     function calculateGrid() {
 
         const rugWidth =
-            Number(widthInput.value) ||
-            100;
+            Number(
+                widthInput.value
+            ) || 100;
 
 
         const rugHeight =
-            Number(heightInput.value) ||
-            75;
+            Number(
+                heightInput.value
+            ) || 75;
 
 
         const ratio =
-            rugWidth / rugHeight;
+            rugWidth /
+            rugHeight;
 
 
         let gridWidth =
@@ -1277,7 +1951,8 @@
 
         let gridHeight =
             Math.round(
-                gridWidth / ratio
+                gridWidth /
+                ratio
             );
 
 
@@ -1289,9 +1964,11 @@
             gridWidth =
                 MAX_GRID_WIDTH;
 
+
             gridHeight =
                 Math.round(
-                    gridWidth / ratio
+                    gridWidth /
+                    ratio
                 );
         }
 
@@ -1304,9 +1981,11 @@
             gridHeight =
                 MAX_GRID_HEIGHT;
 
+
             gridWidth =
                 Math.round(
-                    gridHeight * ratio
+                    gridHeight *
+                    ratio
                 );
         }
 
@@ -1463,7 +2142,9 @@
                                 .data[index + 3];
 
 
-                        if (a < 20) {
+                        if (
+                            a < 20
+                        ) {
                             continue;
                         }
 
@@ -1472,13 +2153,16 @@
                             sourceData
                                 .data[index];
 
+
                         g +=
                             sourceData
                                 .data[index + 1];
 
+
                         b +=
                             sourceData
                                 .data[index + 2];
+
 
                         alpha += a;
 
@@ -1508,6 +2192,7 @@
                 let closest =
                     palette[0];
 
+
                 let closestDistance =
                     Infinity;
 
@@ -1529,6 +2214,7 @@
 
                             closestDistance =
                                 distance;
+
 
                             closest =
                                 color;
@@ -1577,6 +2263,7 @@
         canvas.width =
             grid.width;
 
+
         canvas.height =
             grid.height;
 
@@ -1610,12 +2297,14 @@
                     ctx.fillStyle =
                         "#0e0e0c";
 
+
                     ctx.fillRect(
                         x,
                         y,
                         1,
                         1
                     );
+
 
                     continue;
                 }
@@ -1641,6 +2330,26 @@
 
         canvas.style.imageRendering =
             "pixelated";
+
+
+        /*
+           New grid information.
+        */
+
+        renderGridLabels(
+            grid
+        );
+
+
+        renderColorLegend(
+            gridData,
+            customPalette.length
+                ? customPalette
+                : generatedPalette
+        );
+
+
+        updateZoom();
     }
 
 
@@ -1653,13 +2362,15 @@
     ) {
 
         const width =
-            Number(widthInput.value) ||
-            100;
+            Number(
+                widthInput.value
+            ) || 100;
 
 
         const height =
-            Number(heightInput.value) ||
-            75;
+            Number(
+                heightInput.value
+            ) || 75;
 
 
         const totalCells =
@@ -1744,7 +2455,9 @@
                        user hasn't manually edited it.
                     */
 
-                    if (!customPalette.length) {
+                    if (
+                        !customPalette.length
+                    ) {
 
                         generatedPalette =
                             extractPalette(
@@ -1770,12 +2483,9 @@
                         );
 
 
-                    /*
-                       Save the current design.
-                    */
-
                     currentGridData =
                         gridData;
+
 
                     currentGrid =
                         grid;
@@ -1795,6 +2505,7 @@
                     emptyPreview.style.display =
                         "none";
 
+
                     canvas.style.display =
                         "block";
 
@@ -1802,10 +2513,6 @@
                     previewStatus.textContent =
                         "RUG READY";
 
-
-                    /*
-                       Make export controls visible.
-                    */
 
                     createExportControls();
 
@@ -1852,11 +2559,10 @@
 
 
         /*
-           Export at a much higher resolution than
-           the preview canvas.
+           High-resolution export.
 
-           This makes the PNG useful for projection
-           and printing.
+           The exported PNG contains ONLY the rug.
+           No coordinates, legend or UI.
         */
 
         const EXPORT_CELL_SIZE = 40;
@@ -1888,10 +2594,6 @@
             false;
 
 
-        /*
-           Background.
-        */
-
         exportCtx.fillStyle =
             "#0e0e0c";
 
@@ -1903,10 +2605,6 @@
             exportCanvas.height
         );
 
-
-        /*
-           Draw every rug cell.
-        */
 
         for (
             let y = 0;
@@ -1942,10 +2640,6 @@
             }
         }
 
-
-        /*
-           Download.
-        */
 
         const link =
             document.createElement(
@@ -2029,10 +2723,6 @@
         `;
 
 
-        /*
-           Create projector canvas.
-        */
-
         const projectorCanvas =
             document.createElement(
                 "canvas"
@@ -2042,13 +2732,19 @@
         projectorCanvas.width =
             currentGrid.width;
 
+
         projectorCanvas.height =
             currentGrid.height;
 
 
+        const ratio =
+            currentGrid.width /
+            currentGrid.height;
+
+
         projectorCanvas.style.cssText = `
-            width: min(96vw, 96vh * ${currentGrid.width / currentGrid.height});
-            height: min(96vh, 96vw / ${currentGrid.width / currentGrid.height});
+            width: min(96vw, 96vh * ${ratio});
+            height: min(96vh, 96vw / ${ratio});
             max-width: 96vw;
             max-height: 96vh;
             image-rendering: pixelated;
@@ -2065,10 +2761,6 @@
         projectorCtx.imageSmoothingEnabled =
             false;
 
-
-        /*
-           Draw the rug.
-        */
 
         for (
             let y = 0;
@@ -2133,6 +2825,7 @@
 
         info.innerHTML = `
             <span>DOCH / PROJECTOR MODE</span>
+
             <span>
                 ${widthInput.value} × ${heightInput.value} CM
                 / ${customPalette.length || numberOfColors} COLORS
@@ -2140,7 +2833,9 @@
         `;
 
 
-        overlay.appendChild(info);
+        overlay.appendChild(
+            info
+        );
 
 
         /*
@@ -2155,6 +2850,7 @@
 
         closeButton.type =
             "button";
+
 
         closeButton.textContent =
             "EXIT PROJECTOR";
@@ -2177,7 +2873,15 @@
 
         closeButton.addEventListener(
             "click",
-            () => overlay.remove()
+            () => {
+
+                overlay.remove();
+
+                document.removeEventListener(
+                    "keydown",
+                    escapeHandler
+                );
+            }
         );
 
 
@@ -2190,7 +2894,9 @@
            ESC closes projector.
         */
 
-        function escapeHandler(event) {
+        function escapeHandler(
+            event
+        ) {
 
             if (
                 event.key === "Escape"
@@ -2227,9 +2933,12 @@
         () => {
 
             if (!sourceImage) {
+
                 imageInput.click();
+
                 return;
             }
+
 
             generateRug();
         }
@@ -2262,6 +2971,13 @@
 
     statColors.textContent =
         numberOfColors;
+
+
+    if (zoomValue) {
+
+        zoomValue.textContent =
+            "100%";
+    }
 
 
     createExportControls();
