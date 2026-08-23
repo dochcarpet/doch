@@ -2,22 +2,30 @@
    DOCH — CUSTOM RUG
    IMAGE → YARN → RUG
 
-   IMPORTANT:
-   DETAIL ≠ GRID
-
    DETAIL
-   - controls image processing resolution
-   - higher = more visual detail
-   - does NOT define physical rug grid
+   ---------------------------------------------------------
+   Controls image processing resolution.
+
+   10%  = coarse
+   50%  = medium
+   100% = maximum detail
 
    GRID
-   - physical transfer grid
-   - fixed at GRID_CELL_CM × GRID_CELL_CM
-   - used only as a guide for transferring the design
+   ---------------------------------------------------------
+   Physical transfer grid.
+   Always based on GRID_CELL_CM.
+
+   Example:
+   100 × 75 cm
+   5 cm cells
+   = 20 × 15 physical cells
+
+   DETAIL and GRID are completely independent.
    ========================================================= */
 
 (() => {
     "use strict";
+
 
     /* =========================================================
        ELEMENTS
@@ -72,9 +80,11 @@
         document.getElementById("rugCanvas");
 
     const ctx =
-        canvas?.getContext("2d", {
-            willReadFrequently: true
-        });
+        canvas
+            ? canvas.getContext("2d", {
+                willReadFrequently: true
+            })
+            : null;
 
     const emptyPreview =
         document.getElementById("emptyPreview");
@@ -144,52 +154,53 @@
 
     let currentDetailData = null;
 
+    let currentPreviewMode = "rug";
+
     let zoomLevel = 1;
 
-    let detailLevel = 80;
+    let detailLevel = 50;
 
     let isGenerating = false;
+
+    let generationTimer = null;
+
+    let detailInput = null;
+
+    let detailValue = null;
 
 
     /* =========================================================
        SETTINGS
        ========================================================= */
 
-    /*
-       PHYSICAL GRID
-
-       This is NOT image resolution.
-
-       Example:
-       100 × 75 cm rug
-       5 cm cells
-       = 20 × 15 transfer cells
-    */
-
     const GRID_CELL_CM = 5;
 
-
     /*
-       DETAIL
+       DETAIL is now a percentage.
 
-       This controls image processing resolution.
-
-       80  = lower detail
-       120 = medium
-       200 = high
-       300 = very high
+       10  = coarse
+       50  = medium
+       100 = fine
     */
 
-    const MIN_DETAIL = 20;
-    const MAX_DETAIL = 500;
-
+    const MIN_DETAIL = 10;
+    const MAX_DETAIL = 100;
+    const DETAIL_STEP = 5;
 
     /*
-       Source image processing limit.
+       Maximum pixels used while processing source image.
     */
 
-    const MAX_SOURCE_SIZE = 700;
+    const MAX_SOURCE_SIZE = 900;
 
+    /*
+       Maximum detail grid dimension.
+
+       Prevents absurdly large 500×375 / 1000×750
+       processing grids.
+    */
+
+    const MAX_DETAIL_WIDTH = 300;
 
     /*
        Zoom
@@ -198,6 +209,15 @@
     const MIN_ZOOM = 0.5;
     const MAX_ZOOM = 5;
     const ZOOM_STEP = 0.25;
+
+    /*
+       Default preview cell size.
+
+       This is only a rendering unit.
+       It has NOTHING to do with physical rug cells.
+    */
+
+    const PREVIEW_CELL = 8;
 
 
     const DEFAULT_PALETTE = [
@@ -315,7 +335,6 @@
 
 
     function hexToRgbArray(palette) {
-
         return palette.map(hexToRgb);
     }
 
@@ -357,23 +376,22 @@
         const height =
             Number(heightInput?.value) || 75;
 
-
-        /*
-           Physical grid is ALWAYS based on centimeters.
-
-           100 cm / 5 cm = 20
-           75 cm / 5 cm = 15
-        */
-
         return {
+
             width: Math.max(
                 1,
-                Math.round(width / GRID_CELL_CM)
+                Math.round(
+                    width /
+                    GRID_CELL_CM
+                )
             ),
 
             height: Math.max(
                 1,
-                Math.round(height / GRID_CELL_CM)
+                Math.round(
+                    height /
+                    GRID_CELL_CM
+                )
             )
         };
     }
@@ -385,11 +403,12 @@
 
     function createDetailControl() {
 
-        if (
+        const existing =
             document.getElementById(
                 "rugDetailControl"
-            )
-        ) {
+            );
+
+        if (existing) {
 
             detailInput =
                 document.getElementById(
@@ -400,6 +419,28 @@
                 document.getElementById(
                     "rugDetailValue"
                 );
+
+            if (detailInput) {
+
+                detailInput.min =
+                    MIN_DETAIL;
+
+                detailInput.max =
+                    MAX_DETAIL;
+
+                detailInput.step =
+                    DETAIL_STEP;
+
+                detailInput.value =
+                    detailLevel;
+            }
+
+            if (detailValue) {
+                detailValue.textContent =
+                    `${detailLevel}%`;
+            }
+
+            bindDetailInput();
 
             return;
         }
@@ -446,7 +487,7 @@
                         color:#77746d;
                     "
                 >
-                    ${detailLevel}
+                    ${detailLevel}%
                 </span>
             </div>
 
@@ -455,11 +496,13 @@
                 type="range"
                 min="${MIN_DETAIL}"
                 max="${MAX_DETAIL}"
-                step="10"
+                step="${DETAIL_STEP}"
                 value="${detailLevel}"
+                aria-label="Image detail"
                 style="
                     display:block;
                     width:100%;
+                    max-width:100%;
                     box-sizing:border-box;
                     margin:0;
                     cursor:pointer;
@@ -470,7 +513,7 @@
                 width:100%;
                 display:flex;
                 justify-content:space-between;
-                margin-top:6px;
+                margin-top:7px;
                 font:8px 'DM Mono',monospace;
                 color:#55534e;
             ">
@@ -492,11 +535,15 @@
         }
 
 
-        if (!target) {
+        if (!target && widthInput) {
 
             target =
-                widthInput?.parentElement?.parentElement ||
-                document.body;
+                widthInput.parentElement?.parentElement;
+        }
+
+
+        if (!target) {
+            target = document.body;
         }
 
 
@@ -514,6 +561,24 @@
             );
 
 
+        bindDetailInput();
+    }
+
+
+    function bindDetailInput() {
+
+        if (
+            !detailInput ||
+            detailInput.dataset.bound === "true"
+        ) {
+            return;
+        }
+
+
+        detailInput.dataset.bound =
+            "true";
+
+
         detailInput.addEventListener(
             "input",
             () => {
@@ -522,132 +587,24 @@
                     clamp(
                         Number(
                             detailInput.value
-                        ) || 80,
+                        ) || 50,
                         MIN_DETAIL,
                         MAX_DETAIL
                     );
 
 
-                detailValue.textContent =
-                    String(detailLevel);
+                if (detailValue) {
+
+                    detailValue.textContent =
+                        `${detailLevel}%`;
+                }
 
 
                 if (sourceImage) {
-                    generateRug();
+                    scheduleGeneration();
                 }
             }
         );
-    }
-
-
-    let detailInput = null;
-    let detailValue = null;
-
-
-    /* =========================================================
-       IMAGE PREVIEW
-       ========================================================= */
-
-    function showSourceImage() {
-
-        if (!sourceImage || !canvas) {
-            return;
-        }
-
-
-        /*
-           IMPORTANT:
-
-           Show uploaded image immediately.
-
-           This fixes the "image disappears after upload"
-           problem.
-        */
-
-        const maxWidth = 900;
-        const maxHeight = 700;
-
-        let width =
-            sourceImage.naturalWidth;
-
-        let height =
-            sourceImage.naturalHeight;
-
-
-        const ratio =
-            Math.min(
-                maxWidth / width,
-                maxHeight / height,
-                1
-            );
-
-
-        width =
-            Math.max(
-                1,
-                Math.round(width * ratio)
-            );
-
-        height =
-            Math.max(
-                1,
-                Math.round(height * ratio)
-            );
-
-
-        canvas.width =
-            width;
-
-        canvas.height =
-            height;
-
-
-        canvas.style.display =
-            "block";
-
-
-        canvas.style.position =
-            "relative";
-
-
-        canvas.style.width =
-            `${width}px`;
-
-        canvas.style.height =
-            `${height}px`;
-
-
-        canvas.style.imageRendering =
-            "auto";
-
-
-        ctx.clearRect(
-            0,
-            0,
-            width,
-            height
-        );
-
-
-        ctx.drawImage(
-            sourceImage,
-            0,
-            0,
-            width,
-            height
-        );
-
-
-        if (emptyPreview) {
-            emptyPreview.style.display =
-                "none";
-        }
-
-
-        if (previewStatus) {
-            previewStatus.textContent =
-                "IMAGE LOADED";
-        }
     }
 
 
@@ -665,17 +622,17 @@
         rugWorkspace.style.position =
             "relative";
 
+        rugWorkspace.style.width =
+            "100%";
+
+        rugWorkspace.style.height =
+            "100%";
+
         rugWorkspace.style.minWidth =
             "0";
 
         rugWorkspace.style.minHeight =
             "0";
-
-        rugWorkspace.style.width =
-            "100%";
-
-        rugWorkspace.style.maxWidth =
-            "100%";
 
         rugWorkspace.style.overflow =
             "hidden";
@@ -706,7 +663,323 @@
 
             rugCanvasWrap.style.boxSizing =
                 "border-box";
+
+            rugCanvasWrap.style.display =
+                "flex";
+
+            rugCanvasWrap.style.alignItems =
+                "center";
+
+            rugCanvasWrap.style.justifyContent =
+                "center";
+
+            rugCanvasWrap.style.padding =
+                "28px";
+
+            rugCanvasWrap.style.scrollbarGutter =
+                "stable";
         }
+    }
+
+
+    /* =========================================================
+       FIT PREVIEW
+       ========================================================= */
+
+    function getWorkspaceSize() {
+
+        if (!rugCanvasWrap) {
+
+            return {
+                width: 900,
+                height: 700
+            };
+        }
+
+
+        return {
+
+            width:
+                Math.max(
+                    100,
+                    rugCanvasWrap.clientWidth -
+                    56
+                ),
+
+            height:
+                Math.max(
+                    100,
+                    rugCanvasWrap.clientHeight -
+                    56
+                )
+        };
+    }
+
+
+    function getBasePreviewSize() {
+
+        if (!currentDetailData) {
+
+            return {
+                width: 1,
+                height: 1
+            };
+        }
+
+
+        return {
+
+            width:
+                currentDetailData.width *
+                PREVIEW_CELL,
+
+            height:
+                currentDetailData.height *
+                PREVIEW_CELL
+        };
+    }
+
+
+    function calculateFitZoom() {
+
+        const workspace =
+            getWorkspaceSize();
+
+        const base =
+            getBasePreviewSize();
+
+
+        if (
+            !base.width ||
+            !base.height
+        ) {
+            return 1;
+        }
+
+
+        const fitX =
+            workspace.width /
+            base.width;
+
+        const fitY =
+            workspace.height /
+            base.height;
+
+
+        return clamp(
+            Math.min(
+                fitX,
+                fitY,
+                1
+            ),
+            MIN_ZOOM,
+            1
+        );
+    }
+
+
+    /* =========================================================
+       SOURCE IMAGE PREVIEW
+       ========================================================= */
+
+    function showSourceImage() {
+
+        if (
+            !sourceImage ||
+            !canvas ||
+            !ctx
+        ) {
+            return;
+        }
+
+
+        const workspace =
+            getWorkspaceSize();
+
+
+        const imageWidth =
+            sourceImage.naturalWidth;
+
+        const imageHeight =
+            sourceImage.naturalHeight;
+
+
+        const fit =
+            Math.min(
+                workspace.width /
+                    imageWidth,
+
+                workspace.height /
+                    imageHeight,
+
+                1
+            );
+
+
+        const width =
+            Math.max(
+                1,
+                Math.round(
+                    imageWidth * fit
+                )
+            );
+
+
+        const height =
+            Math.max(
+                1,
+                Math.round(
+                    imageHeight * fit
+                )
+            );
+
+
+        canvas.width =
+            width;
+
+        canvas.height =
+            height;
+
+
+        canvas.style.position =
+            "relative";
+
+        canvas.style.left =
+            "auto";
+
+        canvas.style.top =
+            "auto";
+
+        canvas.style.width =
+            `${width}px`;
+
+        canvas.style.height =
+            `${height}px`;
+
+        canvas.style.maxWidth =
+            "100%";
+
+        canvas.style.maxHeight =
+            "100%";
+
+        canvas.style.imageRendering =
+            "auto";
+
+        canvas.style.display =
+            "block";
+
+
+        ctx.clearRect(
+            0,
+            0,
+            width,
+            height
+        );
+
+
+        ctx.imageSmoothingEnabled =
+            true;
+
+
+        ctx.drawImage(
+            sourceImage,
+            0,
+            0,
+            width,
+            height
+        );
+
+
+        currentPreviewMode =
+            "source";
+
+
+        if (emptyPreview) {
+
+            emptyPreview.style.display =
+                "none";
+        }
+
+
+        if (previewStatus) {
+
+            previewStatus.textContent =
+                "IMAGE LOADED";
+        }
+    }
+
+
+    /* =========================================================
+       DETAIL GRID
+       ========================================================= */
+
+    function calculateDetailGrid() {
+
+        const width =
+            Number(widthInput?.value) || 100;
+
+        const height =
+            Number(heightInput?.value) || 75;
+
+
+        /*
+           Physical dimensions define aspect ratio.
+
+           DETAIL controls how many processing cells
+           are used across the width.
+        */
+
+        const minWidth =
+            Math.max(
+                20,
+                calculatePhysicalGrid().width * 2
+            );
+
+
+        const maxWidth =
+            Math.max(
+                minWidth,
+                MAX_DETAIL_WIDTH
+            );
+
+
+        const detailWidth =
+            Math.round(
+                minWidth +
+                (
+                    maxWidth -
+                    minWidth
+                ) *
+                (
+                    detailLevel -
+                    MIN_DETAIL
+                ) /
+                (
+                    MAX_DETAIL -
+                    MIN_DETAIL
+                )
+            );
+
+
+        const detailHeight =
+            Math.max(
+                1,
+                Math.round(
+                    detailWidth *
+                    height /
+                    width
+                )
+            );
+
+
+        return {
+
+            width:
+                detailWidth,
+
+            height:
+                detailHeight
+        };
     }
 
 
@@ -717,50 +990,50 @@
     function updateZoom() {
 
         if (
-            !currentDetailData ||
-            !rugWorkspace ||
-            !canvas
+            !canvas ||
+            !currentDetailData
         ) {
             return;
         }
 
 
-        const baseCellSize = 8;
+        const base =
+            getBasePreviewSize();
 
-        const visualWidth =
-            currentDetailData.width *
-            baseCellSize *
-            zoomLevel;
 
-        const visualHeight =
-            currentDetailData.height *
-            baseCellSize *
+        const width =
+            base.width *
             zoomLevel;
 
 
-        canvas.style.display =
-            "block";
+        const height =
+            base.height *
+            zoomLevel;
+
 
         canvas.style.position =
-            "absolute";
+            "relative";
 
         canvas.style.left =
-            "0";
+            "auto";
 
         canvas.style.top =
-            "0";
+            "auto";
 
         canvas.style.width =
-            `${visualWidth}px`;
+            `${width}px`;
 
         canvas.style.height =
-            `${visualHeight}px`;
+            `${height}px`;
 
         canvas.style.maxWidth =
             "none";
 
         canvas.style.maxHeight =
             "none";
+
+        canvas.style.display =
+            "block";
 
         canvas.style.imageRendering =
             "pixelated";
@@ -773,6 +1046,47 @@
                     zoomLevel * 100
                 )}%`;
         }
+
+
+        if (rugCanvasWrap) {
+
+            if (zoomLevel <= 1) {
+
+                rugCanvasWrap.style.overflow =
+                    "hidden";
+
+            } else {
+
+                rugCanvasWrap.style.overflow =
+                    "auto";
+            }
+        }
+
+
+        requestAnimationFrame(
+            drawPhysicalGridOverlay
+        );
+    }
+
+
+    function resetZoomToFit() {
+
+        zoomLevel =
+            calculateFitZoom();
+
+
+        /*
+           Never go below 50%.
+        */
+
+        zoomLevel =
+            Math.max(
+                MIN_ZOOM,
+                zoomLevel
+            );
+
+
+        updateZoom();
     }
 
 
@@ -804,10 +1118,14 @@
         ) {
 
             const span =
-                document.createElement("span");
+                document.createElement(
+                    "span"
+                );
+
 
             span.textContent =
                 columnLabel(x);
+
 
             gridTopLabels.appendChild(
                 span
@@ -822,15 +1140,137 @@
         ) {
 
             const span =
-                document.createElement("span");
+                document.createElement(
+                    "span"
+                );
+
 
             span.textContent =
-                y + 1;
+                String(y + 1);
+
 
             gridLeftLabels.appendChild(
                 span
             );
         }
+    }
+
+
+    /* =========================================================
+       PHYSICAL GRID OVERLAY
+       ========================================================= */
+
+    function drawPhysicalGridOverlay() {
+
+        if (
+            !rugCanvasWrap ||
+            !currentDetailData ||
+            !currentGrid
+        ) {
+            return;
+        }
+
+
+        let overlay =
+            document.getElementById(
+                "physicalGridOverlay"
+            );
+
+
+        if (!overlay) {
+
+            overlay =
+                document.createElement(
+                    "div"
+                );
+
+
+            overlay.id =
+                "physicalGridOverlay";
+
+
+            overlay.style.cssText = `
+                position:absolute;
+                pointer-events:none;
+                z-index:20;
+                box-sizing:border-box;
+            `;
+
+
+            rugCanvasWrap.appendChild(
+                overlay
+            );
+        }
+
+
+        const base =
+            getBasePreviewSize();
+
+
+        const width =
+            base.width *
+            zoomLevel;
+
+        const height =
+            base.height *
+            zoomLevel;
+
+
+        /*
+           IMPORTANT:
+
+           Physical grid is calculated directly
+           from physical grid dimensions.
+
+           It does NOT depend on detail resolution.
+        */
+
+        const cellWidth =
+            width /
+            currentGrid.width;
+
+        const cellHeight =
+            height /
+            currentGrid.height;
+
+
+        overlay.style.width =
+            `${width}px`;
+
+        overlay.style.height =
+            `${height}px`;
+
+
+        overlay.style.left =
+            "50%";
+
+        overlay.style.top =
+            "50%";
+
+        overlay.style.transform =
+            "translate(-50%, -50%)";
+
+
+        overlay.style.backgroundImage = `
+            linear-gradient(
+                to right,
+                rgba(255,255,255,.28) 1px,
+                transparent 1px
+            ),
+            linear-gradient(
+                to bottom,
+                rgba(255,255,255,.28) 1px,
+                transparent 1px
+            )
+        `;
+
+
+        overlay.style.backgroundSize =
+            `${cellWidth}px ${cellHeight}px`;
+
+
+        overlay.style.border =
+            "1px solid rgba(255,255,255,.65)";
     }
 
 
@@ -863,13 +1303,18 @@
         width =
             Math.max(
                 1,
-                Math.round(width * scale)
+                Math.round(
+                    width * scale
+                )
             );
+
 
         height =
             Math.max(
                 1,
-                Math.round(height * scale)
+                Math.round(
+                    height * scale
+                )
             );
 
 
@@ -1001,8 +1446,12 @@
 
 
         return {
-            canvas: tempCanvas,
-            imageData
+
+            canvas:
+                tempCanvas,
+
+            imageData:
+                imageData
         };
     }
 
@@ -1034,6 +1483,7 @@
 
 
         const positions = [
+
             0,
 
             (width - 1) * 4,
@@ -1058,17 +1508,19 @@
         };
 
 
-        positions.forEach(position => {
+        positions.forEach(
+            position => {
 
-            background.r +=
-                data[position];
+                background.r +=
+                    data[position];
 
-            background.g +=
-                data[position + 1];
+                background.g +=
+                    data[position + 1];
 
-            background.b +=
-                data[position + 2];
-        });
+                background.b +=
+                    data[position + 2];
+            }
+        );
 
 
         background.r /= 4;
@@ -1086,9 +1538,14 @@
         ) {
 
             const color = {
+
                 r: data[i],
-                g: data[i + 1],
-                b: data[i + 2]
+
+                g:
+                    data[i + 1],
+
+                b:
+                    data[i + 2]
             };
 
 
@@ -1099,7 +1556,8 @@
                 ) < threshold
             ) {
 
-                data[i + 3] = 0;
+                data[i + 3] =
+                    0;
             }
         }
     }
@@ -1140,10 +1598,12 @@
                     data[i] / 16
                 ) * 16;
 
+
             const g =
                 Math.floor(
                     data[i + 1] / 16
                 ) * 16;
+
 
             const b =
                 Math.floor(
@@ -1172,25 +1632,31 @@
                         b[1] - a[1]
                 )
                 .slice(0, 60)
-                .map(([key, weight]) => {
+                .map(
+                    ([key, weight]) => {
 
-                    const [
-                        r,
-                        g,
-                        b
-                    ] =
-                        key
-                            .split(",")
-                            .map(Number);
+                        const [
+                            r,
+                            g,
+                            b
+                        ] =
+                            key
+                                .split(",")
+                                .map(Number);
 
 
-                    return {
-                        r,
-                        g,
-                        b,
-                        weight
-                    };
-                });
+                        return {
+
+                            r,
+
+                            g,
+
+                            b,
+
+                            weight
+                        };
+                    }
+                );
 
 
         if (!sorted.length) {
@@ -1213,61 +1679,68 @@
         ) {
 
             let best = null;
-            let bestScore = -Infinity;
+
+            let bestScore =
+                -Infinity;
 
 
-            sorted.forEach(candidate => {
+            sorted.forEach(
+                candidate => {
 
-                const duplicate =
-                    result.some(
-                        selected =>
-                            colorDistance(
-                                selected,
-                                candidate
-                            ) < 12
+                    const duplicate =
+                        result.some(
+                            selected =>
+                                colorDistance(
+                                    selected,
+                                    candidate
+                                ) < 12
+                        );
+
+
+                    if (duplicate) {
+                        return;
+                    }
+
+
+                    let minimum =
+                        Infinity;
+
+
+                    result.forEach(
+                        selected => {
+
+                            minimum =
+                                Math.min(
+                                    minimum,
+                                    colorDistance(
+                                        selected,
+                                        candidate
+                                    )
+                                );
+                        }
                     );
 
 
-                if (duplicate) {
-                    return;
+                    const score =
+                        minimum +
+                        Math.log(
+                            candidate.weight + 1
+                        ) * 3;
+
+
+                    if (
+                        score >
+                        bestScore
+                    ) {
+
+                        bestScore =
+                            score;
+
+                        best =
+                            candidate;
+                    }
                 }
-
-
-                let minimum =
-                    Infinity;
-
-
-                result.forEach(selected => {
-
-                    minimum =
-                        Math.min(
-                            minimum,
-                            colorDistance(
-                                selected,
-                                candidate
-                            )
-                        );
-                });
-
-
-                const score =
-                    minimum +
-                    Math.log(
-                        candidate.weight + 1
-                    ) * 3;
-
-
-                if (
-                    score > bestScore
-                ) {
-
-                    bestScore =
-                        score;
-
-                    best =
-                        candidate;
-                }
-            });
+            );
 
 
             if (!best) {
@@ -1279,59 +1752,14 @@
         }
 
 
-        return result.map(color =>
-            rgbToHex(
-                color.r,
-                color.g,
-                color.b
-            )
-        );
-    }
-
-
-    /* =========================================================
-       DETAIL GRID
-       ========================================================= */
-
-    function calculateDetailGrid() {
-
-        const width =
-            Number(widthInput?.value) || 100;
-
-        const height =
-            Number(heightInput?.value) || 75;
-
-
-        /*
-           DETAIL defines the number of processing
-           cells across the image.
-
-           It has NOTHING to do with physical grid.
-        */
-
-        const detailWidth =
-            clamp(
-                Math.round(detailLevel),
-                MIN_DETAIL,
-                MAX_DETAIL
-            );
-
-
-        const detailHeight =
-            Math.max(
-                1,
-                Math.round(
-                    detailWidth *
-                    height /
-                    width
+        return result.map(
+            color =>
+                rgbToHex(
+                    color.r,
+                    color.g,
+                    color.b
                 )
-            );
-
-
-        return {
-            width: detailWidth,
-            height: detailHeight
-        };
+        );
     }
 
 
@@ -1417,7 +1845,9 @@
                     Math.max(
                         sx + 1,
                         Math.floor(
-                            (x + 1) /
+                            (
+                                x + 1
+                            ) /
                             detailGrid.width *
                             sourceCanvas.width
                         )
@@ -1428,7 +1858,9 @@
                     Math.max(
                         sy + 1,
                         Math.floor(
-                            (y + 1) /
+                            (
+                                y + 1
+                            ) /
                             detailGrid.height *
                             sourceCanvas.height
                         )
@@ -1467,13 +1899,17 @@
                             ];
 
 
-                        if (alpha < 20) {
+                        if (
+                            alpha < 20
+                        ) {
                             continue;
                         }
 
 
                         r +=
-                            sourceData.data[index];
+                            sourceData.data[
+                                index
+                            ];
 
                         g +=
                             sourceData.data[
@@ -1499,9 +1935,15 @@
 
 
                 const average = {
-                    r: r / pixels,
-                    g: g / pixels,
-                    b: b / pixels
+
+                    r:
+                        r / pixels,
+
+                    g:
+                        g / pixels,
+
+                    b:
+                        b / pixels
                 };
 
 
@@ -1512,27 +1954,29 @@
                     Infinity;
 
 
-                palette.forEach(color => {
+                palette.forEach(
+                    color => {
 
-                    const distance =
-                        colorDistance(
-                            average,
-                            color
-                        );
+                        const distance =
+                            colorDistance(
+                                average,
+                                color
+                            );
 
 
-                    if (
-                        distance <
-                        closestDistance
-                    ) {
+                        if (
+                            distance <
+                            closestDistance
+                        ) {
 
-                        closestDistance =
-                            distance;
+                            closestDistance =
+                                distance;
 
-                        closest =
-                            color;
+                            closest =
+                                color;
+                        }
                     }
-                });
+                );
 
 
                 row.push(
@@ -1562,7 +2006,10 @@
         detailGrid
     ) {
 
-        if (!canvas) {
+        if (
+            !canvas ||
+            !ctx
+        ) {
             return;
         }
 
@@ -1599,7 +2046,7 @@
             ) {
 
                 const color =
-                    data[y][x];
+                    data[y]?.[x];
 
 
                 ctx.fillStyle =
@@ -1621,116 +2068,28 @@
             detailGrid;
 
 
-        canvas.style.imageRendering =
-            "pixelated";
+        currentPreviewMode =
+            "rug";
+
+
+        /*
+           IMPORTANT:
+           after every regeneration the image
+           automatically fits the available workspace.
+        */
+
+        zoomLevel =
+            calculateFitZoom();
 
 
         updateZoom();
-    }
 
 
-    /* =========================================================
-       DRAW PHYSICAL GRID OVER PREVIEW
-       ========================================================= */
+        if (emptyPreview) {
 
-    function drawPhysicalGridOverlay() {
-
-        if (
-            !rugCanvasWrap ||
-            !currentDetailData
-        ) {
-            return;
+            emptyPreview.style.display =
+                "none";
         }
-
-
-        let overlay =
-            document.getElementById(
-                "physicalGridOverlay"
-            );
-
-
-        if (!overlay) {
-
-            overlay =
-                document.createElement(
-                    "div"
-                );
-
-            overlay.id =
-                "physicalGridOverlay";
-
-
-            overlay.style.cssText = `
-                position:absolute;
-                pointer-events:none;
-                z-index:10;
-            `;
-
-
-            rugCanvasWrap.appendChild(
-                overlay
-            );
-        }
-
-
-        const cellWidth =
-            currentDetailData.width *
-            8 *
-            zoomLevel /
-            currentGrid.width;
-
-
-        const cellHeight =
-            currentDetailData.height *
-            8 *
-            zoomLevel /
-            currentGrid.height;
-
-
-        const width =
-            currentDetailData.width *
-            8 *
-            zoomLevel;
-
-        const height =
-            currentDetailData.height *
-            8 *
-            zoomLevel;
-
-
-        overlay.style.left =
-            "0";
-
-        overlay.style.top =
-            "0";
-
-        overlay.style.width =
-            `${width}px`;
-
-        overlay.style.height =
-            `${height}px`;
-
-
-        overlay.style.backgroundImage = `
-            linear-gradient(
-                to right,
-                rgba(255,255,255,.25) 1px,
-                transparent 1px
-            ),
-            linear-gradient(
-                to bottom,
-                rgba(255,255,255,.25) 1px,
-                transparent 1px
-            )
-        `;
-
-
-        overlay.style.backgroundSize =
-            `${cellWidth}px ${cellHeight}px`;
-
-
-        overlay.style.border =
-            "1px solid rgba(255,255,255,.65)";
     }
 
 
@@ -1756,24 +2115,29 @@
             new Map();
 
 
-        data.forEach(row => {
+        data.forEach(
+            row => {
 
-            row.forEach(color => {
+                row.forEach(
+                    color => {
 
-                if (!color) {
-                    return;
-                }
+                        if (!color) {
+                            return;
+                        }
 
 
-                counts.set(
-                    color,
-                    (
-                        counts.get(color) ||
-                        0
-                    ) + 1
+                        counts.set(
+                            color,
+                            (
+                                counts.get(
+                                    color
+                                ) || 0
+                            ) + 1
+                        );
+                    }
                 );
-            });
-        });
+            }
+        );
 
 
         palette.forEach(
@@ -1929,6 +2293,7 @@
 
 
                     if (text) {
+
                         text.value =
                             event.target.value
                                 .toUpperCase();
@@ -1936,7 +2301,7 @@
 
 
                     if (sourceImage) {
-                        generateRug();
+                        scheduleGeneration();
                     }
                 }
             }
@@ -1992,7 +2357,7 @@
 
 
                     if (sourceImage) {
-                        generateRug();
+                        scheduleGeneration();
                     }
                 }
             }
@@ -2063,7 +2428,7 @@
 
 
                 if (sourceImage) {
-                    generateRug();
+                    scheduleGeneration();
                 }
             }
         );
@@ -2081,7 +2446,7 @@
 
                 if (sourceImage) {
 
-                    generateRug();
+                    scheduleGeneration();
 
                 } else {
 
@@ -2090,6 +2455,7 @@
                             0,
                             numberOfColors
                         );
+
 
                     renderPalette(
                         generatedPalette
@@ -2134,6 +2500,7 @@
 
 
                 if (fileName) {
+
                     fileName.textContent =
                         file.name;
                 }
@@ -2171,21 +2538,22 @@
 
 
                                 /*
-                                   FIRST:
-                                   immediately show source image.
+                                   SHOW ORIGINAL IMAGE.
+
+                                   This remains visible until
+                                   rug generation actually finishes.
                                 */
 
                                 showSourceImage();
 
 
                                 /*
-                                   THEN:
-                                   generate rug.
+                                   Generate after browser had a chance
+                                   to paint the uploaded image.
                                 */
 
-                                setTimeout(
-                                    generateRug,
-                                    30
+                                scheduleGeneration(
+                                    50
                                 );
                             };
 
@@ -2235,7 +2603,7 @@
 
 
                 if (sourceImage) {
-                    generateRug();
+                    scheduleGeneration();
                 }
             }
         );
@@ -2263,7 +2631,7 @@
 
 
                 if (sourceImage) {
-                    generateRug();
+                    scheduleGeneration();
                 }
             }
         );
@@ -2301,10 +2669,11 @@
                     .querySelectorAll(
                         "button"
                     )
-                    .forEach(item =>
-                        item.classList.remove(
-                            "active"
-                        )
+                    .forEach(
+                        item =>
+                            item.classList.remove(
+                                "active"
+                            )
                     );
 
 
@@ -2318,7 +2687,7 @@
 
                 if (sourceImage) {
 
-                    generateRug();
+                    scheduleGeneration();
 
                 } else {
 
@@ -2386,7 +2755,7 @@
 
 
                 if (sourceImage) {
-                    generateRug();
+                    scheduleGeneration();
                 }
             }
         );
@@ -2404,7 +2773,7 @@
                     !lockRatio?.checked
                 ) {
 
-                    generateRug();
+                    scheduleGeneration();
                 }
             }
         );
@@ -2426,7 +2795,7 @@
 
 
                 if (sourceImage) {
-                    generateRug();
+                    scheduleGeneration();
                 }
             }
         );
@@ -2444,13 +2813,14 @@
             () => {
 
                 if (contrastValue) {
+
                     contrastValue.textContent =
                         contrastInput.value;
                 }
 
 
                 if (sourceImage) {
-                    generateRug();
+                    scheduleGeneration();
                 }
             }
         );
@@ -2464,13 +2834,14 @@
             () => {
 
                 if (brightnessValue) {
+
                     brightnessValue.textContent =
                         brightnessInput.value;
                 }
 
 
                 if (sourceImage) {
-                    generateRug();
+                    scheduleGeneration();
                 }
             }
         );
@@ -2527,11 +2898,6 @@
 
         if (statLoops) {
 
-            /*
-               Loops here represent DETAIL cells,
-               NOT physical grid cells.
-            */
-
             statLoops.textContent =
                 currentDetailData
                     ? (
@@ -2540,6 +2906,27 @@
                     ).toLocaleString()
                     : "0";
         }
+    }
+
+
+    /* =========================================================
+       GENERATION SCHEDULER
+       ========================================================= */
+
+    function scheduleGeneration(
+        delay = 80
+    ) {
+
+        clearTimeout(
+            generationTimer
+        );
+
+
+        generationTimer =
+            setTimeout(
+                generateRug,
+                delay
+            );
     }
 
 
@@ -2562,10 +2949,18 @@
 
 
         if (previewStatus) {
+
             previewStatus.textContent =
                 "PROCESSING…";
         }
 
+
+        /*
+           Keep source image visible while processing.
+
+           This is especially important when DETAIL
+           is high and processing takes some time.
+        */
 
         setTimeout(
             () => {
@@ -2604,8 +2999,8 @@
 
 
                     /*
-                       Generate palette unless
-                       manually edited.
+                       Generate palette only if
+                       user has not manually edited it.
                     */
 
                     if (
@@ -2627,8 +3022,6 @@
 
                     /*
                        DETAIL
-                       ------------------------------------------------
-                       This is the actual image resolution.
                     */
 
                     const detailGrid =
@@ -2642,14 +3035,8 @@
                         );
 
 
-                    currentDetailData =
-                        detailGrid;
-
-
                     /*
                        PHYSICAL GRID
-                       ------------------------------------------------
-                       Completely independent from DETAIL.
                     */
 
                     currentGrid =
@@ -2660,23 +3047,15 @@
                         detailData;
 
 
+                    currentDetailData =
+                        detailGrid;
+
+
                     drawDetailPreview(
                         detailData,
                         detailGrid
                     );
 
-
-                    /*
-                       Overlay physical 5 cm grid.
-                    */
-
-                    drawPhysicalGridOverlay();
-
-
-                    /*
-                       Labels are physical grid labels,
-                       not image pixels.
-                    */
 
                     renderGridLabels(
                         currentGrid
@@ -2685,6 +3064,7 @@
 
                     renderColorLegend(
                         detailData,
+
                         customPalette.length
                             ? customPalette
                             : generatedPalette
@@ -2694,19 +3074,15 @@
                     updateStats();
 
 
-                    if (emptyPreview) {
-                        emptyPreview.style.display =
-                            "none";
-                    }
-
-
                     if (previewStatus) {
+
                         previewStatus.textContent =
                             "RUG READY";
                     }
 
 
                     createExportControls();
+
 
                 } catch (error) {
 
@@ -2717,6 +3093,7 @@
 
 
                     if (previewStatus) {
+
                         previewStatus.textContent =
                             "PROCESSING ERROR";
                     }
@@ -2729,6 +3106,182 @@
 
             },
             20
+        );
+    }
+
+
+    /* =========================================================
+       PREVIEW RESIZE
+       ========================================================= */
+
+    let resizeTimer = null;
+
+
+    window.addEventListener(
+        "resize",
+        () => {
+
+            clearTimeout(
+                resizeTimer
+            );
+
+
+            resizeTimer =
+                setTimeout(
+                    () => {
+
+                        if (
+                            currentPreviewMode ===
+                            "source"
+                        ) {
+
+                            showSourceImage();
+
+                        } else if (
+                            currentDetailData
+                        ) {
+
+                            /*
+                               Keep the current zoom
+                               if user intentionally zoomed.
+
+                               Otherwise fit automatically.
+                            */
+
+                            if (
+                                zoomLevel <= 1
+                            ) {
+
+                                zoomLevel =
+                                    calculateFitZoom();
+                            }
+
+
+                            updateZoom();
+                        }
+
+                    },
+                    100
+                );
+        }
+    );
+
+
+    /* =========================================================
+       MOUSE WHEEL ZOOM
+       ========================================================= */
+
+    if (rugCanvasWrap) {
+
+        rugCanvasWrap.addEventListener(
+            "wheel",
+            event => {
+
+                if (
+                    currentPreviewMode !==
+                    "rug"
+                ) {
+                    return;
+                }
+
+
+                /*
+                   CTRL / CMD + wheel:
+                   browser-style zoom.
+
+                   Plain wheel:
+                   zoom too, because this is the
+                   rug workspace.
+                */
+
+                event.preventDefault();
+
+
+                const direction =
+                    event.deltaY < 0
+                        ? 1
+                        : -1;
+
+
+                zoomLevel =
+                    clamp(
+                        zoomLevel +
+                        direction *
+                        ZOOM_STEP,
+
+                        MIN_ZOOM,
+
+                        MAX_ZOOM
+                    );
+
+
+                updateZoom();
+            },
+            {
+                passive: false
+            }
+        );
+    }
+
+
+    /* =========================================================
+       ZOOM BUTTONS
+       ========================================================= */
+
+    if (zoomIn) {
+
+        zoomIn.addEventListener(
+            "click",
+            () => {
+
+                zoomLevel =
+                    clamp(
+                        zoomLevel +
+                        ZOOM_STEP,
+
+                        MIN_ZOOM,
+
+                        MAX_ZOOM
+                    );
+
+
+                updateZoom();
+            }
+        );
+    }
+
+
+    if (zoomOut) {
+
+        zoomOut.addEventListener(
+            "click",
+            () => {
+
+                zoomLevel =
+                    clamp(
+                        zoomLevel -
+                        ZOOM_STEP,
+
+                        MIN_ZOOM,
+
+                        MAX_ZOOM
+                    );
+
+
+                updateZoom();
+            }
+        );
+    }
+
+
+    if (zoomReset) {
+
+        zoomReset.addEventListener(
+            "click",
+            () => {
+
+                resetZoomToFit();
+            }
         );
     }
 
@@ -2775,6 +3328,7 @@
         downloadButton.type =
             "button";
 
+
         downloadButton.textContent =
             "DOWNLOAD PNG";
 
@@ -2797,6 +3351,7 @@
 
         projectorButton.type =
             "button";
+
 
         projectorButton.textContent =
             "PROJECTOR MODE";
@@ -2827,6 +3382,7 @@
         container.appendChild(
             downloadButton
         );
+
 
         container.appendChild(
             projectorButton
@@ -2868,26 +3424,19 @@
         }
 
 
-        const CELL =
-            40;
+        const CELL = 40;
 
+        const LABEL = 55;
 
-        const LABEL =
-            55;
+        const HEADER = 90;
 
-
-        const HEADER =
-            90;
-
-
-        const LEGEND =
-            150;
+        const LEGEND = 150;
 
 
         const width =
             Math.round(
                 Number(
-                    widthInput.value
+                    widthInput?.value
                 ) || 100
             );
 
@@ -2895,7 +3444,7 @@
         const height =
             Math.round(
                 Number(
-                    heightInput.value
+                    heightInput?.value
                 ) || 75
             );
 
@@ -2904,10 +3453,6 @@
             customPalette.length ||
             numberOfColors;
 
-
-        /*
-           Export uses DETAIL resolution.
-        */
 
         const imageWidth =
             currentDetailData.width *
@@ -2939,6 +3484,7 @@
 
         exportCanvas.width =
             exportWidth;
+
 
         exportCanvas.height =
             exportHeight;
@@ -2973,8 +3519,10 @@
         exportCtx.fillStyle =
             "#f2f0ea";
 
+
         exportCtx.font =
             "bold 22px Arial";
+
 
         exportCtx.fillText(
             "DOCH / RUG GRID",
@@ -2986,12 +3534,13 @@
         exportCtx.fillStyle =
             "#77746d";
 
+
         exportCtx.font =
             "12px Arial";
 
 
         exportCtx.fillText(
-            `${width} × ${height} CM · ${currentGrid.width} × ${currentGrid.height} GRID · ${GRID_CELL_CM} CM CELL · ${colors} COLORS · DETAIL ${detailLevel}`,
+            `${width} × ${height} CM · ${currentGrid.width} × ${currentGrid.height} GRID · ${GRID_CELL_CM} CM CELL · ${colors} COLORS · DETAIL ${detailLevel}%`,
             25,
             58
         );
@@ -3006,7 +3555,7 @@
 
 
         /*
-           DRAW DETAIL IMAGE
+           DETAIL IMAGE
         */
 
         for (
@@ -3028,12 +3577,10 @@
 
                 exportCtx.fillRect(
                     gridX +
-                        x *
-                        CELL,
+                    x * CELL,
 
                     gridY +
-                        y *
-                        CELL,
+                    y * CELL,
 
                     CELL,
                     CELL
@@ -3043,7 +3590,7 @@
 
 
         /*
-           PHYSICAL 5 CM GRID
+           PHYSICAL GRID
         */
 
         const physicalCellWidth =
@@ -3079,16 +3626,19 @@
 
             exportCtx.beginPath();
 
+
             exportCtx.moveTo(
                 px,
                 gridY
             );
+
 
             exportCtx.lineTo(
                 px,
                 gridY +
                 imageHeight
             );
+
 
             exportCtx.stroke();
         }
@@ -3109,16 +3659,19 @@
 
             exportCtx.beginPath();
 
+
             exportCtx.moveTo(
                 gridX,
                 py
             );
+
 
             exportCtx.lineTo(
                 gridX +
                 imageWidth,
                 py
             );
+
 
             exportCtx.stroke();
         }
@@ -3130,6 +3683,7 @@
 
         exportCtx.strokeStyle =
             "#f2f0ea";
+
 
         exportCtx.lineWidth =
             2;
@@ -3150,8 +3704,10 @@
         exportCtx.fillStyle =
             "#aaa79f";
 
+
         exportCtx.font =
             "10px Arial";
+
 
         exportCtx.textAlign =
             "center";
@@ -3224,6 +3780,7 @@
         exportCtx.fillStyle =
             "#f2f0ea";
 
+
         exportCtx.font =
             "bold 12px Arial";
 
@@ -3239,24 +3796,29 @@
             new Map();
 
 
-        currentGridData.forEach(row => {
+        currentGridData.forEach(
+            row => {
 
-            row.forEach(color => {
+                row.forEach(
+                    color => {
 
-                if (!color) {
-                    return;
-                }
+                        if (!color) {
+                            return;
+                        }
 
 
-                counts.set(
-                    color,
-                    (
-                        counts.get(color) ||
-                        0
-                    ) + 1
+                        counts.set(
+                            color,
+                            (
+                                counts.get(
+                                    color
+                                ) || 0
+                            ) + 1
+                        );
+                    }
                 );
-            });
-        });
+            }
+        );
 
 
         const palette =
@@ -3274,14 +3836,18 @@
 
                 const itemX =
                     25 +
-                    (index % 4) *
+                    (
+                        index % 4
+                    ) *
                     190;
 
 
                 const itemY =
                     legendY +
                     25 +
-                    Math.floor(index / 4) *
+                    Math.floor(
+                        index / 4
+                    ) *
                     30;
 
 
@@ -3338,7 +3904,9 @@
 
 
         const link =
-            document.createElement("a");
+            document.createElement(
+                "a"
+            );
 
 
         link.download =
@@ -3395,18 +3963,23 @@
 
         const width =
             Math.round(
-                Number(widthInput.value)
+                Number(
+                    widthInput?.value
+                ) || 100
             );
 
 
         const height =
             Math.round(
-                Number(heightInput.value)
+                Number(
+                    heightInput?.value
+                ) || 75
             );
 
 
         const ratio =
-            width / height;
+            width /
+            height;
 
 
         const workspace =
@@ -3430,6 +4003,7 @@
 
         projectorCanvas.width =
             currentDetailData.width;
+
 
         projectorCanvas.height =
             currentDetailData.height;
@@ -3525,6 +4099,93 @@
 
 
         /*
+           GRID LABELS
+        */
+
+        for (
+            let x = 0;
+            x < currentGrid.width;
+            x++
+        ) {
+
+            const label =
+                document.createElement(
+                    "span"
+                );
+
+
+            label.textContent =
+                columnLabel(x);
+
+
+            label.style.cssText = `
+                position:absolute;
+                top:-18px;
+                left:${(
+                    x +
+                    0.5
+                ) * (
+                    100 /
+                    currentGrid.width
+                )}%;
+                transform:translateX(-50%);
+                color:#aaa79f;
+                font:9px Arial;
+                pointer-events:none;
+            `;
+
+
+            workspace.appendChild(
+                label
+            );
+        }
+
+
+        for (
+            let y = 0;
+            y < currentGrid.height;
+            y++
+        ) {
+
+            const label =
+                document.createElement(
+                    "span"
+                );
+
+
+            label.textContent =
+                String(y + 1);
+
+
+            label.style.cssText = `
+                position:absolute;
+                left:-22px;
+                top:${(
+                    y +
+                    0.5
+                ) * (
+                    100 /
+                    currentGrid.height
+                )}%;
+                transform:translateY(-50%);
+                color:#aaa79f;
+                font:9px Arial;
+                pointer-events:none;
+            `;
+
+
+            workspace.appendChild(
+                label
+            );
+        }
+
+
+        overlay.appendChild(
+            workspace
+        );
+
+
+        /*
            INFO
         */
 
@@ -3547,63 +4208,22 @@
 
 
         info.innerHTML = `
-            <span>DOCH / PROJECTOR MODE</span>
+            <span>
+                DOCH / PROJECTOR MODE
+            </span>
 
             <span>
                 ${width} × ${height} CM
                 · ${currentGrid.width} × ${currentGrid.height} GRID
                 · ${GRID_CELL_CM} CM CELL
-                · DETAIL ${detailLevel}
+                · DETAIL ${detailLevel}%
             </span>
         `;
 
 
         overlay.appendChild(
-            workspace
-        );
-
-
-        overlay.appendChild(
             info
         );
-
-
-        /*
-           GRID LABELS
-        */
-
-        for (
-            let x = 0;
-            x < currentGrid.width;
-            x++
-        ) {
-
-            const label =
-                document.createElement(
-                    "span"
-                );
-
-
-            label.textContent =
-                columnLabel(x);
-
-
-            label.style.cssText = `
-                position:absolute;
-                top:calc(
-                    50% - min(40vh,45vw / ${ratio}) - 20px
-                );
-                left:calc(
-                    50% - min(45vw,40vh * ${ratio}) +
-                    ${100 / currentGrid.width * x}%
-                );
-                color:#aaa79f;
-                font:9px Arial;
-                pointer-events:none;
-            `;
-
-            overlay.appendChild(label);
-        }
 
 
         /*
@@ -3635,7 +4255,20 @@
 
 
         close.onclick =
-            () => overlay.remove();
+            () => {
+
+                if (
+                    document.fullscreenElement
+                ) {
+
+                    document
+                        .exitFullscreen()
+                        .catch(() => {});
+                }
+
+
+                overlay.remove();
+            };
 
 
         overlay.appendChild(
@@ -3660,67 +4293,6 @@
 
 
     /* =========================================================
-       ZOOM BUTTONS
-       ========================================================= */
-
-    if (zoomIn) {
-
-        zoomIn.addEventListener(
-            "click",
-            () => {
-
-                zoomLevel =
-                    clamp(
-                        zoomLevel +
-                        ZOOM_STEP,
-                        MIN_ZOOM,
-                        MAX_ZOOM
-                    );
-
-                updateZoom();
-                drawPhysicalGridOverlay();
-            }
-        );
-    }
-
-
-    if (zoomOut) {
-
-        zoomOut.addEventListener(
-            "click",
-            () => {
-
-                zoomLevel =
-                    clamp(
-                        zoomLevel -
-                        ZOOM_STEP,
-                        MIN_ZOOM,
-                        MAX_ZOOM
-                    );
-
-                updateZoom();
-                drawPhysicalGridOverlay();
-            }
-        );
-    }
-
-
-    if (zoomReset) {
-
-        zoomReset.addEventListener(
-            "click",
-            () => {
-
-                zoomLevel = 1;
-
-                updateZoom();
-                drawPhysicalGridOverlay();
-            }
-        );
-    }
-
-
-    /* =========================================================
        GENERATE BUTTON
        ========================================================= */
 
@@ -3738,7 +4310,7 @@
                 }
 
 
-                generateRug();
+                scheduleGeneration(0);
             }
         );
     }
@@ -3765,7 +4337,10 @@
     );
 
 
-    if (contrastValue && contrastInput) {
+    if (
+        contrastValue &&
+        contrastInput
+    ) {
 
         contrastValue.textContent =
             contrastInput.value;
@@ -3779,6 +4354,27 @@
 
         brightnessValue.textContent =
             brightnessInput.value;
+    }
+
+
+    /*
+       Default background button state.
+    */
+
+    if (keepBackground) {
+        keepBackground.classList.add(
+            "active"
+        );
+    }
+
+
+    /*
+       Default zoom.
+    */
+
+    if (zoomValue) {
+        zoomValue.textContent =
+            "100%";
     }
 
 })();
