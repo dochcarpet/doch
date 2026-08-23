@@ -1,6 +1,12 @@
 /* =========================================================
    DOCH — CUSTOM RUG
    IMAGE → YARN → RUG
+
+   IMPORTANT CONCEPTS
+   ---------------------------------------------------------
+   SIZE   = physical rug dimensions in centimeters
+   GRID   = physical transfer grid, fixed at 5 × 5 cm
+   DETAIL = image processing / visual resolution
    ========================================================= */
 
 (() => {
@@ -59,11 +65,6 @@
     const canvas =
         document.getElementById("rugCanvas");
 
-    const ctx =
-        canvas.getContext("2d", {
-            willReadFrequently: true
-        });
-
     const emptyPreview =
         document.getElementById("emptyPreview");
 
@@ -84,7 +85,7 @@
 
 
     /* ---------------------------------------------------------
-       GRID / ZOOM ELEMENTS
+       PREVIEW / GRID ELEMENTS
        --------------------------------------------------------- */
 
     const rugWorkspace =
@@ -116,12 +117,47 @@
 
 
     /* ---------------------------------------------------------
+       SAFETY
+       --------------------------------------------------------- */
+
+    if (
+        !imageInput ||
+        !widthInput ||
+        !heightInput ||
+        !generateButton ||
+        !canvas
+    ) {
+        console.error(
+            "DOCH RUG: required elements are missing."
+        );
+
+        return;
+    }
+
+
+    /* ---------------------------------------------------------
+       CANVAS
+       --------------------------------------------------------- */
+
+    const ctx =
+        canvas.getContext(
+            "2d",
+            {
+                willReadFrequently: true
+            }
+        );
+
+
+    /* ---------------------------------------------------------
        STATE
        --------------------------------------------------------- */
 
     let sourceImage = null;
 
-    let originalRatio = 100 / 75;
+    let originalRatio =
+        Number(widthInput.value) /
+        Number(heightInput.value) ||
+        100 / 75;
 
     let numberOfColors = 4;
 
@@ -133,23 +169,46 @@
 
     let isGenerating = false;
 
-    let currentGridData = null;
+    let currentDetailGrid = null;
 
-    let currentGrid = null;
+    let currentPhysicalGrid = null;
+
+    let currentDetailData = null;
 
     let zoomLevel = 1;
 
     let detailLevel = 80;
 
+    let showTransferGrid = true;
+
 
     /* ---------------------------------------------------------
-       GRID SETTINGS
+       PHYSICAL GRID
+       ---------------------------------------------------------
+
+       THIS IS NOT IMAGE RESOLUTION.
+
+       This is the grid used when transferring
+       the design to the physical rug.
+
+       Example:
+
+       100 × 75 cm rug
+       5 × 5 cm grid
+       = 20 × 15 physical cells
        --------------------------------------------------------- */
 
     const GRID_CELL_CM = 5;
 
-    /*
-       DETAIL controls the number of cells across the rug.
+
+    /* ---------------------------------------------------------
+       DETAIL SETTINGS
+       ---------------------------------------------------------
+
+       DETAIL controls the resolution used to interpret
+       the source image.
+
+       It DOES NOT define physical centimeters.
 
        10  = very coarse
        40  = coarse
@@ -158,21 +217,24 @@
        180 = very detailed
        240 = very detailed
        300 = maximum
+       --------------------------------------------------------- */
 
-       Physical rug size DOES NOT change.
-    */
+    const MIN_DETAIL = 10;
 
-    const MIN_GRID_WIDTH = 10;
+    const MAX_DETAIL = 300;
 
-    const MAX_GRID_WIDTH = 500;
-
-    const MIN_GRID_HEIGHT = 10;
-
-    const MAX_GRID_HEIGHT = 500;
+    const DETAIL_STEP = 10;
 
 
     /* ---------------------------------------------------------
-       ZOOM SETTINGS
+       SOURCE PROCESSING
+       --------------------------------------------------------- */
+
+    const MAX_SOURCE_SIZE = 500;
+
+
+    /* ---------------------------------------------------------
+       ZOOM
        --------------------------------------------------------- */
 
     const MIN_ZOOM = 0.5;
@@ -183,11 +245,8 @@
 
 
     /* ---------------------------------------------------------
-       SOURCE PROCESSING
+       DEFAULT PALETTE
        --------------------------------------------------------- */
-
-    const MAX_SOURCE_SIZE = 500;
-
 
     const DEFAULT_PALETTE = [
         "#111111",
@@ -201,9 +260,9 @@
     ];
 
 
-    /* ---------------------------------------------------------
+    /* =========================================================
        HELPERS
-       --------------------------------------------------------- */
+       ========================================================= */
 
     function clamp(
         value,
@@ -221,7 +280,7 @@
     function hexToRgb(hex) {
 
         hex =
-            hex
+            String(hex || "")
                 .replace("#", "")
                 .trim();
 
@@ -342,10 +401,6 @@
     }
 
 
-    /* ---------------------------------------------------------
-       COLUMN LABELS
-       --------------------------------------------------------- */
-
     function columnLabel(
         number
     ) {
@@ -378,13 +433,144 @@
     }
 
 
-    /* ---------------------------------------------------------
+    /* =========================================================
+       PHYSICAL GRID
+       ========================================================= */
+
+    function calculatePhysicalGrid() {
+
+        const rugWidth =
+            Math.max(
+                1,
+                Number(widthInput.value) || 100
+            );
+
+
+        const rugHeight =
+            Math.max(
+                1,
+                Number(heightInput.value) || 75
+            );
+
+
+        /*
+           Physical transfer grid.
+
+           100 × 75 cm
+           / 5 cm
+           = 20 × 15
+
+           This has NOTHING to do with DETAIL.
+        */
+
+        const columns =
+            Math.max(
+                1,
+                Math.ceil(
+                    rugWidth /
+                    GRID_CELL_CM
+                )
+            );
+
+
+        const rows =
+            Math.max(
+                1,
+                Math.ceil(
+                    rugHeight /
+                    GRID_CELL_CM
+                )
+            );
+
+
+        return {
+            width: columns,
+            height: rows,
+            cellCm: GRID_CELL_CM
+        };
+    }
+
+
+    /* =========================================================
+       DETAIL GRID
+       ========================================================= */
+
+    function calculateDetailGrid() {
+
+        const rugWidth =
+            Math.max(
+                1,
+                Number(widthInput.value) || 100
+            );
+
+
+        const rugHeight =
+            Math.max(
+                1,
+                Number(heightInput.value) || 75
+            );
+
+
+        /*
+           DETAIL = number of image samples across.
+
+           It is a computational / visual resolution.
+
+           It does NOT represent centimeters.
+        */
+
+        let detailWidth =
+            clamp(
+                Math.round(detailLevel),
+                MIN_DETAIL,
+                MAX_DETAIL
+            );
+
+
+        let detailHeight =
+            Math.round(
+                detailWidth *
+                rugHeight /
+                rugWidth
+            );
+
+
+        detailHeight =
+            Math.max(
+                1,
+                detailHeight
+            );
+
+
+        return {
+            width: detailWidth,
+            height: detailHeight
+        };
+    }
+
+
+    /* =========================================================
        GRID LABELS
-       --------------------------------------------------------- */
+       ========================================================= */
+
+    function clearGridLabels() {
+
+        if (gridTopLabels) {
+            gridTopLabels.innerHTML = "";
+        }
+
+        if (gridLeftLabels) {
+            gridLeftLabels.innerHTML = "";
+        }
+    }
+
 
     function renderGridLabels(
-        grid
+        physicalGrid
     ) {
+
+        clearGridLabels();
+
 
         if (
             !gridTopLabels ||
@@ -394,14 +580,14 @@
         }
 
 
-        gridTopLabels.innerHTML = "";
-
-        gridLeftLabels.innerHTML = "";
-
+        /*
+           Labels represent the PHYSICAL GRID,
+           not detail pixels.
+        */
 
         for (
             let x = 0;
-            x < grid.width;
+            x < physicalGrid.width;
             x++
         ) {
 
@@ -421,7 +607,7 @@
 
         for (
             let y = 0;
-            y < grid.height;
+            y < physicalGrid.height;
             y++
         ) {
 
@@ -440,145 +626,9 @@
     }
 
 
-    /* ---------------------------------------------------------
-       FIXED PREVIEW WORKSPACE
-       --------------------------------------------------------- */
-
-function setupFixedWorkspace() {
-
-    if (!rugWorkspace) {
-        return;
-    }
-
-    /*
-       PREVIEW FRAME
-       -----------------------------------------------------
-       Workspace is the fixed viewport.
-       Grid/canvas is NEVER allowed to determine
-       the workspace dimensions.
-    */
-
-    rugWorkspace.style.position = "relative";
-    rugWorkspace.style.boxSizing = "border-box";
-
-    rugWorkspace.style.width = "100%";
-    rugWorkspace.style.maxWidth = "100%";
-
-    /*
-       Critical:
-       don't allow grid/canvas intrinsic size
-       to participate in parent's sizing.
-    */
-
-    rugWorkspace.style.minWidth = "0";
-    rugWorkspace.style.minHeight = "0";
-
-    rugWorkspace.style.overflow = "hidden";
-
-    rugWorkspace.style.display = "block";
-
-    /*
-       If workspace is inside flex/grid,
-       force it to be a bounded item.
-    */
-
-    rugWorkspace.style.flex = "1 1 0";
-    rugWorkspace.style.alignSelf = "stretch";
-
-    /*
-       Canvas wrapper = ONLY scrolling layer.
-    */
-
-    if (rugCanvasWrap) {
-
-        rugCanvasWrap.style.position = "absolute";
-        rugCanvasWrap.style.inset = "0";
-
-        rugCanvasWrap.style.width = "100%";
-        rugCanvasWrap.style.height = "100%";
-
-        rugCanvasWrap.style.maxWidth = "100%";
-        rugCanvasWrap.style.maxHeight = "100%";
-
-        rugCanvasWrap.style.minWidth = "0";
-        rugCanvasWrap.style.minHeight = "0";
-
-        rugCanvasWrap.style.boxSizing = "border-box";
-
-        rugCanvasWrap.style.overflow = "auto";
-
-        /*
-           Prevent intrinsic canvas size from
-           affecting the frame.
-        */
-
-        rugCanvasWrap.style.contain = "strict";
-    }
-
-    /*
-       Canvas itself can become huge.
-       It is allowed to scroll, but NEVER resize
-       its parents.
-    */
-
-    canvas.style.display = "none";
-
-    canvas.style.position = "absolute";
-
-    canvas.style.left = "0";
-    canvas.style.top = "0";
-
-    canvas.style.maxWidth = "none";
-    canvas.style.maxHeight = "none";
-
-    canvas.style.width = "1px";
-    canvas.style.height = "1px";
-
-    canvas.style.flex = "none";
-
-    canvas.style.minWidth = "0";
-    canvas.style.minHeight = "0";
-
-    canvas.style.imageRendering = "pixelated";
-
-    /*
-       Labels must also be unable to affect layout.
-    */
-
-    if (gridTopLabels) {
-
-        gridTopLabels.style.position = "absolute";
-        gridTopLabels.style.left = "0";
-        gridTopLabels.style.top = "0";
-
-        gridTopLabels.style.minWidth = "0";
-        gridTopLabels.style.minHeight = "0";
-
-        gridTopLabels.style.width = "0";
-        gridTopLabels.style.height = "0";
-
-        gridTopLabels.style.pointerEvents = "none";
-    }
-
-    if (gridLeftLabels) {
-
-        gridLeftLabels.style.position = "absolute";
-        gridLeftLabels.style.left = "0";
-        gridLeftLabels.style.top = "0";
-
-        gridLeftLabels.style.minWidth = "0";
-        gridLeftLabels.style.minHeight = "0";
-
-        gridLeftLabels.style.width = "0";
-        gridLeftLabels.style.height = "0";
-
-        gridLeftLabels.style.pointerEvents = "none";
-    }
-}
-
-    /* ---------------------------------------------------------
-       DETAIL / GRID DENSITY CONTROL
-       --------------------------------------------------------- */
+    /* =========================================================
+       DETAIL CONTROL
+       ========================================================= */
 
     let detailInput = null;
 
@@ -614,14 +664,8 @@ function setupFixedWorkspace() {
         }
 
 
-        /*
-           Fallback:
-           climb up from width input until
-           we find a reasonably large container.
-        */
-
         let current =
-            widthInput?.parentElement;
+            widthInput.parentElement;
 
 
         while (
@@ -648,8 +692,8 @@ function setupFixedWorkspace() {
 
 
         return (
-            widthInput?.closest(".panel") ||
-            widthInput?.parentElement?.parentElement ||
+            widthInput.closest(".panel") ||
+            widthInput.parentElement?.parentElement ||
             document.body
         );
     }
@@ -675,23 +719,6 @@ function setupFixedWorkspace() {
                     "rugDetailValue"
                 );
 
-
-            if (detailInput) {
-
-                detailInput.min =
-                    "10";
-
-                detailInput.max =
-                    "300";
-
-                detailInput.step =
-                    "10";
-
-                detailInput.value =
-                    String(detailLevel);
-            }
-
-
             return;
         }
 
@@ -704,20 +731,13 @@ function setupFixedWorkspace() {
             "rugDetailControl";
 
 
-        /*
-           IMPORTANT:
-           Full width of the left panel.
-           No width restriction from the size control.
-        */
-
         container.style.cssText = `
-            width: 100%;
-            max-width: 100%;
-            box-sizing: border-box;
-            margin: 18px 0 0;
-            padding: 16px 0 0;
-            border-top: 1px solid #292925;
-            align-self: stretch;
+            width:100%;
+            max-width:100%;
+            box-sizing:border-box;
+            margin:18px 0 0;
+            padding:16px 0 0;
+            border-top:1px solid #292925;
         `;
 
 
@@ -731,7 +751,7 @@ function setupFixedWorkspace() {
                 box-sizing:border-box;
             ">
                 <span style="
-                    font:10px 'DM Mono', monospace;
+                    font:10px 'DM Mono',monospace;
                     color:#f2f0ea;
                     letter-spacing:.04em;
                 ">
@@ -741,7 +761,7 @@ function setupFixedWorkspace() {
                 <span
                     id="rugDetailValue"
                     style="
-                        font:10px 'DM Mono', monospace;
+                        font:10px 'DM Mono',monospace;
                         color:#77746d;
                     "
                 >
@@ -752,9 +772,9 @@ function setupFixedWorkspace() {
             <input
                 id="rugDetailInput"
                 type="range"
-                min="10"
-                max="300"
-                step="10"
+                min="${MIN_DETAIL}"
+                max="${MAX_DETAIL}"
+                step="${DETAIL_STEP}"
                 value="${detailLevel}"
                 style="
                     display:block;
@@ -771,7 +791,7 @@ function setupFixedWorkspace() {
                 display:flex;
                 justify-content:space-between;
                 margin-top:6px;
-                font:8px 'DM Mono', monospace;
+                font:8px 'DM Mono',monospace;
                 color:#55534e;
             ">
                 <span>COARSE</span>
@@ -784,11 +804,10 @@ function setupFixedWorkspace() {
             findLeftPanel();
 
 
-        /*
-           Append after the existing controls,
-           but don't let the width control itself
-           determine the width.
-        */
+        if (!target) {
+            return;
+        }
+
 
         target.appendChild(
             container
@@ -821,17 +840,19 @@ function setupFixedWorkspace() {
                         Number(
                             detailInput.value
                         ) || 80,
-                        10,
-                        300
+                        MIN_DETAIL,
+                        MAX_DETAIL
                     );
 
 
-                detailValue.textContent =
-                    `${detailLevel}`;
+                if (detailValue) {
+
+                    detailValue.textContent =
+                        String(detailLevel);
+                }
 
 
                 if (sourceImage) {
-
                     generateRug();
                 }
             }
@@ -839,473 +860,261 @@ function setupFixedWorkspace() {
     }
 
 
-    /* ---------------------------------------------------------
-       ZOOM
-       --------------------------------------------------------- */
-function updateZoom() {
+    /* =========================================================
+       PREVIEW WORKSPACE
+       ========================================================= */
 
-    if (
-        !currentGrid ||
-        !rugWorkspace ||
-        !canvas
-    ) {
-        return;
-    }
+    function setupWorkspace() {
 
-    /*
-       The preview frame NEVER depends on grid size.
+        if (rugWorkspace) {
 
-       Only the internal canvas representation changes.
-    */
+            rugWorkspace.style.position =
+                "relative";
 
-    const baseCellSize = 24;
+            rugWorkspace.style.minWidth =
+                "0";
 
-    const cellSize =
-        baseCellSize * zoomLevel;
+            rugWorkspace.style.minHeight =
+                "0";
 
-    const visualWidth =
-        currentGrid.width * cellSize;
-
-    const visualHeight =
-        currentGrid.height * cellSize;
-
-
-    /*
-       CANVAS
-       -----------------------------------------------------
-       The canvas becomes large, but its parent remains fixed.
-    */
-
-    canvas.style.width =
-        `${visualWidth}px`;
-
-    canvas.style.height =
-        `${visualHeight}px`;
-
-    canvas.style.maxWidth =
-        "none";
-
-    canvas.style.maxHeight =
-        "none";
-
-    canvas.style.display =
-        "block";
-
-    canvas.style.position =
-        "absolute";
-
-    canvas.style.left =
-        "0";
-
-    canvas.style.top =
-        "0";
-
-    canvas.style.flex =
-        "none";
-
-
-    /*
-       SCROLL CONTAINER
-       -----------------------------------------------------
-       This is the ONLY element allowed to scroll.
-    */
-
-    const scrollContainer =
-        rugCanvasWrap ||
-        rugWorkspace;
-
-
-    if (scrollContainer) {
-
-        scrollContainer.style.overflow =
-            "auto";
-
-        scrollContainer.style.minWidth =
-            "0";
-
-        scrollContainer.style.minHeight =
-            "0";
-
-        scrollContainer.style.maxWidth =
-            "100%";
-
-        scrollContainer.style.maxHeight =
-            "100%";
-    }
-
-
-    /*
-       TOP LABELS
-    */
-
-    if (gridTopLabels) {
-
-        gridTopLabels.style.position =
-            "absolute";
-
-        gridTopLabels.style.left =
-            "0";
-
-        gridTopLabels.style.top =
-            "0";
-
-        gridTopLabels.style.width =
-            `${visualWidth}px`;
-
-        gridTopLabels.style.height =
-            `${cellSize}px`;
-
-        gridTopLabels.style.minWidth =
-            `${visualWidth}px`;
-
-        gridTopLabels.style.minHeight =
-            `${cellSize}px`;
-
-        gridTopLabels.style.gridTemplateColumns =
-            `repeat(${currentGrid.width}, ${cellSize}px)`;
-    }
-
-
-    /*
-       LEFT LABELS
-    */
-
-    if (gridLeftLabels) {
-
-        gridLeftLabels.style.position =
-            "absolute";
-
-        gridLeftLabels.style.left =
-            "0";
-
-        gridLeftLabels.style.top =
-            "0";
-
-        gridLeftLabels.style.width =
-            `${cellSize}px`;
-
-        gridLeftLabels.style.height =
-            `${visualHeight}px`;
-
-        gridLeftLabels.style.minWidth =
-            `${cellSize}px`;
-
-        gridLeftLabels.style.minHeight =
-            `${visualHeight}px`;
-
-        gridLeftLabels.style.gridTemplateRows =
-            `repeat(${currentGrid.height}, ${cellSize}px)`;
-    }
-
-
-    /*
-       ZOOM LABEL
-    */
-
-    if (zoomValue) {
-
-        zoomValue.textContent =
-            `${Math.round(zoomLevel * 100)}%`;
-    }
-
-
-    /*
-       CSS VARIABLES
-    */
-
-    rugWorkspace.style.setProperty(
-        "--cell-size",
-        `${cellSize}px`
-    );
-
-    rugWorkspace.style.setProperty(
-        "--grid-width",
-        currentGrid.width
-    );
-
-    rugWorkspace.style.setProperty(
-        "--grid-height",
-        currentGrid.height
-    );
-
-
-    /*
-       CRITICAL:
-       Explicitly prevent the workspace from acquiring
-       the canvas dimensions.
-    */
-
-    rugWorkspace.style.overflow =
-        "hidden";
-
-    rugWorkspace.style.minWidth =
-        "0";
-
-    rugWorkspace.style.minHeight =
-        "0";
-
-    rugWorkspace.style.maxWidth =
-        "100%";
-}
-
-    /* ---------------------------------------------------------
-       COLOR LEGEND
-       --------------------------------------------------------- */
-
-    function renderColorLegend(
-        gridData,
-        palette
-    ) {
-
-        if (!colorLegend) {
-            return;
+            rugWorkspace.style.overflow =
+                "hidden";
         }
 
 
-        colorLegend.innerHTML =
-            "";
+        if (rugCanvasWrap) {
+
+            rugCanvasWrap.style.position =
+                "relative";
+
+            rugCanvasWrap.style.width =
+                "100%";
+
+            rugCanvasWrap.style.height =
+                "100%";
+
+            rugCanvasWrap.style.minWidth =
+                "0";
+
+            rugCanvasWrap.style.minHeight =
+                "0";
+
+            rugCanvasWrap.style.overflow =
+                "auto";
+
+            rugCanvasWrap.style.boxSizing =
+                "border-box";
+        }
 
 
-        const counts =
-            new Map();
+        /*
+           IMPORTANT:
+
+           Do NOT hide the canvas here.
+
+           The previous version had:
+
+               canvas.style.display = "none";
+
+           which caused the uploaded image / generated
+           preview to disappear until another state
+           changed it.
+
+           We explicitly keep it visible.
+        */
+
+        canvas.style.display =
+            "block";
+
+        canvas.style.maxWidth =
+            "none";
+
+        canvas.style.maxHeight =
+            "none";
+
+        canvas.style.imageRendering =
+            "pixelated";
 
 
-        gridData.forEach(
-            row => {
+        if (gridTopLabels) {
 
-                row.forEach(
-                    color => {
-
-                        if (!color) {
-                            return;
-                        }
+            gridTopLabels.style.pointerEvents =
+                "none";
+        }
 
 
-                        counts.set(
-                            color,
-                            (
-                                counts.get(color) ||
-                                0
-                            ) + 1
-                        );
-                    }
-                );
-            }
-        );
+        if (gridLeftLabels) {
 
-
-        palette.forEach(
-            (hex, index) => {
-
-                const normalized =
-                    normalizeHex(hex);
-
-
-                const count =
-                    counts.get(
-                        normalized
-                    ) || 0;
-
-
-                const item =
-                    document.createElement(
-                        "div"
-                    );
-
-
-                item.className =
-                    "legend-item";
-
-
-                item.innerHTML = `
-                    <div
-                        class="legend-color"
-                        style="background:${normalized}"
-                    ></div>
-
-                    <div class="legend-main">
-
-                        <span class="legend-label">
-                            COLOR ${index + 1}
-                        </span>
-
-                        <span class="legend-hex">
-                            ${normalized}
-                        </span>
-
-                    </div>
-
-                    <div class="legend-count">
-                        ${count.toLocaleString()} LOOPS
-                    </div>
-                `;
-
-
-                colorLegend.appendChild(
-                    item
-                );
-            }
-        );
+            gridLeftLabels.style.pointerEvents =
+                "none";
+        }
     }
 
 
-    /* ---------------------------------------------------------
-       CREATE EXPORT CONTROLS
-       --------------------------------------------------------- */
+    /* =========================================================
+       ZOOM
+       ========================================================= */
 
-    function createExportControls() {
+    function updateZoom() {
 
         if (
-            document.getElementById(
-                "rugExportControls"
-            )
+            !currentDetailGrid ||
+            !canvas
         ) {
             return;
         }
 
 
-        const container =
-            document.createElement("div");
+        /*
+           Visual size is based on DETAIL cells.
+
+           Again:
+           this is ONLY preview zoom.
+
+           It is NOT the physical 5 cm grid.
+        */
+
+        const baseCellSize =
+            8;
 
 
-        container.id =
-            "rugExportControls";
+        const cellSize =
+            baseCellSize *
+            zoomLevel;
 
 
-        container.style.cssText = `
-            display:grid;
-            grid-template-columns:1fr 1fr;
-            gap:8px;
-            margin-top:12px;
-        `;
+        const visualWidth =
+            currentDetailGrid.width *
+            cellSize;
 
 
-        const downloadButton =
-            document.createElement("button");
+        const visualHeight =
+            currentDetailGrid.height *
+            cellSize;
 
 
-        downloadButton.type =
-            "button";
+        canvas.style.width =
+            `${visualWidth}px`;
 
 
-        downloadButton.textContent =
-            "DOWNLOAD PNG";
+        canvas.style.height =
+            `${visualHeight}px`;
 
 
-        downloadButton.style.cssText = `
-            min-height:52px;
-            border:1px solid #292925;
-            background:transparent;
-            color:#f2f0ea;
-            cursor:pointer;
-            font:10px "DM Mono", monospace;
-            transition:.2s ease;
-        `;
+        canvas.style.display =
+            "block";
 
 
-        const projectorButton =
-            document.createElement("button");
+        canvas.style.imageRendering =
+            "pixelated";
 
 
-        projectorButton.type =
-            "button";
+        /*
+           Preview uses detail resolution.
+        */
+
+        if (rugCanvasWrap) {
+
+            rugCanvasWrap.style.overflow =
+                "auto";
+        }
 
 
-        projectorButton.textContent =
-            "PROJECTOR MODE";
+        if (zoomValue) {
+
+            zoomValue.textContent =
+                `${Math.round(
+                    zoomLevel * 100
+                )}%`;
+        }
 
 
-        projectorButton.style.cssText = `
-            min-height:52px;
-            border:1px solid #292925;
-            background:#f2f0ea;
-            color:#0b0b0a;
-            cursor:pointer;
-            font:10px "DM Mono", monospace;
-            transition:.2s ease;
-        `;
+        /*
+           Grid labels are not allowed to describe
+           detail pixels.
+
+           We don't put every detail pixel into
+           the physical coordinate labels.
+        */
+
+        clearGridLabels();
 
 
-        downloadButton.addEventListener(
-            "mouseenter",
-            () => {
+        /*
+           Optional CSS variables.
+        */
 
-                downloadButton.style.borderColor =
-                    "#f2f0ea";
-            }
-        );
+        if (rugWorkspace) {
 
-
-        downloadButton.addEventListener(
-            "mouseleave",
-            () => {
-
-                downloadButton.style.borderColor =
-                    "#292925";
-            }
-        );
-
-
-        projectorButton.addEventListener(
-            "mouseenter",
-            () => {
-
-                projectorButton.style.background =
-                    "#b9ff4a";
-            }
-        );
-
-
-        projectorButton.addEventListener(
-            "mouseleave",
-            () => {
-
-                projectorButton.style.background =
-                    "#f2f0ea";
-            }
-        );
-
-
-        downloadButton.addEventListener(
-            "click",
-            downloadRugPNG
-        );
-
-
-        projectorButton.addEventListener(
-            "click",
-            openProjectorMode
-        );
-
-
-        container.appendChild(
-            downloadButton
-        );
-
-
-        container.appendChild(
-            projectorButton
-        );
-
-
-        const previewPanel =
-            document.querySelector(
-                ".preview-panel"
-            );
-
-
-        if (previewPanel) {
-
-            previewPanel.appendChild(
-                container
+            rugWorkspace.style.setProperty(
+                "--detail-cell-size",
+                `${cellSize}px`
             );
         }
     }
 
 
-    /* ---------------------------------------------------------
+    /* =========================================================
+       ZOOM BUTTONS
+       ========================================================= */
+
+    if (zoomIn) {
+
+        zoomIn.addEventListener(
+            "click",
+            () => {
+
+                zoomLevel =
+                    clamp(
+                        zoomLevel +
+                        ZOOM_STEP,
+                        MIN_ZOOM,
+                        MAX_ZOOM
+                    );
+
+                updateZoom();
+            }
+        );
+    }
+
+
+    if (zoomOut) {
+
+        zoomOut.addEventListener(
+            "click",
+            () => {
+
+                zoomLevel =
+                    clamp(
+                        zoomLevel -
+                        ZOOM_STEP,
+                        MIN_ZOOM,
+                        MAX_ZOOM
+                    );
+
+                updateZoom();
+            }
+        );
+    }
+
+
+    if (zoomReset) {
+
+        zoomReset.addEventListener(
+            "click",
+            () => {
+
+                zoomLevel = 1;
+
+                updateZoom();
+            }
+        );
+    }
+
+
+    /* =========================================================
        IMAGE UPLOAD
-       --------------------------------------------------------- */
+       ========================================================= */
 
     imageInput.addEventListener(
         "change",
@@ -1332,8 +1141,11 @@ function updateZoom() {
             }
 
 
-            fileName.textContent =
-                file.name;
+            if (fileName) {
+
+                fileName.textContent =
+                    file.name;
+            }
 
 
             const reader =
@@ -1341,7 +1153,7 @@ function updateZoom() {
 
 
             reader.onload =
-                event => {
+                readerEvent => {
 
                     const img =
                         new Image();
@@ -1360,6 +1172,7 @@ function updateZoom() {
 
 
                             if (
+                                lockRatio &&
                                 lockRatio.checked
                             ) {
 
@@ -1367,9 +1180,19 @@ function updateZoom() {
                             }
 
 
-                            previewStatus.textContent =
-                                "IMAGE LOADED";
+                            if (previewStatus) {
 
+                                previewStatus.textContent =
+                                    "IMAGE LOADED";
+                            }
+
+
+                            /*
+                               Immediately show something.
+
+                               The generated rug comes right after,
+                               but empty state must disappear NOW.
+                            */
 
                             if (emptyPreview) {
 
@@ -1396,144 +1219,162 @@ function updateZoom() {
 
 
                     img.src =
-                        event.target.result;
+                        readerEvent.target.result;
                 };
 
 
-            reader.readAsDataURL(
-                file
-            );
+            reader.readAsDataURL(file);
         }
     );
 
 
-    /* ---------------------------------------------------------
+    /* =========================================================
        BACKGROUND
-       --------------------------------------------------------- */
+       ========================================================= */
 
-    keepBackground.addEventListener(
-        "click",
-        () => {
+    if (keepBackground) {
 
-            backgroundMode =
-                "keep";
+        keepBackground.addEventListener(
+            "click",
+            () => {
 
-
-            keepBackground.classList.add(
-                "active"
-            );
+                backgroundMode =
+                    "keep";
 
 
-            removeBackground.classList.remove(
-                "active"
-            );
+                keepBackground.classList.add(
+                    "active"
+                );
 
 
-            if (sourceImage) {
-                generateRug();
+                if (removeBackground) {
+
+                    removeBackground.classList.remove(
+                        "active"
+                    );
+                }
+
+
+                if (sourceImage) {
+                    generateRug();
+                }
             }
-        }
-    );
+        );
+    }
 
 
-    removeBackground.addEventListener(
-        "click",
-        () => {
+    if (removeBackground) {
 
-            backgroundMode =
-                "remove";
+        removeBackground.addEventListener(
+            "click",
+            () => {
 
-
-            removeBackground.classList.add(
-                "active"
-            );
+                backgroundMode =
+                    "remove";
 
 
-            keepBackground.classList.remove(
-                "active"
-            );
+                removeBackground.classList.add(
+                    "active"
+                );
 
 
-            if (sourceImage) {
-                generateRug();
+                if (keepBackground) {
+
+                    keepBackground.classList.remove(
+                        "active"
+                    );
+                }
+
+
+                if (sourceImage) {
+                    generateRug();
+                }
             }
-        }
-    );
+        );
+    }
 
 
-    /* ---------------------------------------------------------
+    /* =========================================================
        COLOR COUNT
-       --------------------------------------------------------- */
+       ========================================================= */
 
-    colorCounts.addEventListener(
-        "click",
-        event => {
+    if (colorCounts) {
 
-            const button =
-                event.target.closest(
-                    "[data-colors]"
-                );
+        colorCounts.addEventListener(
+            "click",
+            event => {
 
-
-            if (!button) {
-                return;
-            }
-
-
-            numberOfColors =
-                Number(
-                    button.dataset.colors
-                );
-
-
-            document
-                .querySelectorAll(
-                    "#colorCounts button"
-                )
-                .forEach(
-                    item =>
-                        item.classList.remove(
-                            "active"
-                        )
-                );
-
-
-            button.classList.add(
-                "active"
-            );
-
-
-            customPalette = [];
-
-
-            if (sourceImage) {
-
-                generateRug();
-
-            } else {
-
-                generatedPalette =
-                    DEFAULT_PALETTE.slice(
-                        0,
-                        numberOfColors
+                const button =
+                    event.target.closest(
+                        "[data-colors]"
                     );
 
 
-                renderPalette(
-                    generatedPalette
+                if (!button) {
+                    return;
+                }
+
+
+                numberOfColors =
+                    Number(
+                        button.dataset.colors
+                    );
+
+
+                document
+                    .querySelectorAll(
+                        "#colorCounts button"
+                    )
+                    .forEach(
+                        item =>
+                            item.classList.remove(
+                                "active"
+                            )
+                    );
+
+
+                button.classList.add(
+                    "active"
                 );
+
+
+                customPalette = [];
+
+
+                if (sourceImage) {
+
+                    generateRug();
+
+                } else {
+
+                    generatedPalette =
+                        DEFAULT_PALETTE.slice(
+                            0,
+                            numberOfColors
+                        );
+
+
+                    renderPalette(
+                        generatedPalette
+                    );
+                }
             }
-        }
-    );
+        );
+    }
 
 
-    /* ---------------------------------------------------------
+    /* =========================================================
        PALETTE
-       --------------------------------------------------------- */
+       ========================================================= */
 
     function renderPalette(
         palette
     ) {
+
+        if (!paletteElement) {
+            return;
+        }
+
 
         paletteElement.innerHTML =
             "";
@@ -1587,216 +1428,223 @@ function updateZoom() {
     }
 
 
-    paletteElement.addEventListener(
-        "input",
-        event => {
+    if (paletteElement) {
 
-            const index =
-                event.target.dataset
-                    .paletteIndex;
+        paletteElement.addEventListener(
+            "input",
+            event => {
 
-
-            if (
-                index === undefined
-            ) {
-                return;
-            }
+                const index =
+                    event.target.dataset
+                        .paletteIndex;
 
 
-            if (
-                event.target.type ===
-                "color"
-            ) {
-
-                customPalette[index] =
-                    event.target.value
-                        .toUpperCase();
+                if (
+                    index === undefined
+                ) {
+                    return;
+                }
 
 
-                const textInput =
-                    paletteElement.querySelector(
-                        `.palette-hex[data-palette-index="${index}"]`
-                    );
+                if (
+                    event.target.type ===
+                    "color"
+                ) {
 
-
-                if (textInput) {
-
-                    textInput.value =
+                    customPalette[index] =
                         event.target.value
                             .toUpperCase();
+
+
+                    const textInput =
+                        paletteElement.querySelector(
+                            `.palette-hex[data-palette-index="${index}"]`
+                        );
+
+
+                    if (textInput) {
+
+                        textInput.value =
+                            event.target.value
+                                .toUpperCase();
+                    }
+
+
+                    if (sourceImage) {
+                        generateRug();
+                    }
+                }
+            }
+        );
+
+
+        paletteElement.addEventListener(
+            "change",
+            event => {
+
+                const index =
+                    event.target.dataset
+                        .paletteIndex;
+
+
+                if (
+                    index === undefined
+                ) {
+                    return;
                 }
 
 
-                if (sourceImage) {
-                    generateRug();
-                }
-            }
-        }
-    );
+                if (
+                    event.target.classList.contains(
+                        "palette-hex"
+                    )
+                ) {
+
+                    const value =
+                        normalizeHex(
+                            event.target.value
+                        );
 
 
-    paletteElement.addEventListener(
-        "change",
-        event => {
-
-            const index =
-                event.target.dataset
-                    .paletteIndex;
-
-
-            if (
-                index === undefined
-            ) {
-                return;
-            }
-
-
-            if (
-                event.target.classList.contains(
-                    "palette-hex"
-                )
-            ) {
-
-                const value =
-                    normalizeHex(
-                        event.target.value
-                    );
-
-
-                customPalette[index] =
-                    value;
-
-
-                event.target.value =
-                    value;
-
-
-                const colorInput =
-                    paletteElement.querySelector(
-                        `.palette-color[data-palette-index="${index}"]`
-                    );
-
-
-                if (colorInput) {
-
-                    colorInput.value =
+                    customPalette[index] =
                         value;
+
+
+                    event.target.value =
+                        value;
+
+
+                    const colorInput =
+                        paletteElement.querySelector(
+                            `.palette-color[data-palette-index="${index}"]`
+                        );
+
+
+                    if (colorInput) {
+
+                        colorInput.value =
+                            value;
+                    }
+
+
+                    if (sourceImage) {
+                        generateRug();
+                    }
+                }
+            }
+        );
+
+
+        paletteElement.addEventListener(
+            "click",
+            event => {
+
+                const deleteButton =
+                    event.target.closest(
+                        "[data-palette-delete]"
+                    );
+
+
+                if (!deleteButton) {
+                    return;
                 }
 
 
-                if (sourceImage) {
-                    generateRug();
+                const index =
+                    Number(
+                        deleteButton.dataset
+                            .paletteDelete
+                    );
+
+
+                if (
+                    !customPalette.length
+                ) {
+
+                    customPalette =
+                        [
+                            ...generatedPalette
+                        ];
                 }
-            }
-        }
-    );
 
 
-    paletteElement.addEventListener(
-        "click",
-        event => {
-
-            const deleteButton =
-                event.target.closest(
-                    "[data-palette-delete]"
+                customPalette.splice(
+                    index,
+                    1
                 );
 
 
-            if (!deleteButton) {
-                return;
-            }
+                if (
+                    !customPalette.length
+                ) {
+
+                    customPalette =
+                        ["#000000"];
+                }
 
 
-            const index =
-                Number(
-                    deleteButton.dataset
-                        .paletteDelete
-                );
+                numberOfColors =
+                    customPalette.length;
 
-
-            if (
-                !customPalette.length
-            ) {
-
-                customPalette =
-                    [
-                        ...generatedPalette
-                    ];
-            }
-
-
-            customPalette.splice(
-                index,
-                1
-            );
-
-
-            if (
-                !customPalette.length
-            ) {
-
-                customPalette =
-                    ["#000000"];
-            }
-
-
-            numberOfColors =
-                customPalette.length;
-
-
-            generatedPalette =
-                [
-                    ...customPalette
-                ];
-
-
-            renderPalette(
-                generatedPalette
-            );
-
-
-            if (sourceImage) {
-                generateRug();
-            }
-        }
-    );
-
-
-    resetPalette.addEventListener(
-        "click",
-        () => {
-
-            customPalette = [];
-
-
-            if (sourceImage) {
-
-                generateRug();
-
-            } else {
 
                 generatedPalette =
-                    DEFAULT_PALETTE.slice(
-                        0,
-                        numberOfColors
-                    );
+                    [
+                        ...customPalette
+                    ];
 
 
                 renderPalette(
                     generatedPalette
                 );
+
+
+                if (sourceImage) {
+                    generateRug();
+                }
             }
-        }
-    );
+        );
+    }
 
 
-    /* ---------------------------------------------------------
+    if (resetPalette) {
+
+        resetPalette.addEventListener(
+            "click",
+            () => {
+
+                customPalette = [];
+
+
+                if (sourceImage) {
+
+                    generateRug();
+
+                } else {
+
+                    generatedPalette =
+                        DEFAULT_PALETTE.slice(
+                            0,
+                            numberOfColors
+                        );
+
+
+                    renderPalette(
+                        generatedPalette
+                    );
+                }
+            }
+        );
+    }
+
+
+    /* =========================================================
        SIZE
-       --------------------------------------------------------- */
+       ========================================================= */
 
     function updateHeightFromWidth() {
 
         if (
+            !lockRatio ||
             !lockRatio.checked
         ) {
             return;
@@ -1850,7 +1698,8 @@ function updateZoom() {
 
             if (
                 sourceImage &&
-                !lockRatio.checked
+                (!lockRatio ||
+                    !lockRatio.checked)
             ) {
 
                 generateRug();
@@ -1859,62 +1708,77 @@ function updateZoom() {
     );
 
 
-    lockRatio.addEventListener(
-        "change",
-        () => {
+    if (lockRatio) {
 
-            if (
-                lockRatio.checked
-            ) {
+        lockRatio.addEventListener(
+            "change",
+            () => {
 
-                updateHeightFromWidth();
+                if (
+                    lockRatio.checked
+                ) {
+
+                    updateHeightFromWidth();
+                }
+
+
+                if (sourceImage) {
+                    generateRug();
+                }
             }
+        );
+    }
 
 
-            if (sourceImage) {
-                generateRug();
-            }
-        }
-    );
-
-
-    /* ---------------------------------------------------------
+    /* =========================================================
        BRIGHTNESS / CONTRAST
-       --------------------------------------------------------- */
+       ========================================================= */
 
-    contrastInput.addEventListener(
-        "input",
-        () => {
+    if (contrastInput) {
 
-            contrastValue.textContent =
-                contrastInput.value;
+        contrastInput.addEventListener(
+            "input",
+            () => {
+
+                if (contrastValue) {
+
+                    contrastValue.textContent =
+                        contrastInput.value;
+                }
 
 
-            if (sourceImage) {
-                generateRug();
+                if (sourceImage) {
+                    generateRug();
+                }
             }
-        }
-    );
+        );
+    }
 
 
-    brightnessInput.addEventListener(
-        "input",
-        () => {
+    if (brightnessInput) {
 
-            brightnessValue.textContent =
-                brightnessInput.value;
+        brightnessInput.addEventListener(
+            "input",
+            () => {
+
+                if (brightnessValue) {
+
+                    brightnessValue.textContent =
+                        brightnessInput.value;
+                }
 
 
-            if (sourceImage) {
-                generateRug();
+                if (sourceImage) {
+                    generateRug();
+                }
             }
-        }
-    );
+        );
+    }
 
 
-    /* ---------------------------------------------------------
+    /* =========================================================
        PROCESS IMAGE
-       --------------------------------------------------------- */
+       ========================================================= */
 
     function processImage() {
 
@@ -2004,13 +1868,13 @@ function updateZoom() {
 
         const brightness =
             Number(
-                brightnessInput.value
+                brightnessInput?.value || 0
             );
 
 
         const contrast =
             Number(
-                contrastInput.value
+                contrastInput?.value || 0
             );
 
 
@@ -2104,9 +1968,9 @@ function updateZoom() {
     }
 
 
-    /* ---------------------------------------------------------
-       REMOVE BACKGROUND
-       --------------------------------------------------------- */
+    /* =========================================================
+       BACKGROUND REMOVAL
+       ========================================================= */
 
     function applyBackgroundRemoval(
         imageData
@@ -2150,7 +2014,7 @@ function updateZoom() {
         ];
 
 
-        let background = {
+        const background = {
             r: 0,
             g: 0,
             b: 0
@@ -2211,9 +2075,9 @@ function updateZoom() {
     }
 
 
-    /* ---------------------------------------------------------
+    /* =========================================================
        PALETTE EXTRACTION
-       --------------------------------------------------------- */
+       ========================================================= */
 
     function extractPalette(
         imageData,
@@ -2437,89 +2301,23 @@ function updateZoom() {
     }
 
 
-    /* ---------------------------------------------------------
-       GRID
-       --------------------------------------------------------- */
+    function hexToRgbArray(
+        palette
+    ) {
 
-    function calculateGrid() {
-
-        const rugWidth =
-            Number(
-                widthInput.value
-            ) || 100;
-
-
-        const rugHeight =
-            Number(
-                heightInput.value
-            ) || 75;
-
-
-        /*
-           DETAIL = number of cells across
-           the physical rug.
-
-           Example:
-
-           100 × 75 cm
-
-           DETAIL 40
-           → 40 × 30
-
-           DETAIL 100
-           → 100 × 75
-
-           DETAIL 200
-           → 200 × 150
-
-           DETAIL 300
-           → 300 × 225
-        */
-
-        let gridWidth =
-            Math.round(
-                detailLevel
-            );
-
-
-        let gridHeight =
-            Math.round(
-                gridWidth *
-                rugHeight /
-                rugWidth
-            );
-
-
-        gridWidth =
-            clamp(
-                gridWidth,
-                MIN_GRID_WIDTH,
-                MAX_GRID_WIDTH
-            );
-
-
-        gridHeight =
-            clamp(
-                gridHeight,
-                MIN_GRID_HEIGHT,
-                MAX_GRID_HEIGHT
-            );
-
-
-        return {
-            width: gridWidth,
-            height: gridHeight
-        };
+        return palette.map(
+            hexToRgb
+        );
     }
 
 
-    /* ---------------------------------------------------------
-       CREATE GRID DATA
-       --------------------------------------------------------- */
+    /* =========================================================
+       CREATE DETAIL IMAGE
+       ========================================================= */
 
-    function createGridImage(
+    function createDetailImage(
         processed,
-        grid
+        detailGrid
     ) {
 
         const sourceCanvas =
@@ -2555,19 +2353,14 @@ function updateZoom() {
             );
 
 
-        /*
-           Safety fallback.
-        */
-
         if (!palette.length) {
-
             return output;
         }
 
 
         for (
             let gy = 0;
-            gy < grid.height;
+            gy < detailGrid.height;
             gy++
         ) {
 
@@ -2576,14 +2369,14 @@ function updateZoom() {
 
             for (
                 let gx = 0;
-                gx < grid.width;
+                gx < detailGrid.width;
                 gx++
             ) {
 
                 const sx =
                     Math.floor(
                         gx /
-                        grid.width *
+                        detailGrid.width *
                         sourceCanvas.width
                     );
 
@@ -2591,7 +2384,7 @@ function updateZoom() {
                 const sy =
                     Math.floor(
                         gy /
-                        grid.height *
+                        detailGrid.height *
                         sourceCanvas.height
                     );
 
@@ -2601,7 +2394,7 @@ function updateZoom() {
                         sx + 1,
                         Math.floor(
                             (gx + 1) /
-                            grid.width *
+                            detailGrid.width *
                             sourceCanvas.width
                         )
                     );
@@ -2612,7 +2405,7 @@ function updateZoom() {
                         sy + 1,
                         Math.floor(
                             (gy + 1) /
-                            grid.height *
+                            detailGrid.height *
                             sourceCanvas.height
                         )
                     );
@@ -2623,8 +2416,6 @@ function updateZoom() {
                 let g = 0;
 
                 let b = 0;
-
-                let alpha = 0;
 
                 let pixels = 0;
 
@@ -2649,44 +2440,33 @@ function updateZoom() {
                             ) * 4;
 
 
-                        const a =
+                        const alpha =
                             sourceData
                                 .data[index + 3];
 
 
                         if (
-                            a < 20
+                            alpha < 20
                         ) {
                             continue;
                         }
 
 
                         r +=
-                            sourceData
-                                .data[index];
+                            sourceData.data[index];
 
                         g +=
-                            sourceData
-                                .data[index + 1];
+                            sourceData.data[index + 1];
 
                         b +=
-                            sourceData
-                                .data[index + 2];
-
-
-                        alpha +=
-                            a;
-
+                            sourceData.data[index + 2];
 
                         pixels++;
                     }
                 }
 
 
-                if (
-                    !pixels ||
-                    alpha === 0
-                ) {
+                if (!pixels) {
 
                     row.push(null);
 
@@ -2727,7 +2507,6 @@ function updateZoom() {
                             closestDistance =
                                 distance;
 
-
                             closest =
                                 color;
                         }
@@ -2755,47 +2534,197 @@ function updateZoom() {
     }
 
 
-    function hexToRgbArray(
-        palette
+    /* =========================================================
+       SAMPLE DETAIL IMAGE INTO PHYSICAL GRID
+       =========================================================
+
+       This is the important separation.
+
+       DETAIL:
+
+           e.g. 80 × 60
+
+       PHYSICAL GRID:
+
+           e.g. 20 × 15
+
+       The physical grid samples the detailed image.
+
+       Therefore:
+
+       DETAIL = visual fidelity
+       GRID   = physical transfer reference
+       ========================================================= */
+
+    function createPhysicalGridData(
+        detailData,
+        detailGrid,
+        physicalGrid
     ) {
 
-        return palette.map(
-            hexToRgb
-        );
+        const output = [];
+
+
+        for (
+            let py = 0;
+            py < physicalGrid.height;
+            py++
+        ) {
+
+            const row = [];
+
+
+            for (
+                let px = 0;
+                px < physicalGrid.width;
+                px++
+            ) {
+
+                const startX =
+                    Math.floor(
+                        px /
+                        physicalGrid.width *
+                        detailGrid.width
+                    );
+
+
+                const endX =
+                    Math.max(
+                        startX + 1,
+                        Math.floor(
+                            (px + 1) /
+                            physicalGrid.width *
+                            detailGrid.width
+                        )
+                    );
+
+
+                const startY =
+                    Math.floor(
+                        py /
+                        physicalGrid.height *
+                        detailGrid.height
+                    );
+
+
+                const endY =
+                    Math.max(
+                        startY + 1,
+                        Math.floor(
+                            (py + 1) /
+                            physicalGrid.height *
+                            detailGrid.height
+                        )
+                    );
+
+
+                const counts =
+                    new Map();
+
+
+                for (
+                    let y = startY;
+                    y < endY;
+                    y++
+                ) {
+
+                    for (
+                        let x = startX;
+                        x < endX;
+                        x++
+                    ) {
+
+                        const color =
+                            detailData[y]?.[x];
+
+
+                        if (!color) {
+                            continue;
+                        }
+
+
+                        counts.set(
+                            color,
+                            (
+                                counts.get(color) ||
+                                0
+                            ) + 1
+                        );
+                    }
+                }
+
+
+                let bestColor = null;
+
+                let bestCount = 0;
+
+
+                counts.forEach(
+                    (count, color) => {
+
+                        if (
+                            count >
+                            bestCount
+                        ) {
+
+                            bestCount =
+                                count;
+
+                            bestColor =
+                                color;
+                        }
+                    }
+                );
+
+
+                row.push(
+                    bestColor
+                );
+            }
+
+
+            output.push(
+                row
+            );
+        }
+
+
+        return output;
     }
 
 
-    /* ---------------------------------------------------------
+    /* =========================================================
        DRAW PREVIEW
-       --------------------------------------------------------- */
+       ========================================================= */
 
     function drawRug(
-        gridData,
-        grid
+        detailData,
+        detailGrid,
+        physicalGrid
     ) {
 
+        currentDetailGrid =
+            detailGrid;
+
+
+        currentPhysicalGrid =
+            physicalGrid;
+
+
+        currentDetailData =
+            detailData;
+
+
         canvas.width =
-            grid.width;
+            detailGrid.width;
 
 
         canvas.height =
-            grid.height;
+            detailGrid.height;
 
-
-        /*
-           Internal canvas resolution is exactly
-           the grid resolution.
-
-           Visual dimensions are controlled separately
-           by updateZoom().
-        */
 
         canvas.style.imageRendering =
             "pixelated";
-
-
-        canvas.style.objectFit =
-            "fill";
 
 
         canvas.style.display =
@@ -2816,40 +2745,23 @@ function updateZoom() {
 
         for (
             let y = 0;
-            y < grid.height;
+            y < detailGrid.height;
             y++
         ) {
 
             for (
                 let x = 0;
-                x < grid.width;
+                x < detailGrid.width;
                 x++
             ) {
 
                 const color =
-                    gridData[y][x];
-
-
-                if (!color) {
-
-                    ctx.fillStyle =
-                        "#0e0e0c";
-
-
-                    ctx.fillRect(
-                        x,
-                        y,
-                        1,
-                        1
-                    );
-
-
-                    continue;
-                }
+                    detailData[y]?.[x];
 
 
                 ctx.fillStyle =
-                    color;
+                    color ||
+                    "#0e0e0c";
 
 
                 ctx.fillRect(
@@ -2862,75 +2774,321 @@ function updateZoom() {
         }
 
 
-        renderGridLabels(
-            grid
-        );
-
-
-        renderColorLegend(
-            gridData,
-            customPalette.length
-                ? customPalette
-                : generatedPalette
-        );
-
-
         /*
            IMPORTANT:
-           updateZoom changes only the canvas.
-           It does NOT change the workspace.
+
+           We DO NOT draw the physical 5 cm grid
+           into the image canvas.
+
+           The preview image remains clean.
+
+           The physical grid is a separate overlay.
         */
 
         updateZoom();
     }
 
 
-    /* ---------------------------------------------------------
-       STATS
-       --------------------------------------------------------- */
+    /* =========================================================
+       RENDER PHYSICAL GRID OVERLAY
+       ========================================================= */
 
-    function updateStats(
-        grid
-    ) {
+    function renderPhysicalGridOverlay() {
 
-        const width =
-            Number(
-                widthInput.value
-            ) || 100;
+        if (!rugWorkspace) {
+            return;
+        }
 
 
-        const height =
-            Number(
-                heightInput.value
-            ) || 75;
+        const old =
+            rugWorkspace.querySelector(
+                ".doch-transfer-grid"
+            );
 
 
-        const totalCells =
-            grid.width *
-            grid.height;
+        if (old) {
+            old.remove();
+        }
 
 
-        statColors.textContent =
-            customPalette.length ||
-            numberOfColors;
+        if (
+            !showTransferGrid ||
+            !currentPhysicalGrid ||
+            !currentDetailGrid
+        ) {
+            return;
+        }
 
 
-        statSize.textContent =
-            `${Math.round(width)} × ${Math.round(height)} CM`;
+        const overlay =
+            document.createElement(
+                "div"
+            );
 
 
-        statGrid.textContent =
-            `${grid.width} × ${grid.height}`;
+        overlay.className =
+            "doch-transfer-grid";
 
 
-        statLoops.textContent =
-            totalCells.toLocaleString();
+        const columns =
+            currentPhysicalGrid.width;
+
+
+        const rows =
+            currentPhysicalGrid.height;
+
+
+        overlay.style.cssText = `
+            position:absolute;
+            left:0;
+            top:0;
+            width:${canvas.style.width};
+            height:${canvas.style.height};
+            display:grid;
+            grid-template-columns:repeat(${columns},1fr);
+            grid-template-rows:repeat(${rows},1fr);
+            pointer-events:none;
+            z-index:20;
+        `;
+
+
+        /*
+           Only 5 cm transfer cells.
+
+           NOT detail cells.
+        */
+
+        for (
+            let i = 0;
+            i < columns * rows;
+            i++
+        ) {
+
+            const cell =
+                document.createElement(
+                    "div"
+                );
+
+
+            cell.style.cssText = `
+                box-sizing:border-box;
+                border-right:1px solid rgba(255,255,255,.32);
+                border-bottom:1px solid rgba(255,255,255,.32);
+            `;
+
+
+            overlay.appendChild(
+                cell
+            );
+        }
+
+
+        rugWorkspace.appendChild(
+            overlay
+        );
     }
 
 
-    /* ---------------------------------------------------------
+    /* =========================================================
+       COLOR LEGEND
+       ========================================================= */
+
+    function renderColorLegend(
+        gridData,
+        palette
+    ) {
+
+        if (!colorLegend) {
+            return;
+        }
+
+
+        colorLegend.innerHTML =
+            "";
+
+
+        const counts =
+            new Map();
+
+
+        gridData.forEach(
+            row => {
+
+                row.forEach(
+                    color => {
+
+                        if (!color) {
+                            return;
+                        }
+
+
+                        counts.set(
+                            color,
+                            (
+                                counts.get(color) ||
+                                0
+                            ) + 1
+                        );
+                    }
+                );
+            }
+        );
+
+
+        palette.forEach(
+            (hex, index) => {
+
+                const normalized =
+                    normalizeHex(hex);
+
+
+                const count =
+                    counts.get(
+                        normalized
+                    ) || 0;
+
+
+                const item =
+                    document.createElement(
+                        "div"
+                    );
+
+
+                item.className =
+                    "legend-item";
+
+
+                item.innerHTML = `
+                    <div
+                        class="legend-color"
+                        style="background:${normalized}"
+                    ></div>
+
+                    <div class="legend-main">
+
+                        <span class="legend-label">
+                            COLOR ${index + 1}
+                        </span>
+
+                        <span class="legend-hex">
+                            ${normalized}
+                        </span>
+
+                    </div>
+
+                    <div class="legend-count">
+                        ${count.toLocaleString()} DETAIL CELLS
+                    </div>
+                `;
+
+
+                colorLegend.appendChild(
+                    item
+                );
+            }
+        );
+    }
+
+
+    /* =========================================================
+       STATS
+       ========================================================= */
+
+    function updateStats(
+        physicalGrid,
+        detailGrid
+    ) {
+
+        const width =
+            Math.round(
+                Number(
+                    widthInput.value
+                ) || 100
+            );
+
+
+        const height =
+            Math.round(
+                Number(
+                    heightInput.value
+                ) || 75
+            );
+
+
+        const physicalCells =
+            physicalGrid.width *
+            physicalGrid.height;
+
+
+        const detailCells =
+            detailGrid.width *
+            detailGrid.height;
+
+
+        if (statColors) {
+
+            statColors.textContent =
+                customPalette.length ||
+                numberOfColors;
+        }
+
+
+        if (statSize) {
+
+            statSize.textContent =
+                `${width} × ${height} CM`;
+        }
+
+
+        /*
+           statGrid = PHYSICAL TRANSFER GRID
+
+           NOT DETAIL RESOLUTION.
+        */
+
+        if (statGrid) {
+
+            statGrid.textContent =
+                `${physicalGrid.width} × ${physicalGrid.height}`;
+        }
+
+
+        /*
+           statLoops can show the number of physical
+           transfer cells, because those are the actual
+           useful "loops" for the rug grid.
+
+           Detail resolution is intentionally separate.
+        */
+
+        if (statLoops) {
+
+            statLoops.textContent =
+                physicalCells.toLocaleString();
+        }
+
+
+        /*
+           Optional data attributes for CSS / debugging.
+        */
+
+        if (rugWorkspace) {
+
+            rugWorkspace.dataset.detail =
+                `${detailGrid.width}×${detailGrid.height}`;
+
+            rugWorkspace.dataset.physicalGrid =
+                `${physicalGrid.width}×${physicalGrid.height}`;
+
+            rugWorkspace.dataset.gridCellCm =
+                String(GRID_CELL_CM);
+        }
+    }
+
+
+    /* =========================================================
        GENERATE
-       --------------------------------------------------------- */
+       ========================================================= */
 
     function generateRug() {
 
@@ -2948,8 +3106,11 @@ function updateZoom() {
             true;
 
 
-        previewStatus.textContent =
-            "PROCESSING…";
+        if (previewStatus) {
+
+            previewStatus.textContent =
+                "PROCESSING…";
+        }
 
 
         setTimeout(
@@ -2989,8 +3150,8 @@ function updateZoom() {
 
 
                     /*
-                       Generate palette only when
-                       user hasn't manually edited it.
+                       Generate palette only if the user
+                       hasn't manually edited it.
                     */
 
                     if (
@@ -3010,33 +3171,100 @@ function updateZoom() {
                     }
 
 
-                    const grid =
-                        calculateGrid();
+                    /*
+                       1. IMAGE DETAIL
+                    */
+
+                    const detailGrid =
+                        calculateDetailGrid();
 
 
-                    const gridData =
-                        createGridImage(
+                    const detailData =
+                        createDetailImage(
                             processed,
-                            grid
+                            detailGrid
                         );
 
 
-                    currentGridData =
-                        gridData;
+                    /*
+                       2. PHYSICAL 5 CM GRID
+                    */
+
+                    const physicalGrid =
+                        calculatePhysicalGrid();
 
 
-                    currentGrid =
-                        grid;
+                    /*
+                       3. Map detailed image to
+                          physical transfer cells.
+                    */
 
+                    const physicalGridData =
+                        createPhysicalGridData(
+                            detailData,
+                            detailGrid,
+                            physicalGrid
+                        );
+
+
+                    /*
+                       Keep both.
+
+                       Detail data is used for preview.
+                       Physical grid data is used for
+                       transfer/export.
+                    */
+
+                    currentDetailData =
+                        detailData;
+
+
+                    currentDetailGrid =
+                        detailGrid;
+
+
+                    currentPhysicalGrid =
+                        physicalGrid;
+
+
+                    /*
+                       Preview
+                    */
 
                     drawRug(
-                        gridData,
-                        grid
+                        detailData,
+                        detailGrid,
+                        physicalGrid
                     );
 
 
+                    /*
+                       Physical overlay
+                    */
+
+                    renderPhysicalGridOverlay();
+
+
+                    /*
+                       Legend based on actual detail
+                       representation.
+                    */
+
+                    renderColorLegend(
+                        detailData,
+                        customPalette.length
+                            ? customPalette
+                            : generatedPalette
+                    );
+
+
+                    /*
+                       Stats
+                    */
+
                     updateStats(
-                        grid
+                        physicalGrid,
+                        detailGrid
                     );
 
 
@@ -3051,11 +3279,15 @@ function updateZoom() {
                         "block";
 
 
-                    previewStatus.textContent =
-                        "RUG READY";
+                    if (previewStatus) {
+
+                        previewStatus.textContent =
+                            "RUG READY";
+                    }
 
 
                     createExportControls();
+
 
                 } catch (error) {
 
@@ -3065,8 +3297,11 @@ function updateZoom() {
                     );
 
 
-                    previewStatus.textContent =
-                        "PROCESSING ERROR";
+                    if (previewStatus) {
+
+                        previewStatus.textContent =
+                            "PROCESSING ERROR";
+                    }
 
                 } finally {
 
@@ -3081,14 +3316,127 @@ function updateZoom() {
 
 
     /* =========================================================
+       EXPORT CONTROLS
+       ========================================================= */
+
+    function createExportControls() {
+
+        if (
+            document.getElementById(
+                "rugExportControls"
+            )
+        ) {
+            return;
+        }
+
+
+        const container =
+            document.createElement("div");
+
+
+        container.id =
+            "rugExportControls";
+
+
+        container.style.cssText = `
+            display:grid;
+            grid-template-columns:1fr 1fr;
+            gap:8px;
+            margin-top:12px;
+        `;
+
+
+        const downloadButton =
+            document.createElement("button");
+
+
+        downloadButton.type =
+            "button";
+
+
+        downloadButton.textContent =
+            "DOWNLOAD PNG";
+
+
+        downloadButton.style.cssText = `
+            min-height:52px;
+            border:1px solid #292925;
+            background:transparent;
+            color:#f2f0ea;
+            cursor:pointer;
+            font:10px "DM Mono",monospace;
+        `;
+
+
+        const projectorButton =
+            document.createElement("button");
+
+
+        projectorButton.type =
+            "button";
+
+
+        projectorButton.textContent =
+            "PROJECTOR MODE";
+
+
+        projectorButton.style.cssText = `
+            min-height:52px;
+            border:1px solid #292925;
+            background:#f2f0ea;
+            color:#0b0b0a;
+            cursor:pointer;
+            font:10px "DM Mono",monospace;
+        `;
+
+
+        downloadButton.addEventListener(
+            "click",
+            downloadRugPNG
+        );
+
+
+        projectorButton.addEventListener(
+            "click",
+            openProjectorMode
+        );
+
+
+        container.appendChild(
+            downloadButton
+        );
+
+
+        container.appendChild(
+            projectorButton
+        );
+
+
+        const previewPanel =
+            document.querySelector(
+                ".preview-panel"
+            );
+
+
+        if (previewPanel) {
+
+            previewPanel.appendChild(
+                container
+            );
+        }
+    }
+
+
+    /* =========================================================
        DOWNLOAD PNG
        ========================================================= */
 
     function downloadRugPNG() {
 
         if (
-            !currentGridData ||
-            !currentGrid
+            !currentDetailData ||
+            !currentDetailGrid ||
+            !currentPhysicalGrid
         ) {
 
             alert(
@@ -3099,37 +3447,50 @@ function updateZoom() {
         }
 
 
-        const EXPORT_CELL_SIZE = 80;
+        /*
+           EXPORT IS NOW BASED ON THE PHYSICAL GRID.
 
-        const LABEL_SIZE = 70;
+           The exported rug shows:
 
-        const TOP_INFO = 80;
+           - physical 5 cm cells
+           - A-Z / row coordinates
+           - dimensions
+           - color legend
 
-        const LEGEND_HEIGHT =
-            150;
+           It does NOT export every DETAIL pixel
+           as if it were a physical grid cell.
+        */
 
-        const BORDER = 2;
+        const EXPORT_CELL_SIZE = 100;
+
+        const LABEL_SIZE = 80;
+
+        const TOP_INFO = 100;
+
+        const LEGEND_HEIGHT = 180;
+
+        const BORDER = 3;
 
 
-        const rugPixelWidth =
-            currentGrid.width *
+        const physicalWidth =
+            currentPhysicalGrid.width *
             EXPORT_CELL_SIZE;
 
 
-        const rugPixelHeight =
-            currentGrid.height *
+        const physicalHeight =
+            currentPhysicalGrid.height *
             EXPORT_CELL_SIZE;
 
 
         const exportWidth =
             LABEL_SIZE +
-            rugPixelWidth +
-            30;
+            physicalWidth +
+            40;
 
 
         const exportHeight =
             TOP_INFO +
-            rugPixelHeight +
+            physicalHeight +
             LEGEND_HEIGHT;
 
 
@@ -3157,7 +3518,9 @@ function updateZoom() {
             false;
 
 
-        /* BACKGROUND */
+        /* -----------------------------------------------------
+           BACKGROUND
+           ----------------------------------------------------- */
 
         exportCtx.fillStyle =
             "#11110f";
@@ -3171,7 +3534,9 @@ function updateZoom() {
         );
 
 
-        /* DATA */
+        /* -----------------------------------------------------
+           DATA
+           ----------------------------------------------------- */
 
         const width =
             Math.round(
@@ -3200,7 +3565,9 @@ function updateZoom() {
                 : generatedPalette;
 
 
-        /* HEADER */
+        /* -----------------------------------------------------
+           HEADER
+           ----------------------------------------------------- */
 
         exportCtx.fillStyle =
             "#f2f0ea";
@@ -3226,13 +3593,22 @@ function updateZoom() {
 
 
         exportCtx.fillText(
-            `${width} × ${height} CM  ·  ${currentGrid.width} × ${currentGrid.height} CELLS  ·  ${colors} COLORS`,
+            `${width} × ${height} CM  ·  ${GRID_CELL_CM} × ${GRID_CELL_CM} CM GRID  ·  ${currentPhysicalGrid.width} × ${currentPhysicalGrid.height} CELLS`,
             30,
             60
         );
 
 
-        /* GRID POSITION */
+        exportCtx.fillText(
+            `DETAIL ${detailLevel}  ·  ${currentDetailGrid.width} × ${currentDetailGrid.height} DETAIL CELLS  ·  ${colors} COLORS`,
+            30,
+            82
+        );
+
+
+        /* -----------------------------------------------------
+           GRID POSITION
+           ----------------------------------------------------- */
 
         const gridX =
             LABEL_SIZE;
@@ -3242,22 +3618,117 @@ function updateZoom() {
             TOP_INFO;
 
 
-        /* CELLS */
+        /* -----------------------------------------------------
+           PHYSICAL GRID CELLS
+           ----------------------------------------------------- */
 
         for (
-            let y = 0;
-            y < currentGrid.height;
-            y++
+            let py = 0;
+            py < currentPhysicalGrid.height;
+            py++
         ) {
 
             for (
-                let x = 0;
-                x < currentGrid.width;
-                x++
+                let px = 0;
+                px < currentPhysicalGrid.width;
+                px++
             ) {
 
-                const color =
-                    currentGridData[y][x];
+                const startX =
+                    Math.floor(
+                        px /
+                        currentPhysicalGrid.width *
+                        currentDetailGrid.width
+                    );
+
+
+                const endX =
+                    Math.max(
+                        startX + 1,
+                        Math.floor(
+                            (px + 1) /
+                            currentPhysicalGrid.width *
+                            currentDetailGrid.width
+                        )
+                    );
+
+
+                const startY =
+                    Math.floor(
+                        py /
+                        currentPhysicalGrid.height *
+                        currentDetailGrid.height
+                    );
+
+
+                const endY =
+                    Math.max(
+                        startY + 1,
+                        Math.floor(
+                            (py + 1) /
+                            currentPhysicalGrid.height *
+                            currentDetailGrid.height
+                        )
+                    );
+
+
+                const counts =
+                    new Map();
+
+
+                for (
+                    let y = startY;
+                    y < endY;
+                    y++
+                ) {
+
+                    for (
+                        let x = startX;
+                        x < endX;
+                        x++
+                    ) {
+
+                        const color =
+                            currentDetailData[y]?.[x];
+
+
+                        if (!color) {
+                            continue;
+                        }
+
+
+                        counts.set(
+                            color,
+                            (
+                                counts.get(color) ||
+                                0
+                            ) + 1
+                        );
+                    }
+                }
+
+
+                let color = null;
+
+                let bestCount = 0;
+
+
+                counts.forEach(
+                    (count, candidate) => {
+
+                        if (
+                            count >
+                            bestCount
+                        ) {
+
+                            bestCount =
+                                count;
+
+                            color =
+                                candidate;
+                        }
+                    }
+                );
 
 
                 exportCtx.fillStyle =
@@ -3267,11 +3738,11 @@ function updateZoom() {
 
                 exportCtx.fillRect(
                     gridX +
-                        x *
+                        px *
                         EXPORT_CELL_SIZE,
 
                     gridY +
-                        y *
+                        py *
                         EXPORT_CELL_SIZE,
 
                     EXPORT_CELL_SIZE,
@@ -3282,10 +3753,12 @@ function updateZoom() {
         }
 
 
-        /* GRID LINES */
+        /* -----------------------------------------------------
+           GRID LINES
+           ----------------------------------------------------- */
 
         exportCtx.strokeStyle =
-            "rgba(255,255,255,.22)";
+            "rgba(255,255,255,.30)";
 
 
         exportCtx.lineWidth =
@@ -3294,7 +3767,7 @@ function updateZoom() {
 
         for (
             let x = 0;
-            x <= currentGrid.width;
+            x <= currentPhysicalGrid.width;
             x++
         ) {
 
@@ -3317,7 +3790,7 @@ function updateZoom() {
             exportCtx.lineTo(
                 px,
                 gridY +
-                rugPixelHeight
+                physicalHeight
             );
 
 
@@ -3327,7 +3800,7 @@ function updateZoom() {
 
         for (
             let y = 0;
-            y <= currentGrid.height;
+            y <= currentPhysicalGrid.height;
             y++
         ) {
 
@@ -3349,7 +3822,7 @@ function updateZoom() {
 
             exportCtx.lineTo(
                 gridX +
-                rugPixelWidth,
+                physicalWidth,
                 py
             );
 
@@ -3358,7 +3831,9 @@ function updateZoom() {
         }
 
 
-        /* OUTER BORDER */
+        /* -----------------------------------------------------
+           OUTER BORDER
+           ----------------------------------------------------- */
 
         exportCtx.strokeStyle =
             "#f2f0ea";
@@ -3371,12 +3846,14 @@ function updateZoom() {
         exportCtx.strokeRect(
             gridX,
             gridY,
-            rugPixelWidth,
-            rugPixelHeight
+            physicalWidth,
+            physicalHeight
         );
 
 
-        /* TOP COORDINATES */
+        /* -----------------------------------------------------
+           TOP COORDINATES
+           ----------------------------------------------------- */
 
         exportCtx.fillStyle =
             "#aaa79f";
@@ -3392,7 +3869,7 @@ function updateZoom() {
 
         for (
             let x = 0;
-            x < currentGrid.width;
+            x < currentPhysicalGrid.width;
             x++
         ) {
 
@@ -3406,12 +3883,14 @@ function updateZoom() {
             exportCtx.fillText(
                 columnLabel(x),
                 centerX,
-                gridY - 10
+                gridY - 12
             );
         }
 
 
-        /* LEFT COORDINATES */
+        /* -----------------------------------------------------
+           LEFT COORDINATES
+           ----------------------------------------------------- */
 
         exportCtx.textAlign =
             "right";
@@ -3419,7 +3898,7 @@ function updateZoom() {
 
         for (
             let y = 0;
-            y < currentGrid.height;
+            y < currentPhysicalGrid.height;
             y++
         ) {
 
@@ -3438,11 +3917,13 @@ function updateZoom() {
         }
 
 
-        /* LEGEND */
+        /* -----------------------------------------------------
+           LEGEND
+           ----------------------------------------------------- */
 
         const legendY =
             gridY +
-            rugPixelHeight +
+            physicalHeight +
             35;
 
 
@@ -3465,32 +3946,135 @@ function updateZoom() {
         );
 
 
+        /*
+           Count physical grid cells by color.
+        */
+
         const counts =
             new Map();
 
 
-        currentGridData.forEach(
-            row => {
+        for (
+            let py = 0;
+            py < currentPhysicalGrid.height;
+            py++
+        ) {
 
-                row.forEach(
-                    color => {
+            for (
+                let px = 0;
+                px < currentPhysicalGrid.width;
+                px++
+            ) {
+
+                const startX =
+                    Math.floor(
+                        px /
+                        currentPhysicalGrid.width *
+                        currentDetailGrid.width
+                    );
+
+
+                const endX =
+                    Math.max(
+                        startX + 1,
+                        Math.floor(
+                            (px + 1) /
+                            currentPhysicalGrid.width *
+                            currentDetailGrid.width
+                        )
+                    );
+
+
+                const startY =
+                    Math.floor(
+                        py /
+                        currentPhysicalGrid.height *
+                        currentDetailGrid.height
+                    );
+
+
+                const endY =
+                    Math.max(
+                        startY + 1,
+                        Math.floor(
+                            (py + 1) /
+                            currentPhysicalGrid.height *
+                            currentDetailGrid.height
+                        )
+                    );
+
+
+                const local =
+                    new Map();
+
+
+                for (
+                    let y = startY;
+                    y < endY;
+                    y++
+                ) {
+
+                    for (
+                        let x = startX;
+                        x < endX;
+                        x++
+                    ) {
+
+                        const color =
+                            currentDetailData[y]?.[x];
+
 
                         if (!color) {
-                            return;
+                            continue;
                         }
 
 
-                        counts.set(
+                        local.set(
                             color,
                             (
-                                counts.get(color) ||
+                                local.get(color) ||
                                 0
                             ) + 1
                         );
                     }
+                }
+
+
+                let bestColor = null;
+
+                let bestCount = 0;
+
+
+                local.forEach(
+                    (count, color) => {
+
+                        if (
+                            count >
+                            bestCount
+                        ) {
+
+                            bestCount =
+                                count;
+
+                            bestColor =
+                                color;
+                        }
+                    }
                 );
+
+
+                if (bestColor) {
+
+                    counts.set(
+                        bestColor,
+                        (
+                            counts.get(bestColor) ||
+                            0
+                        ) + 1
+                    );
+                }
             }
-        );
+        }
 
 
         palette.forEach(
@@ -3510,13 +4094,13 @@ function updateZoom() {
                     legendY +
                     25 +
                     Math.floor(index / 4) *
-                    28;
+                    30;
 
 
                 const itemX =
                     30 +
                     (index % 4) *
-                    190;
+                    210;
 
 
                 exportCtx.fillStyle =
@@ -3563,7 +4147,7 @@ function updateZoom() {
 
 
                 exportCtx.fillText(
-                    `${normalized} · ${count.toLocaleString()} LOOPS`,
+                    `${normalized} · ${count} GRID CELLS`,
                     itemX + 27,
                     itemY + 14
                 );
@@ -3571,7 +4155,9 @@ function updateZoom() {
         );
 
 
-        /* DOWNLOAD */
+        /* -----------------------------------------------------
+           DOWNLOAD
+           ----------------------------------------------------- */
 
         const link =
             document.createElement(
@@ -3580,7 +4166,7 @@ function updateZoom() {
 
 
         link.download =
-            `doch-rug-${width}x${height}cm-${colors}-colors-grid.png`;
+            `doch-rug-${width}x${height}cm-${GRID_CELL_CM}cm-grid-${colors}-colors.png`;
 
 
         link.href =
@@ -3600,8 +4186,9 @@ function updateZoom() {
     function openProjectorMode() {
 
         if (
-            !currentGridData ||
-            !currentGrid
+            !currentDetailData ||
+            !currentDetailGrid ||
+            !currentPhysicalGrid
         ) {
 
             alert(
@@ -3657,11 +4244,13 @@ function updateZoom() {
 
 
         const ratio =
-            currentGrid.width /
-            currentGrid.height;
+            width /
+            height;
 
 
-        /* WORKSPACE */
+        /* -----------------------------------------------------
+           PROJECTOR WORKSPACE
+           ----------------------------------------------------- */
 
         const workspace =
             document.createElement(
@@ -3671,14 +4260,16 @@ function updateZoom() {
 
         workspace.style.cssText = `
             position:relative;
-            width:min(92vw,82vh * ${ratio});
-            height:min(82vh,92vw / ${ratio});
-            max-width:92vw;
-            max-height:82vh;
+            width:min(88vw,78vh * ${ratio});
+            height:min(78vh,88vw / ${ratio});
+            max-width:88vw;
+            max-height:78vh;
         `;
 
 
-        /* CANVAS */
+        /* -----------------------------------------------------
+           PHYSICAL GRID IMAGE
+           ----------------------------------------------------- */
 
         const projectorCanvas =
             document.createElement(
@@ -3687,11 +4278,11 @@ function updateZoom() {
 
 
         projectorCanvas.width =
-            currentGrid.width;
+            currentPhysicalGrid.width;
 
 
         projectorCanvas.height =
-            currentGrid.height;
+            currentPhysicalGrid.height;
 
 
         projectorCanvas.style.cssText = `
@@ -3714,30 +4305,129 @@ function updateZoom() {
             false;
 
 
+        /*
+           Render physical 5 cm grid.
+        */
+
         for (
-            let y = 0;
-            y < currentGrid.height;
-            y++
+            let py = 0;
+            py < currentPhysicalGrid.height;
+            py++
         ) {
 
             for (
-                let x = 0;
-                x < currentGrid.width;
-                x++
+                let px = 0;
+                px < currentPhysicalGrid.width;
+                px++
             ) {
 
-                const color =
-                    currentGridData[y][x];
+                const startX =
+                    Math.floor(
+                        px /
+                        currentPhysicalGrid.width *
+                        currentDetailGrid.width
+                    );
+
+
+                const endX =
+                    Math.max(
+                        startX + 1,
+                        Math.floor(
+                            (px + 1) /
+                            currentPhysicalGrid.width *
+                            currentDetailGrid.width
+                        )
+                    );
+
+
+                const startY =
+                    Math.floor(
+                        py /
+                        currentPhysicalGrid.height *
+                        currentDetailGrid.height
+                    );
+
+
+                const endY =
+                    Math.max(
+                        startY + 1,
+                        Math.floor(
+                            (py + 1) /
+                            currentPhysicalGrid.height *
+                            currentDetailGrid.height
+                        )
+                    );
+
+
+                const local =
+                    new Map();
+
+
+                for (
+                    let y = startY;
+                    y < endY;
+                    y++
+                ) {
+
+                    for (
+                        let x = startX;
+                        x < endX;
+                        x++
+                    ) {
+
+                        const color =
+                            currentDetailData[y]?.[x];
+
+
+                        if (!color) {
+                            continue;
+                        }
+
+
+                        local.set(
+                            color,
+                            (
+                                local.get(color) ||
+                                0
+                            ) + 1
+                        );
+                    }
+                }
+
+
+                let bestColor =
+                    null;
+
+                let bestCount =
+                    0;
+
+
+                local.forEach(
+                    (count, color) => {
+
+                        if (
+                            count >
+                            bestCount
+                        ) {
+
+                            bestCount =
+                                count;
+
+                            bestColor =
+                                color;
+                        }
+                    }
+                );
 
 
                 projectorCtx.fillStyle =
-                    color ||
+                    bestColor ||
                     "#11110f";
 
 
                 projectorCtx.fillRect(
-                    x,
-                    y,
+                    px,
+                    py,
                     1,
                     1
                 );
@@ -3750,7 +4440,9 @@ function updateZoom() {
         );
 
 
-        /* GRID */
+        /* -----------------------------------------------------
+           PHYSICAL GRID OVERLAY
+           ----------------------------------------------------- */
 
         const gridOverlay =
             document.createElement(
@@ -3762,8 +4454,8 @@ function updateZoom() {
             position:absolute;
             inset:0;
             display:grid;
-            grid-template-columns:repeat(${currentGrid.width},1fr);
-            grid-template-rows:repeat(${currentGrid.height},1fr);
+            grid-template-columns:repeat(${currentPhysicalGrid.width},1fr);
+            grid-template-rows:repeat(${currentPhysicalGrid.height},1fr);
             pointer-events:none;
         `;
 
@@ -3771,8 +4463,8 @@ function updateZoom() {
         for (
             let i = 0;
             i <
-            currentGrid.width *
-            currentGrid.height;
+            currentPhysicalGrid.width *
+            currentPhysicalGrid.height;
             i++
         ) {
 
@@ -3783,8 +4475,9 @@ function updateZoom() {
 
 
             cell.style.cssText = `
-                border-right:1px solid rgba(255,255,255,.16);
-                border-bottom:1px solid rgba(255,255,255,.16);
+                box-sizing:border-box;
+                border-right:1px solid rgba(255,255,255,.25);
+                border-bottom:1px solid rgba(255,255,255,.25);
             `;
 
 
@@ -3799,7 +4492,9 @@ function updateZoom() {
         );
 
 
-        /* BORDER */
+        /* -----------------------------------------------------
+           BORDER
+           ----------------------------------------------------- */
 
         const border =
             document.createElement(
@@ -3820,7 +4515,9 @@ function updateZoom() {
         );
 
 
-        /* TOP LABELS */
+        /* -----------------------------------------------------
+           TOP LABELS
+           ----------------------------------------------------- */
 
         const topLabels =
             document.createElement(
@@ -3835,7 +4532,7 @@ function updateZoom() {
             top:-22px;
             height:18px;
             display:grid;
-            grid-template-columns:repeat(${currentGrid.width},1fr);
+            grid-template-columns:repeat(${currentPhysicalGrid.width},1fr);
             color:rgba(255,255,255,.65);
             font-size:8px;
             line-height:18px;
@@ -3846,7 +4543,7 @@ function updateZoom() {
 
         for (
             let x = 0;
-            x < currentGrid.width;
+            x < currentPhysicalGrid.width;
             x++
         ) {
 
@@ -3871,7 +4568,9 @@ function updateZoom() {
         );
 
 
-        /* LEFT LABELS */
+        /* -----------------------------------------------------
+           LEFT LABELS
+           ----------------------------------------------------- */
 
         const leftLabels =
             document.createElement(
@@ -3886,7 +4585,7 @@ function updateZoom() {
             bottom:0;
             width:25px;
             display:grid;
-            grid-template-rows:repeat(${currentGrid.height},1fr);
+            grid-template-rows:repeat(${currentPhysicalGrid.height},1fr);
             color:rgba(255,255,255,.65);
             font-size:8px;
             line-height:1;
@@ -3897,7 +4596,7 @@ function updateZoom() {
 
         for (
             let y = 0;
-            y < currentGrid.height;
+            y < currentPhysicalGrid.height;
             y++
         ) {
 
@@ -3939,7 +4638,9 @@ function updateZoom() {
         );
 
 
-        /* TOP INFO */
+        /* -----------------------------------------------------
+           TOP INFO
+           ----------------------------------------------------- */
 
         const info =
             document.createElement(
@@ -3969,8 +4670,9 @@ function updateZoom() {
 
             <span>
                 ${width} × ${height} CM
-                · ${currentGrid.width} × ${currentGrid.height} CELLS
-                · ${colors} COLORS
+                · ${GRID_CELL_CM} × ${GRID_CELL_CM} CM GRID
+                · ${currentPhysicalGrid.width} × ${currentPhysicalGrid.height}
+                · DETAIL ${detailLevel}
             </span>
         `;
 
@@ -3980,7 +4682,9 @@ function updateZoom() {
         );
 
 
-        /* BOTTOM INFO */
+        /* -----------------------------------------------------
+           BOTTOM INFO
+           ----------------------------------------------------- */
 
         const bottomInfo =
             document.createElement(
@@ -4007,7 +4711,9 @@ function updateZoom() {
         );
 
 
-        /* EXIT */
+        /* -----------------------------------------------------
+           EXIT
+           ----------------------------------------------------- */
 
         const closeButton =
             document.createElement(
@@ -4038,29 +4744,33 @@ function updateZoom() {
         `;
 
 
+        function closeProjector() {
+
+            overlay.remove();
+
+
+            document.removeEventListener(
+                "keydown",
+                escapeHandler
+            );
+
+
+            if (
+                document.fullscreenElement
+            ) {
+
+                document
+                    .exitFullscreen()
+                    .catch(
+                        () => {}
+                    );
+            }
+        }
+
+
         closeButton.addEventListener(
             "click",
-            () => {
-
-                overlay.remove();
-
-
-                document.removeEventListener(
-                    "keydown",
-                    escapeHandler
-                );
-
-
-                if (
-                    document.fullscreenElement
-                ) {
-
-                    document.exitFullscreen()
-                        .catch(
-                            () => {}
-                        );
-                }
-            }
+            closeProjector
         );
 
 
@@ -4069,7 +4779,9 @@ function updateZoom() {
         );
 
 
-        /* ESC */
+        /* -----------------------------------------------------
+           ESC
+           ----------------------------------------------------- */
 
         function escapeHandler(
             event
@@ -4079,13 +4791,7 @@ function updateZoom() {
                 event.key === "Escape"
             ) {
 
-                overlay.remove();
-
-
-                document.removeEventListener(
-                    "keydown",
-                    escapeHandler
-                );
+                closeProjector();
             }
         }
 
@@ -4114,9 +4820,9 @@ function updateZoom() {
     }
 
 
-    /* ---------------------------------------------------------
+    /* =========================================================
        GENERATE BUTTON
-       --------------------------------------------------------- */
+       ========================================================= */
 
     generateButton.addEventListener(
         "click",
@@ -4135,241 +4841,63 @@ function updateZoom() {
     );
 
 
-    /* ---------------------------------------------------------
+    /* =========================================================
        INITIAL STATE
-       --------------------------------------------------------- */
+       ========================================================= */
 
-    function createDetailControl() {
+    setupWorkspace();
 
-    const existing =
-        document.getElementById(
-            "rugDetailControl"
+    createDetailControl();
+
+
+    generatedPalette =
+        DEFAULT_PALETTE.slice(
+            0,
+            numberOfColors
         );
 
 
-    if (existing) {
-
-        detailInput =
-            document.getElementById(
-                "rugDetailInput"
-            );
-
-        detailValue =
-            document.getElementById(
-                "rugDetailValue"
-            );
-
-
-        if (detailInput) {
-
-            detailInput.min =
-                "10";
-
-            detailInput.max =
-                "500";
-
-            detailInput.step =
-                "10";
-
-            detailInput.value =
-                String(detailLevel);
-        }
-
-
-        return;
-    }
-
-
-    const container =
-        document.createElement("div");
-
-
-    container.id =
-        "rugDetailControl";
-
-
-    container.style.cssText = `
-        width: calc(100% - 32px);
-        max-width: calc(100% - 32px);
-        box-sizing: border-box;
-
-        margin: 18px auto 0;
-        padding: 16px 0 0;
-
-        border-top: 1px solid #292925;
-
-        align-self: center;
-        flex: 0 0 auto;
-    `;
-
-
-    container.innerHTML = `
-        <div style="
-            width:100%;
-            display:flex;
-            justify-content:space-between;
-            align-items:center;
-            margin-bottom:10px;
-            box-sizing:border-box;
-        ">
-            <span style="
-                font:10px 'DM Mono', monospace;
-                color:#f2f0ea;
-                letter-spacing:.04em;
-            ">
-                DETAIL
-            </span>
-
-            <span
-                id="rugDetailValue"
-                style="
-                    font:10px 'DM Mono', monospace;
-                    color:#77746d;
-                "
-            >
-                ${detailLevel}
-            </span>
-        </div>
-
-        <input
-            id="rugDetailInput"
-            type="range"
-            min="10"
-            max="500"
-            step="10"
-            value="${detailLevel}"
-            style="
-                display:block;
-                width:100%;
-                max-width:100%;
-                height:20px;
-
-                box-sizing:border-box;
-
-                margin:0;
-                padding:0;
-
-                cursor:pointer;
-
-                appearance:auto;
-            "
-        >
-
-        <div style="
-            width:100%;
-            display:flex;
-            justify-content:space-between;
-            box-sizing:border-box;
-
-            margin-top:6px;
-
-            font:8px 'DM Mono', monospace;
-            color:#55534e;
-        ">
-            <span>COARSE</span>
-            <span>FINE</span>
-        </div>
-    `;
+    renderPalette(
+        generatedPalette
+    );
 
 
     /*
-       Find the actual left control column.
-
-       Prefer an element containing the width/height controls,
-       rather than an arbitrary .panel.
+       Initial values.
     */
 
-    let target = null;
+    if (contrastValue && contrastInput) {
 
-
-    const widthParent =
-        widthInput?.parentElement;
-
-
-    if (widthParent) {
-
-        target =
-            widthParent.closest(
-                ".controls-panel, .settings-panel, .left-panel, .sidebar, .controls, .control-panel"
-            );
+        contrastValue.textContent =
+            contrastInput.value;
     }
 
 
-    if (!target) {
-        target = findLeftPanel();
+    if (brightnessValue && brightnessInput) {
+
+        brightnessValue.textContent =
+            brightnessInput.value;
     }
 
 
     /*
-       Make sure the target itself cannot be expanded
-       by the detail control.
+       Initial physical grid information,
+       even before image upload.
     */
 
-    if (target) {
+    currentPhysicalGrid =
+        calculatePhysicalGrid();
 
-        target.style.minWidth =
-            "0";
 
-        target.style.maxWidth =
-            "100%";
+    /*
+       Make sure the empty state is visible
+       only when there is no image.
+    */
 
-        target.style.boxSizing =
-            "border-box";
+    if (!sourceImage && canvas) {
+
+        canvas.style.display =
+            "none";
     }
 
-
-    if (!target) {
-        return;
-    }
-
-
-    target.appendChild(
-        container
-    );
-
-
-    detailInput =
-        document.getElementById(
-            "rugDetailInput"
-        );
-
-
-    detailValue =
-        document.getElementById(
-            "rugDetailValue"
-        );
-
-
-    if (!detailInput) {
-        return;
-    }
-
-
-    detailInput.addEventListener(
-        "input",
-        () => {
-
-            detailLevel =
-                clamp(
-                    Number(
-                        detailInput.value
-                    ) || 80,
-                    10,
-                    500
-                );
-
-
-            if (detailValue) {
-
-                detailValue.textContent =
-                    `${detailLevel}`;
-            }
-
-
-            if (sourceImage) {
-
-                generateRug();
-            }
-        }
-    );
-}
+})();
