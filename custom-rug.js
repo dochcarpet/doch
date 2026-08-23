@@ -138,7 +138,7 @@
     let currentGrid = null;
 
     let zoomLevel = 1;
-   
+
     let detailLevel = 40;
 
 
@@ -160,6 +160,25 @@
     */
 
     const GRID_CELL_CM = 5;
+
+
+    /*
+       Grid density limits.
+
+       DETAIL controls the number of cells across
+       the width of the rug.
+
+       10  = very coarse
+       40  = medium
+       70  = detailed
+       100 = very detailed
+    */
+
+    const MIN_GRID_WIDTH = 10;
+    const MAX_GRID_WIDTH = 100;
+
+    const MIN_GRID_HEIGHT = 10;
+    const MAX_GRID_HEIGHT = 100;
 
 
     /*
@@ -475,147 +494,156 @@
         );
     }
 
+
     /* ---------------------------------------------------------
-   DETAIL / GRID DENSITY
-         --------------------------------------------------------- */
-      
-      let detailInput = null;
-      let detailValue = null;
-      
-      
-      function createDetailControl() {
-      
-          if (
-              document.getElementById("rugDetailControl")
-          ) {
-              detailInput =
-                  document.getElementById("rugDetailInput");
-      
-              detailValue =
-                  document.getElementById("rugDetailValue");
-      
-              return;
-          }
-      
-      
-          const container =
-              document.createElement("div");
-      
-      
-          container.id =
-              "rugDetailControl";
-      
-      
-          container.style.cssText = `
-              margin-top: 18px;
-              padding-top: 16px;
-              border-top: 1px solid #292925;
-          `;
-      
-      
-          container.innerHTML = `
-              <div style="
-                  display:flex;
-                  justify-content:space-between;
-                  align-items:center;
-                  margin-bottom:10px;
-              ">
-                  <span style="
-                      font:10px 'DM Mono', monospace;
-                      color:#f2f0ea;
-                      letter-spacing:.04em;
-                  ">
-                      DETAIL
-                  </span>
-      
-                  <span
-                      id="rugDetailValue"
-                      style="
-                          font:10px 'DM Mono', monospace;
-                          color:#77746d;
-                      "
-                  >
-                      40 ×
-                  </span>
-              </div>
-      
-              <input
-                  id="rugDetailInput"
-                  type="range"
-                  min="10"
-                  max="100"
-                  step="5"
-                  value="40"
-                  style="
-                      width:100%;
-                      cursor:pointer;
-                  "
-              >
-      
-              <div style="
-                  display:flex;
-                  justify-content:space-between;
-                  margin-top:6px;
-                  font:8px 'DM Mono', monospace;
-                  color:#55534e;
-              ">
-                  <span>COARSE</span>
-                  <span>FINE</span>
-              </div>
-          `;
-      
-      
-          /*
-             Put the control near the size controls.
-             If the dedicated settings container exists,
-             use it. Otherwise fall back to the main panel.
-          */
-      
-          const target =
-              widthInput.closest(".control-group") ||
-              widthInput.closest(".panel") ||
-              widthInput.parentElement?.parentElement ||
-              document.body;
-      
-      
-          target.appendChild(
-              container
-          );
-      
-      
-          detailInput =
-              document.getElementById(
-                  "rugDetailInput"
-              );
-      
-      
-          detailValue =
-              document.getElementById(
-                  "rugDetailValue"
-              );
-      
-      
-          detailInput.addEventListener(
-              "input",
-              () => {
-      
-                  detailLevel =
-                      Number(
-                          detailInput.value
-                      );
-      
-      
-                  detailValue.textContent =
-                      `${detailLevel} ×`;
-      
-      
-                  if (sourceImage) {
-      
-                      generateRug();
-                  }
-              }
-          );
-      }
+       DETAIL / GRID DENSITY
+       --------------------------------------------------------- */
+
+    let detailInput = null;
+
+    let detailValue = null;
+
+
+    function createDetailControl() {
+
+        if (
+            document.getElementById(
+                "rugDetailControl"
+            )
+        ) {
+
+            detailInput =
+                document.getElementById(
+                    "rugDetailInput"
+                );
+
+            detailValue =
+                document.getElementById(
+                    "rugDetailValue"
+                );
+
+            return;
+        }
+
+
+        const container =
+            document.createElement("div");
+
+
+        container.id =
+            "rugDetailControl";
+
+
+        container.style.cssText = `
+            margin-top: 18px;
+            padding-top: 16px;
+            border-top: 1px solid #292925;
+        `;
+
+
+        container.innerHTML = `
+            <div style="
+                display:flex;
+                justify-content:space-between;
+                align-items:center;
+                margin-bottom:10px;
+            ">
+                <span style="
+                    font:10px 'DM Mono', monospace;
+                    color:#f2f0ea;
+                    letter-spacing:.04em;
+                ">
+                    DETAIL
+                </span>
+
+                <span
+                    id="rugDetailValue"
+                    style="
+                        font:10px 'DM Mono', monospace;
+                        color:#77746d;
+                    "
+                >
+                    40 ×
+                </span>
+            </div>
+
+            <input
+                id="rugDetailInput"
+                type="range"
+                min="10"
+                max="100"
+                step="5"
+                value="40"
+                style="
+                    width:100%;
+                    cursor:pointer;
+                "
+            >
+
+            <div style="
+                display:flex;
+                justify-content:space-between;
+                margin-top:6px;
+                font:8px 'DM Mono', monospace;
+                color:#55534e;
+            ">
+                <span>COARSE</span>
+                <span>FINE</span>
+            </div>
+        `;
+
+
+        /*
+           Put the control near the size controls.
+           If the dedicated settings container exists,
+           use it. Otherwise fall back to the main panel.
+        */
+
+        const target =
+            widthInput.closest(".control-group") ||
+            widthInput.closest(".panel") ||
+            widthInput.parentElement?.parentElement ||
+            document.body;
+
+
+        target.appendChild(
+            container
+        );
+
+
+        detailInput =
+            document.getElementById(
+                "rugDetailInput"
+            );
+
+
+        detailValue =
+            document.getElementById(
+                "rugDetailValue"
+            );
+
+
+        detailInput.addEventListener(
+            "input",
+            () => {
+
+                detailLevel =
+                    Number(
+                        detailInput.value
+                    );
+
+
+                detailValue.textContent =
+                    `${detailLevel} ×`;
+
+
+                if (sourceImage) {
+
+                    generateRug();
+                }
+            }
+        );
+    }
 
 
     /* ---------------------------------------------------------
@@ -2174,83 +2202,90 @@
        GRID
        --------------------------------------------------------- */
 
-/* ---------------------------------------------------------
-   GRID
-   --------------------------------------------------------- */
+    function calculateGrid() {
 
-function calculateGrid() {
-
-    const rugWidth =
-        Number(
-            widthInput.value
-        ) || 100;
+        const rugWidth =
+            Number(
+                widthInput.value
+            ) || 100;
 
 
-    const rugHeight =
-        Number(
-            heightInput.value
-        ) || 75;
+        const rugHeight =
+            Number(
+                heightInput.value
+            ) || 75;
 
 
-    /*
-       detailLevel = количество ячеек
-       по ширине ковра.
+        /*
+           detailLevel = количество ячеек
+           по ширине ковра.
 
-       Например:
-       100 cm × 75 cm
+           Например:
+           100 cm × 75 cm
 
-       DETAIL 20
-       → 20 × 15 cells
+           DETAIL 20
+           → 20 × 15 cells
 
-       DETAIL 40
-       → 40 × 30 cells
+           DETAIL 40
+           → 40 × 30 cells
 
-       DETAIL 80
-       → 80 × 60 cells
+           DETAIL 80
+           → 80 × 60 cells
 
-       Таким образом масштаб физического ковра
-       не меняет количество деталей автоматически.
-    */
+           Таким образом масштаб физического ковра
+           не меняет количество деталей автоматически.
+        */
 
-    let gridWidth =
-        Math.round(
-            detailLevel
-        );
-
-
-    let gridHeight =
-        Math.round(
-            gridWidth *
-            rugHeight /
-            rugWidth
-        );
+        let gridWidth =
+            Math.round(
+                detailLevel
+            );
 
 
-    /*
-       Защита от слишком маленькой/большой сетки.
-    */
+        /*
+           FIX:
 
-    gridWidth =
-        clamp(
-            gridWidth,
-            10,
-            MAX_GRID_WIDTH
-        );
+           Previously MAX_GRID_WIDTH and
+           MAX_GRID_HEIGHT were not defined.
+
+           That caused generateRug() to stop here
+           with a ReferenceError, so the palette
+           changed but the canvas stayed empty.
+        */
+
+        gridWidth =
+            clamp(
+                gridWidth,
+                MIN_GRID_WIDTH,
+                MAX_GRID_WIDTH
+            );
 
 
-    gridHeight =
-        clamp(
-            gridHeight,
-            10,
-            MAX_GRID_HEIGHT
-        );
+        let gridHeight =
+            Math.round(
+                gridWidth *
+                rugHeight /
+                rugWidth
+            );
 
 
-    return {
-        width: gridWidth,
-        height: gridHeight
-    };
-}
+        /*
+           Защита от слишком маленькой/большой сетки.
+        */
+
+        gridHeight =
+            clamp(
+                gridHeight,
+                MIN_GRID_HEIGHT,
+                MAX_GRID_HEIGHT
+            );
+
+
+        return {
+            width: gridWidth,
+            height: gridHeight
+        };
+    }
 
 
     /* ---------------------------------------------------------
@@ -3826,10 +3861,11 @@ function calculateGrid() {
     /* ---------------------------------------------------------
        INITIAL STATE
        --------------------------------------------------------- */
-   
-   createDetailControl();
-    
-   generatedPalette =
+
+    createDetailControl();
+
+
+    generatedPalette =
         DEFAULT_PALETTE.slice(
             0,
             numberOfColors
