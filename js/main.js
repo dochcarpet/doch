@@ -309,6 +309,17 @@ async function loadProducts() {
 
         products = await response.json();
 
+        console.log(
+             "DOCH PRODUCTS:",
+             products.length,
+             products.map(product => ({
+                 id: product.id,
+                 title: product.title_en || product.title_ru,
+                 status: product.status,
+                 image: product.cover_image
+             }))
+         );
+
         renderProducts();
 
     } catch (error) {
