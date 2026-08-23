@@ -2539,389 +2539,1072 @@
     }
 
 
-    /* ---------------------------------------------------------
-       DOWNLOAD PNG
-       --------------------------------------------------------- */
+/* ---------------------------------------------------------
+   DOWNLOAD PNG — TECHNICAL RUG GRID
+   --------------------------------------------------------- */
 
-    function downloadRugPNG() {
+function downloadRugPNG() {
 
-        if (
-            !currentGridData ||
-            !currentGrid
-        ) {
+    if (
+        !currentGridData ||
+        !currentGrid
+    ) {
 
-            alert(
-                "Generate the rug first."
-            );
+        alert(
+            "Generate the rug first."
+        );
 
-            return;
-        }
-
-
-        /*
-           High-resolution export.
-
-           The exported PNG contains ONLY the rug.
-           No coordinates, legend or UI.
-        */
-
-        const EXPORT_CELL_SIZE = 40;
+        return;
+    }
 
 
-        const exportCanvas =
-            document.createElement(
-                "canvas"
-            );
+    const EXPORT_CELL_SIZE = 40;
+
+    const LABEL_SIZE = 70;
+
+    const TOP_INFO = 80;
+
+    const LEGEND_HEIGHT = 150;
+
+    const BORDER = 2;
 
 
-        exportCanvas.width =
-            currentGrid.width *
-            EXPORT_CELL_SIZE;
+    const rugPixelWidth =
+        currentGrid.width *
+        EXPORT_CELL_SIZE;
 
 
-        exportCanvas.height =
-            currentGrid.height *
-            EXPORT_CELL_SIZE;
+    const rugPixelHeight =
+        currentGrid.height *
+        EXPORT_CELL_SIZE;
 
 
-        const exportCtx =
-            exportCanvas.getContext(
-                "2d"
-            );
+    const exportWidth =
+        LABEL_SIZE +
+        rugPixelWidth +
+        30;
 
 
-        exportCtx.imageSmoothingEnabled =
-            false;
+    const exportHeight =
+        TOP_INFO +
+        rugPixelHeight +
+        LEGEND_HEIGHT;
 
 
-        exportCtx.fillStyle =
-            "#0e0e0c";
-
-
-        exportCtx.fillRect(
-            0,
-            0,
-            exportCanvas.width,
-            exportCanvas.height
+    const exportCanvas =
+        document.createElement(
+            "canvas"
         );
 
 
+    exportCanvas.width =
+        exportWidth;
+
+
+    exportCanvas.height =
+        exportHeight;
+
+
+    const exportCtx =
+        exportCanvas.getContext(
+            "2d"
+        );
+
+
+    exportCtx.imageSmoothingEnabled =
+        false;
+
+
+    /* -------------------------------------------------------
+       BACKGROUND
+       ------------------------------------------------------- */
+
+    exportCtx.fillStyle =
+        "#11110f";
+
+
+    exportCtx.fillRect(
+        0,
+        0,
+        exportWidth,
+        exportHeight
+    );
+
+
+    /* -------------------------------------------------------
+       DATA
+       ------------------------------------------------------- */
+
+    const width =
+        Math.round(
+            Number(
+                widthInput.value
+            ) || 100
+        );
+
+
+    const height =
+        Math.round(
+            Number(
+                heightInput.value
+            ) || 75
+        );
+
+
+    const colors =
+        customPalette.length ||
+        numberOfColors;
+
+
+    const palette =
+        customPalette.length
+            ? customPalette
+            : generatedPalette;
+
+
+    /* -------------------------------------------------------
+       HEADER
+       ------------------------------------------------------- */
+
+    exportCtx.fillStyle =
+        "#f2f0ea";
+
+
+    exportCtx.font =
+        'bold 22px Arial';
+
+
+    exportCtx.fillText(
+        "DOCH / RUG GRID",
+        30,
+        35
+    );
+
+
+    exportCtx.fillStyle =
+        "#77746d";
+
+
+    exportCtx.font =
+        "13px Arial";
+
+
+    exportCtx.fillText(
+        `${width} × ${height} CM  ·  ${currentGrid.width} × ${currentGrid.height} CELLS  ·  ${colors} COLORS`,
+        30,
+        60
+    );
+
+
+    /* -------------------------------------------------------
+       GRID POSITION
+       ------------------------------------------------------- */
+
+    const gridX =
+        LABEL_SIZE;
+
+
+    const gridY =
+        TOP_INFO;
+
+
+    /* -------------------------------------------------------
+       DRAW RUG CELLS
+       ------------------------------------------------------- */
+
+    for (
+        let y = 0;
+        y < currentGrid.height;
+        y++
+    ) {
+
         for (
-            let y = 0;
-            y < currentGrid.height;
-            y++
+            let x = 0;
+            x < currentGrid.width;
+            x++
         ) {
 
-            for (
-                let x = 0;
-                x < currentGrid.width;
-                x++
-            ) {
-
-                const color =
-                    currentGridData[y][x];
+            const color =
+                currentGridData[y][x];
 
 
-                if (!color) {
-                    continue;
-                }
+            exportCtx.fillStyle =
+                color ||
+                "#11110f";
 
 
-                exportCtx.fillStyle =
-                    color;
-
-
-                exportCtx.fillRect(
-                    x * EXPORT_CELL_SIZE,
-                    y * EXPORT_CELL_SIZE,
+            exportCtx.fillRect(
+                gridX +
+                    x *
                     EXPORT_CELL_SIZE,
-                    EXPORT_CELL_SIZE
-                );
-            }
+
+                gridY +
+                    y *
+                    EXPORT_CELL_SIZE,
+
+                EXPORT_CELL_SIZE,
+
+                EXPORT_CELL_SIZE
+            );
         }
-
-
-        const link =
-            document.createElement(
-                "a"
-            );
-
-
-        const width =
-            Math.round(
-                Number(
-                    widthInput.value
-                ) || 100
-            );
-
-
-        const height =
-            Math.round(
-                Number(
-                    heightInput.value
-                ) || 75
-            );
-
-
-        const colors =
-            customPalette.length ||
-            numberOfColors;
-
-
-        link.download =
-            `doch-rug-${width}x${height}cm-${colors}-colors.png`;
-
-
-        link.href =
-            exportCanvas.toDataURL(
-                "image/png"
-            );
-
-
-        link.click();
     }
 
 
-    /* ---------------------------------------------------------
-       PROJECTOR MODE
-       --------------------------------------------------------- */
+    /* -------------------------------------------------------
+       GRID LINES
+       ------------------------------------------------------- */
 
-    function openProjectorMode() {
+    exportCtx.strokeStyle =
+        "rgba(255,255,255,.22)";
 
-        if (
-            !currentGridData ||
-            !currentGrid
-        ) {
 
-            alert(
-                "Generate the rug first."
+    exportCtx.lineWidth =
+        1;
+
+
+    for (
+        let x = 0;
+        x <= currentGrid.width;
+        x++
+    ) {
+
+        const px =
+            gridX +
+            x *
+            EXPORT_CELL_SIZE +
+            0.5;
+
+
+        exportCtx.beginPath();
+
+        exportCtx.moveTo(
+            px,
+            gridY
+        );
+
+        exportCtx.lineTo(
+            px,
+            gridY +
+            rugPixelHeight
+        );
+
+        exportCtx.stroke();
+    }
+
+
+    for (
+        let y = 0;
+        y <= currentGrid.height;
+        y++
+    ) {
+
+        const py =
+            gridY +
+            y *
+            EXPORT_CELL_SIZE +
+            0.5;
+
+
+        exportCtx.beginPath();
+
+        exportCtx.moveTo(
+            gridX,
+            py
+        );
+
+        exportCtx.lineTo(
+            gridX +
+            rugPixelWidth,
+            py
+        );
+
+        exportCtx.stroke();
+    }
+
+
+    /* -------------------------------------------------------
+       OUTER BORDER
+       ------------------------------------------------------- */
+
+    exportCtx.strokeStyle =
+        "#f2f0ea";
+
+
+    exportCtx.lineWidth =
+        BORDER;
+
+
+    exportCtx.strokeRect(
+        gridX,
+        gridY,
+        rugPixelWidth,
+        rugPixelHeight
+    );
+
+
+    /* -------------------------------------------------------
+       TOP COORDINATES
+       ------------------------------------------------------- */
+
+    exportCtx.fillStyle =
+        "#aaa79f";
+
+
+    exportCtx.font =
+        "11px Arial";
+
+
+    exportCtx.textAlign =
+        "center";
+
+
+    for (
+        let x = 0;
+        x < currentGrid.width;
+        x++
+    ) {
+
+        const centerX =
+            gridX +
+            x *
+            EXPORT_CELL_SIZE +
+            EXPORT_CELL_SIZE / 2;
+
+
+        exportCtx.fillText(
+            columnLabel(x),
+            centerX,
+            gridY - 10
+        );
+    }
+
+
+    /* -------------------------------------------------------
+       LEFT COORDINATES
+       ------------------------------------------------------- */
+
+    exportCtx.textAlign =
+        "right";
+
+
+    for (
+        let y = 0;
+        y < currentGrid.height;
+        y++
+    ) {
+
+        const centerY =
+            gridY +
+            y *
+            EXPORT_CELL_SIZE +
+            EXPORT_CELL_SIZE / 2;
+
+
+        exportCtx.fillText(
+            String(y + 1),
+            gridX - 10,
+            centerY + 4
+        );
+    }
+
+
+    /* -------------------------------------------------------
+       LEGEND
+       ------------------------------------------------------- */
+
+    const legendY =
+        gridY +
+        rugPixelHeight +
+        35;
+
+
+    exportCtx.textAlign =
+        "left";
+
+
+    exportCtx.fillStyle =
+        "#f2f0ea";
+
+
+    exportCtx.font =
+        "bold 12px Arial";
+
+
+    exportCtx.fillText(
+        "COLOR LEGEND",
+        30,
+        legendY
+    );
+
+
+    /* Count loops */
+
+    const counts =
+        new Map();
+
+
+    currentGridData.forEach(
+        row => {
+
+            row.forEach(
+                color => {
+
+                    if (!color) {
+                        return;
+                    }
+
+
+                    counts.set(
+                        color,
+                        (
+                            counts.get(color) ||
+                            0
+                        ) + 1
+                    );
+                }
             );
-
-            return;
         }
+    );
 
 
-        const overlay =
-            document.createElement(
-                "div"
+    palette.forEach(
+        (hex, index) => {
+
+            const normalized =
+                normalizeHex(hex);
+
+
+            const count =
+                counts.get(
+                    normalized
+                ) || 0;
+
+
+            const itemY =
+                legendY +
+                25 +
+                Math.floor(index / 4) * 28;
+
+
+            const itemX =
+                30 +
+                (index % 4) * 190;
+
+
+            /* Color square */
+
+            exportCtx.fillStyle =
+                normalized;
+
+
+            exportCtx.fillRect(
+                itemX,
+                itemY - 12,
+                18,
+                18
             );
 
 
-        overlay.id =
-            "projectorOverlay";
+            exportCtx.strokeStyle =
+                "#77746d";
 
 
-        overlay.style.cssText = `
-            position: fixed;
-            inset: 0;
-            z-index: 99999;
-            background: #11110f;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        `;
-
-
-        const projectorCanvas =
-            document.createElement(
-                "canvas"
+            exportCtx.strokeRect(
+                itemX,
+                itemY - 12,
+                18,
+                18
             );
 
 
-        projectorCanvas.width =
-            currentGrid.width;
+            /* Text */
+
+            exportCtx.fillStyle =
+                "#f2f0ea";
 
 
-        projectorCanvas.height =
-            currentGrid.height;
+            exportCtx.font =
+                "11px Arial";
 
 
-        const ratio =
-            currentGrid.width /
-            currentGrid.height;
-
-
-        projectorCanvas.style.cssText = `
-            width: min(96vw, 96vh * ${ratio});
-            height: min(96vh, 96vw / ${ratio});
-            max-width: 96vw;
-            max-height: 96vh;
-            image-rendering: pixelated;
-            object-fit: contain;
-        `;
-
-
-        const projectorCtx =
-            projectorCanvas.getContext(
-                "2d"
+            exportCtx.fillText(
+                `COLOR ${index + 1}`,
+                itemX + 27,
+                itemY
             );
 
 
-        projectorCtx.imageSmoothingEnabled =
-            false;
+            exportCtx.fillStyle =
+                "#77746d";
 
+
+            exportCtx.fillText(
+                `${normalized} · ${count.toLocaleString()} LOOPS`,
+                itemX + 27,
+                itemY + 14
+            );
+        }
+    );
+
+
+    /* -------------------------------------------------------
+       DOWNLOAD PNG
+       ------------------------------------------------------- */
+
+    const link =
+        document.createElement(
+            "a"
+        );
+
+
+    link.download =
+        `doch-rug-${width}x${height}cm-${colors}-colors-grid.png`;
+
+
+    link.href =
+        exportCanvas.toDataURL(
+            "image/png"
+        );
+
+
+    link.click();
+}
+
+
+   /* ---------------------------------------------------------
+   PROJECTOR MODE — RUG + GRID
+   --------------------------------------------------------- */
+
+function openProjectorMode() {
+
+    if (
+        !currentGridData ||
+        !currentGrid
+    ) {
+
+        alert(
+            "Generate the rug first."
+        );
+
+        return;
+    }
+
+
+    const overlay =
+        document.createElement(
+            "div"
+        );
+
+
+    overlay.id =
+        "projectorOverlay";
+
+
+    overlay.style.cssText = `
+        position: fixed;
+        inset: 0;
+        z-index: 99999;
+        background: #11110f;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        font-family: Arial, sans-serif;
+    `;
+
+
+    /* -------------------------------------------------------
+       DATA
+       ------------------------------------------------------- */
+
+    const width =
+        Math.round(
+            Number(
+                widthInput.value
+            ) || 100
+        );
+
+
+    const height =
+        Math.round(
+            Number(
+                heightInput.value
+            ) || 75
+        );
+
+
+    const colors =
+        customPalette.length ||
+        numberOfColors;
+
+
+    const ratio =
+        currentGrid.width /
+        currentGrid.height;
+
+
+    /* -------------------------------------------------------
+       WORKSPACE
+       ------------------------------------------------------- */
+
+    const workspace =
+        document.createElement(
+            "div"
+        );
+
+
+    workspace.style.cssText = `
+        position: relative;
+        width: min(92vw, 92vh * ${ratio});
+        height: min(82vh, 92vw / ${ratio});
+        max-width: 92vw;
+        max-height: 82vh;
+    `;
+
+
+    /* -------------------------------------------------------
+       RUG CANVAS
+       ------------------------------------------------------- */
+
+    const projectorCanvas =
+        document.createElement(
+            "canvas"
+        );
+
+
+    projectorCanvas.width =
+        currentGrid.width;
+
+
+    projectorCanvas.height =
+        currentGrid.height;
+
+
+    projectorCanvas.style.cssText = `
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        image-rendering: pixelated;
+        object-fit: contain;
+    `;
+
+
+    const projectorCtx =
+        projectorCanvas.getContext(
+            "2d"
+        );
+
+
+    projectorCtx.imageSmoothingEnabled =
+        false;
+
+
+    for (
+        let y = 0;
+        y < currentGrid.height;
+        y++
+    ) {
 
         for (
-            let y = 0;
-            y < currentGrid.height;
-            y++
+            let x = 0;
+            x < currentGrid.width;
+            x++
         ) {
 
-            for (
-                let x = 0;
-                x < currentGrid.width;
-                x++
-            ) {
-
-                const color =
-                    currentGridData[y][x];
+            const color =
+                currentGridData[y][x];
 
 
-                projectorCtx.fillStyle =
-                    color ||
-                    "#11110f";
+            projectorCtx.fillStyle =
+                color ||
+                "#11110f";
 
 
-                projectorCtx.fillRect(
-                    x,
-                    y,
-                    1,
-                    1
-                );
-            }
+            projectorCtx.fillRect(
+                x,
+                y,
+                1,
+                1
+            );
         }
+    }
 
 
-        overlay.appendChild(
-            projectorCanvas
+    workspace.appendChild(
+        projectorCanvas
+    );
+
+
+    /* -------------------------------------------------------
+       GRID OVERLAY
+       ------------------------------------------------------- */
+
+    const gridOverlay =
+        document.createElement(
+            "div"
         );
 
 
-        /*
-           Top information bar.
-        */
+    gridOverlay.style.cssText = `
+        position: absolute;
+        inset: 0;
+        display: grid;
+        grid-template-columns: repeat(${currentGrid.width}, 1fr);
+        grid-template-rows: repeat(${currentGrid.height}, 1fr);
+        pointer-events: none;
+    `;
 
-        const info =
+
+    for (
+        let i = 0;
+        i <
+        currentGrid.width *
+        currentGrid.height;
+        i++
+    ) {
+
+        const cell =
             document.createElement(
                 "div"
             );
 
 
-        info.style.cssText = `
-            position: absolute;
-            top: 18px;
-            left: 22px;
-            right: 22px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            pointer-events: none;
-            font: 10px "DM Mono", monospace;
-            color: #77746d;
-            letter-spacing: .05em;
+        cell.style.cssText = `
+            border-right: 1px solid rgba(255,255,255,.16);
+            border-bottom: 1px solid rgba(255,255,255,.16);
         `;
 
 
-        info.innerHTML = `
-            <span>DOCH / PROJECTOR MODE</span>
-
-            <span>
-                ${widthInput.value} × ${heightInput.value} CM
-                / ${customPalette.length || numberOfColors} COLORS
-            </span>
-        `;
+        gridOverlay.appendChild(
+            cell
+        );
+    }
 
 
-        overlay.appendChild(
-            info
+    workspace.appendChild(
+        gridOverlay
+    );
+
+
+    /* -------------------------------------------------------
+       OUTER BORDER
+       ------------------------------------------------------- */
+
+    const border =
+        document.createElement(
+            "div"
         );
 
 
-        /*
-           Exit button.
-        */
+    border.style.cssText = `
+        position: absolute;
+        inset: 0;
+        border: 2px solid rgba(255,255,255,.75);
+        pointer-events: none;
+    `;
 
-        const closeButton =
+
+    workspace.appendChild(
+        border
+    );
+
+
+    /* -------------------------------------------------------
+       TOP COLUMN LABELS
+       ------------------------------------------------------- */
+
+    const topLabels =
+        document.createElement(
+            "div"
+        );
+
+
+    topLabels.style.cssText = `
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: -22px;
+        height: 18px;
+        display: grid;
+        grid-template-columns: repeat(${currentGrid.width}, 1fr);
+        color: rgba(255,255,255,.65);
+        font-size: 8px;
+        line-height: 18px;
+        text-align: center;
+        pointer-events: none;
+    `;
+
+
+    for (
+        let x = 0;
+        x < currentGrid.width;
+        x++
+    ) {
+
+        const label =
             document.createElement(
-                "button"
+                "span"
             );
 
 
-        closeButton.type =
-            "button";
+        label.textContent =
+            columnLabel(x);
 
 
-        closeButton.textContent =
-            "EXIT PROJECTOR";
-
-
-        closeButton.style.cssText = `
-            position: absolute;
-            right: 22px;
-            bottom: 20px;
-            min-height: 44px;
-            padding: 0 16px;
-            border: 1px solid #77746d;
-            background: #11110f;
-            color: #f2f0ea;
-            cursor: pointer;
-            font: 10px "DM Mono", monospace;
-            letter-spacing: .04em;
-        `;
-
-
-        closeButton.addEventListener(
-            "click",
-            () => {
-
-                overlay.remove();
-
-                document.removeEventListener(
-                    "keydown",
-                    escapeHandler
-                );
-            }
-        );
-
-
-        overlay.appendChild(
-            closeButton
-        );
-
-
-        /*
-           ESC closes projector.
-        */
-
-        function escapeHandler(
-            event
-        ) {
-
-            if (
-                event.key === "Escape"
-            ) {
-
-                overlay.remove();
-
-                document.removeEventListener(
-                    "keydown",
-                    escapeHandler
-                );
-            }
-        }
-
-
-        document.addEventListener(
-            "keydown",
-            escapeHandler
-        );
-
-
-        document.body.appendChild(
-            overlay
+        topLabels.appendChild(
+            label
         );
     }
+
+
+    workspace.appendChild(
+        topLabels
+    );
+
+
+    /* -------------------------------------------------------
+       LEFT ROW LABELS
+       ------------------------------------------------------- */
+
+    const leftLabels =
+        document.createElement(
+            "div"
+        );
+
+
+    leftLabels.style.cssText = `
+        position: absolute;
+        left: -32px;
+        top: 0;
+        bottom: 0;
+        width: 25px;
+        display: grid;
+        grid-template-rows: repeat(${currentGrid.height}, 1fr);
+        color: rgba(255,255,255,.65);
+        font-size: 8px;
+        line-height: 1;
+        text-align: right;
+        pointer-events: none;
+    `;
+
+
+    for (
+        let y = 0;
+        y < currentGrid.height;
+        y++
+    ) {
+
+        const label =
+            document.createElement(
+                "span"
+            );
+
+
+        label.textContent =
+            y + 1;
+
+
+        label.style.display =
+            "flex";
+
+
+        label.style.alignItems =
+            "center";
+
+
+        label.style.justifyContent =
+            "flex-end";
+
+
+        leftLabels.appendChild(
+            label
+        );
+    }
+
+
+    workspace.appendChild(
+        leftLabels
+    );
+
+
+    overlay.appendChild(
+        workspace
+    );
+
+
+    /* -------------------------------------------------------
+       TOP INFORMATION
+       ------------------------------------------------------- */
+
+    const info =
+        document.createElement(
+            "div"
+        );
+
+
+    info.style.cssText = `
+        position: absolute;
+        top: 18px;
+        left: 22px;
+        right: 22px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        pointer-events: none;
+        font: 10px Arial, sans-serif;
+        color: #77746d;
+        letter-spacing: .05em;
+    `;
+
+
+    info.innerHTML = `
+        <span>
+            DOCH / PROJECTOR MODE
+        </span>
+
+        <span>
+            ${width} × ${height} CM
+            · ${currentGrid.width} × ${currentGrid.height} CELLS
+            · ${colors} COLORS
+        </span>
+    `;
+
+
+    overlay.appendChild(
+        info
+    );
+
+
+    /* -------------------------------------------------------
+       BOTTOM INFO
+       ------------------------------------------------------- */
+
+    const bottomInfo =
+        document.createElement(
+            "div"
+        );
+
+
+    bottomInfo.style.cssText = `
+        position: absolute;
+        left: 22px;
+        bottom: 22px;
+        color: #77746d;
+        font: 10px Arial, sans-serif;
+        pointer-events: none;
+    `;
+
+
+    bottomInfo.textContent =
+        "GRID / A–Z / ROWS";
+
+
+    overlay.appendChild(
+        bottomInfo
+    );
+
+
+    /* -------------------------------------------------------
+       EXIT BUTTON
+       ------------------------------------------------------- */
+
+    const closeButton =
+        document.createElement(
+            "button"
+        );
+
+
+    closeButton.type =
+        "button";
+
+
+    closeButton.textContent =
+        "EXIT PROJECTOR";
+
+
+    closeButton.style.cssText = `
+        position: absolute;
+        right: 22px;
+        bottom: 20px;
+        min-height: 44px;
+        padding: 0 16px;
+        border: 1px solid #77746d;
+        background: #11110f;
+        color: #f2f0ea;
+        cursor: pointer;
+        font: 10px Arial, sans-serif;
+        letter-spacing: .04em;
+    `;
+
+
+    closeButton.addEventListener(
+        "click",
+        () => {
+
+            overlay.remove();
+
+            document.removeEventListener(
+                "keydown",
+                escapeHandler
+            );
+        }
+    );
+
+
+    overlay.appendChild(
+        closeButton
+    );
+
+
+    /* -------------------------------------------------------
+       ESC
+       ------------------------------------------------------- */
+
+    function escapeHandler(
+        event
+    ) {
+
+        if (
+            event.key === "Escape"
+        ) {
+
+            overlay.remove();
+
+            document.removeEventListener(
+                "keydown",
+                escapeHandler
+            );
+        }
+    }
+
+
+    document.addEventListener(
+        "keydown",
+        escapeHandler
+    );
+
+
+    /* -------------------------------------------------------
+       FULLSCREEN
+       ------------------------------------------------------- */
+
+    document.body.appendChild(
+        overlay
+    );
+
+
+    if (
+        overlay.requestFullscreen
+    ) {
+
+        overlay
+            .requestFullscreen()
+            .catch(
+                () => {}
+            );
+    }
+}
 
 
     /* ---------------------------------------------------------
