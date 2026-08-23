@@ -110,11 +110,31 @@ const translations = {
         "custom.button":
             "MAKE MY RUG",
 
+        "custom.side1": "YOUR IMAGE",
+        "custom.side2": "YARN",
+        "custom.side3": "YOUR RUG",
+
         "process.eyebrow": "04 / THE PROCESS",
         "process.title":
             "MADE BY<br><em>HAND.</em>",
         "process.subtitle":
             "Not printed.<br>Not AI generated.<br>Not mass produced.",
+
+        "process.design.title": "DESIGN",
+        "process.design.text":
+            "Meme → image → rug design. Every piece starts with an idea.",
+
+        "process.taft.title": "TAFT",
+        "process.taft.text":
+            "Hundreds of thousands of yarn loops, placed by hand.",
+
+        "process.carve.title": "CARVE",
+        "process.carve.text":
+            "Every surface is sculpted until the image comes alive.",
+
+        "process.ship.title": "SHIP",
+        "process.ship.text":
+            "Your rug leaves the studio and enters the wild.",
 
         "queue.eyebrow": "05 / PRODUCTION QUEUE",
         "queue.title":
@@ -198,11 +218,31 @@ const translations = {
         "custom.button":
             "СДЕЛАТЬ МОЙ КОВЁР",
 
+        "custom.side1": "ТВОЯ КАРТИНКА",
+        "custom.side2": "ПРЯЖА",
+        "custom.side3": "ТВОЙ КОВЁР",
+
         "process.eyebrow": "04 / ПРОЦЕСС",
         "process.title":
             "СДЕЛАНО<br><em>ВРУЧНУЮ.</em>",
         "process.subtitle":
             "Не напечатано.<br>Не сгенерировано ИИ.<br>Не массовое производство.",
+
+        "process.design.title": "ДИЗАЙН",
+        "process.design.text":
+            "Мем → изображение → дизайн ковра. Всё начинается с идеи.",
+
+        "process.taft.title": "ТАФТИНГ",
+        "process.taft.text":
+            "Сотни тысяч петель пряжи, установленных вручную.",
+
+        "process.carve.title": "КАРВИНГ",
+        "process.carve.text":
+            "Каждая поверхность вырезается вручную, пока изображение не оживает.",
+
+        "process.ship.title": "ОТПРАВКА",
+        "process.ship.text":
+            "Ковёр покидает студию и отправляется в мир.",
 
         "queue.eyebrow": "05 / ОЧЕРЕДЬ ПРОИЗВОДСТВА",
         "queue.title":
@@ -310,8 +350,7 @@ function getStatusLabel(status) {
     }[status];
 
     return (
-        translations[currentLanguage][key]
-        ||
+        translations[currentLanguage][key] ||
         translations[currentLanguage]["status.handmade"]
     );
 
@@ -388,7 +427,6 @@ function renderProducts() {
         return;
     }
 
-
     products.forEach(
         (product, index) => {
 
@@ -406,23 +444,17 @@ function renderProducts() {
             article.dataset.product =
                 product.id;
 
-
             const title =
                 getProductTitle(product);
-
 
             const status =
                 getStatusLabel(product.status);
 
-
             const dimensions =
                 product.width_cm &&
                 product.height_cm
-
                     ? `${formatNumber(product.width_cm)} × ${formatNumber(product.height_cm)} CM`
-
                     : "";
-
 
             article.innerHTML = `
 
@@ -440,7 +472,6 @@ function renderProducts() {
 
                 </div>
 
-
                 <div class="product-info">
 
                     <div>
@@ -454,7 +485,6 @@ function renderProducts() {
                         </h3>
 
                     </div>
-
 
                     <div class="product-price">
 
@@ -473,20 +503,15 @@ function renderProducts() {
 
             `;
 
-
             article.addEventListener(
                 "click",
                 () => openProduct(product)
             );
 
-
-            productsContainer.appendChild(
-                article
-            );
+            productsContainer.appendChild(article);
 
         }
     );
-
 
     initScrollReveal();
 
@@ -501,83 +526,63 @@ function openProduct(product) {
 
     if (!product) return;
 
-
     modalTitle.textContent =
         getProductTitle(product);
-
 
     modalPrice.textContent =
         `${product.currency || "EUR"} ${formatPrice(product.price)}`;
 
-
     modalSize.textContent =
         product.width_cm && product.height_cm
-
             ? `${formatNumber(product.width_cm)} × ${formatNumber(product.height_cm)} CM`
-
             : "";
-
 
     modalDescription.textContent =
         getProductDescription(product);
 
-
     modalImage.className =
         "modal-image";
-
 
     modalImage.style.backgroundImage =
         `url("${product.cover_image}")`;
 
-
     modalImage.style.backgroundSize =
         "cover";
-
 
     modalImage.style.backgroundPosition =
         "center";
 
-
     modal.dataset.product =
         product.id;
-
 
     const addButton =
         document.getElementById("addCart");
 
+    const buttonText =
+        addButton.querySelector("span");
 
     if (product.status === "sold") {
 
         addButton.disabled = true;
-
         addButton.style.opacity = ".35";
+        addButton.style.pointerEvents = "none";
 
-        addButton.style.pointerEvents =
-            "none";
-
-        addButton.querySelector("span")
-            .textContent = "×";
+        buttonText.textContent = "×";
 
     } else {
 
         addButton.disabled = false;
-
         addButton.style.opacity = "";
+        addButton.style.pointerEvents = "";
 
-        addButton.style.pointerEvents =
-            "";
-
-        addButton.querySelector("span")
-            .textContent = "+";
+        buttonText.textContent =
+            translations[currentLanguage]["modal.add"];
 
     }
 
-
     modal.classList.add("active");
 
-    document.body.classList.add(
-        "no-scroll"
-    );
+    document.body.classList.add("no-scroll");
 
 }
 
@@ -593,16 +598,11 @@ document
         closeModal
     );
 
-
 function closeModal() {
 
-    modal.classList.remove(
-        "active"
-    );
+    modal.classList.remove("active");
 
-    document.body.classList.remove(
-        "no-scroll"
-    );
+    document.body.classList.remove("no-scroll");
 
 }
 
@@ -620,22 +620,16 @@ document
             const id =
                 modal.dataset.product;
 
-
             const product =
                 products.find(
                     item => item.id === id
                 );
 
-
             if (!product) return;
 
-
-            if (
-                product.status === "sold"
-            ) {
+            if (product.status === "sold") {
                 return;
             }
-
 
             cart.push(product);
 
@@ -660,7 +654,6 @@ document
         openCart
     );
 
-
 document
     .getElementById("cartClose")
     .addEventListener(
@@ -668,43 +661,28 @@ document
         closeCart
     );
 
-
 cartOverlay.addEventListener(
     "click",
     closeCart
 );
 
-
 function openCart() {
 
-    cartDrawer.classList.add(
-        "active"
-    );
+    cartDrawer.classList.add("active");
 
-    cartOverlay.classList.add(
-        "active"
-    );
+    cartOverlay.classList.add("active");
 
-    document.body.classList.add(
-        "no-scroll"
-    );
+    document.body.classList.add("no-scroll");
 
 }
 
-
 function closeCart() {
 
-    cartDrawer.classList.remove(
-        "active"
-    );
+    cartDrawer.classList.remove("active");
 
-    cartOverlay.classList.remove(
-        "active"
-    );
+    cartOverlay.classList.remove("active");
 
-    document.body.classList.remove(
-        "no-scroll"
-    );
+    document.body.classList.remove("no-scroll");
 
 }
 
@@ -718,7 +696,6 @@ function updateCart() {
     cartCount.textContent =
         cart.length;
 
-
     if (!cart.length) {
 
         cartItems.innerHTML = `
@@ -731,31 +708,22 @@ function updateCart() {
             "€0";
 
         return;
-
     }
-
 
     cartItems.innerHTML = "";
 
     let total = 0;
 
-
     cart.forEach(
         (product, index) => {
 
-            total +=
-                Number(product.price);
-
+            total += Number(product.price);
 
             const element =
-                document.createElement(
-                    "div"
-                );
-
+                document.createElement("div");
 
             element.className =
                 "cart-item";
-
 
             element.innerHTML = `
 
@@ -779,7 +747,11 @@ function updateCart() {
                             color:#777;
                         "
                     >
-                        REMOVE
+                        ${
+                            currentLanguage === "ru"
+                                ? "УДАЛИТЬ"
+                                : "REMOVE"
+                        }
                     </button>
 
                 </div>
@@ -791,23 +763,16 @@ function updateCart() {
 
             `;
 
-
-            cartItems.appendChild(
-                element
-            );
+            cartItems.appendChild(element);
 
         }
     );
 
-
     cartTotal.textContent =
         `€${formatPrice(total)}`;
 
-
     document
-        .querySelectorAll(
-            ".remove-item"
-        )
+        .querySelectorAll(".remove-item")
         .forEach(
             button => {
 
@@ -820,10 +785,7 @@ function updateCart() {
                                 button.dataset.index
                             );
 
-                        cart.splice(
-                            index,
-                            1
-                        );
+                        cart.splice(index, 1);
 
                         updateCart();
 
@@ -846,25 +808,19 @@ function setLanguage(language) {
         return;
     }
 
-
     currentLanguage =
         language;
-
 
     document.documentElement.lang =
         language;
 
-
     document
-        .querySelectorAll(
-            "[data-i18n]"
-        )
+        .querySelectorAll("[data-i18n]")
         .forEach(
             element => {
 
                 const key =
                     element.dataset.i18n;
-
 
                 if (
                     translations[language][key]
@@ -878,11 +834,8 @@ function setLanguage(language) {
             }
         );
 
-
     document
-        .querySelectorAll(
-            ".lang-button"
-        )
+        .querySelectorAll(".lang-button")
         .forEach(
             button => {
 
@@ -894,22 +847,10 @@ function setLanguage(language) {
             }
         );
 
-
-    /*
-        Re-render products so their
-        names/statuses change too.
-    */
-
     renderProducts();
-
-
-    /*
-        Update modal if open.
-    */
 
     const activeId =
         modal.dataset.product;
-
 
     if (activeId) {
 
@@ -918,13 +859,11 @@ function setLanguage(language) {
                 item => item.id === activeId
             );
 
-
         if (product) {
             openProduct(product);
         }
 
     }
-
 
     updateCart();
 
@@ -936,9 +875,7 @@ function setLanguage(language) {
 ========================================================= */
 
 document
-    .querySelectorAll(
-        ".lang-button"
-    )
+    .querySelectorAll(".lang-button")
     .forEach(
         button => {
 
@@ -974,7 +911,6 @@ document
 
                     : "CUSTOM RUG REQUEST\n\nThis will become the custom order form.";
 
-
             alert(message);
 
         }
@@ -989,9 +925,7 @@ document.addEventListener(
     "keydown",
     event => {
 
-        if (
-            event.key === "Escape"
-        ) {
+        if (event.key === "Escape") {
 
             closeModal();
             closeCart();
@@ -1007,10 +941,7 @@ document.addEventListener(
 ========================================================= */
 
 const heroTitle =
-    document.querySelector(
-        ".hero-title"
-    );
-
+    document.querySelector(".hero-title");
 
 setInterval(
     () => {
@@ -1024,7 +955,6 @@ setInterval(
                     ${Math.random() * 4 - 2}px,
                     ${Math.random() * 3 - 1.5}px
                 )`;
-
 
             setTimeout(
                 () => {
@@ -1049,13 +979,11 @@ setInterval(
 
 let observer;
 
-
 function initScrollReveal() {
 
     if (observer) {
         observer.disconnect();
     }
-
 
     observer =
         new IntersectionObserver(
@@ -1085,7 +1013,6 @@ function initScrollReveal() {
             }
         );
 
-
     document
         .querySelectorAll(
             ".manifesto h2, .product, .process-card, .queue-item, .about-grid"
@@ -1102,10 +1029,7 @@ function initScrollReveal() {
                 element.style.transition =
                     "opacity .8s ease, transform .8s cubic-bezier(.2,.7,.2,1)";
 
-
-                observer.observe(
-                    element
-                );
+                observer.observe(element);
 
             }
         );
