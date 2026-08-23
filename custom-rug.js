@@ -164,11 +164,11 @@
 
     const MIN_GRID_WIDTH = 10;
 
-    const MAX_GRID_WIDTH = 300;
+    const MAX_GRID_WIDTH = 500;
 
     const MIN_GRID_HEIGHT = 10;
 
-    const MAX_GRID_HEIGHT = 300;
+    const MAX_GRID_HEIGHT = 500;
 
 
     /* ---------------------------------------------------------
@@ -444,84 +444,137 @@
        FIXED PREVIEW WORKSPACE
        --------------------------------------------------------- */
 
-    function setupFixedWorkspace() {
+function setupFixedWorkspace() {
 
-        if (!rugWorkspace) {
-            return;
-        }
-
-
-        /*
-           The frame is the viewport.
-
-           IMPORTANT:
-           Do not let canvas dimensions determine
-           the dimensions of the workspace.
-        */
-
-        rugWorkspace.style.position =
-            "relative";
-
-        rugWorkspace.style.boxSizing =
-            "border-box";
-
-        rugWorkspace.style.overflow =
-            "hidden";
-
-        rugWorkspace.style.minWidth =
-            "0";
-
-        rugWorkspace.style.minHeight =
-            "0";
-
-
-        /*
-           The actual scrolling area is the canvas wrapper.
-        */
-
-        if (rugCanvasWrap) {
-
-            rugCanvasWrap.style.boxSizing =
-                "border-box";
-
-            rugCanvasWrap.style.position =
-                "relative";
-
-            rugCanvasWrap.style.overflow =
-                "auto";
-
-            rugCanvasWrap.style.minWidth =
-                "0";
-
-            rugCanvasWrap.style.minHeight =
-                "0";
-
-            rugCanvasWrap.style.width =
-                "100%";
-
-            rugCanvasWrap.style.height =
-                "100%";
-        }
-
-
-        /*
-           Make sure the canvas itself can never
-           force the parent frame to grow.
-        */
-
-        canvas.style.display =
-            "none";
-
-        canvas.style.maxWidth =
-            "none";
-
-        canvas.style.maxHeight =
-            "none";
-
-        canvas.style.flex =
-            "none";
+    if (!rugWorkspace) {
+        return;
     }
 
+    /*
+       PREVIEW FRAME
+       -----------------------------------------------------
+       Workspace is the fixed viewport.
+       Grid/canvas is NEVER allowed to determine
+       the workspace dimensions.
+    */
+
+    rugWorkspace.style.position = "relative";
+    rugWorkspace.style.boxSizing = "border-box";
+
+    rugWorkspace.style.width = "100%";
+    rugWorkspace.style.maxWidth = "100%";
+
+    /*
+       Critical:
+       don't allow grid/canvas intrinsic size
+       to participate in parent's sizing.
+    */
+
+    rugWorkspace.style.minWidth = "0";
+    rugWorkspace.style.minHeight = "0";
+
+    rugWorkspace.style.overflow = "hidden";
+
+    rugWorkspace.style.display = "block";
+
+    /*
+       If workspace is inside flex/grid,
+       force it to be a bounded item.
+    */
+
+    rugWorkspace.style.flex = "1 1 0";
+    rugWorkspace.style.alignSelf = "stretch";
+
+    /*
+       Canvas wrapper = ONLY scrolling layer.
+    */
+
+    if (rugCanvasWrap) {
+
+        rugCanvasWrap.style.position = "absolute";
+        rugCanvasWrap.style.inset = "0";
+
+        rugCanvasWrap.style.width = "100%";
+        rugCanvasWrap.style.height = "100%";
+
+        rugCanvasWrap.style.maxWidth = "100%";
+        rugCanvasWrap.style.maxHeight = "100%";
+
+        rugCanvasWrap.style.minWidth = "0";
+        rugCanvasWrap.style.minHeight = "0";
+
+        rugCanvasWrap.style.boxSizing = "border-box";
+
+        rugCanvasWrap.style.overflow = "auto";
+
+        /*
+           Prevent intrinsic canvas size from
+           affecting the frame.
+        */
+
+        rugCanvasWrap.style.contain = "strict";
+    }
+
+    /*
+       Canvas itself can become huge.
+       It is allowed to scroll, but NEVER resize
+       its parents.
+    */
+
+    canvas.style.display = "none";
+
+    canvas.style.position = "absolute";
+
+    canvas.style.left = "0";
+    canvas.style.top = "0";
+
+    canvas.style.maxWidth = "none";
+    canvas.style.maxHeight = "none";
+
+    canvas.style.width = "1px";
+    canvas.style.height = "1px";
+
+    canvas.style.flex = "none";
+
+    canvas.style.minWidth = "0";
+    canvas.style.minHeight = "0";
+
+    canvas.style.imageRendering = "pixelated";
+
+    /*
+       Labels must also be unable to affect layout.
+    */
+
+    if (gridTopLabels) {
+
+        gridTopLabels.style.position = "absolute";
+        gridTopLabels.style.left = "0";
+        gridTopLabels.style.top = "0";
+
+        gridTopLabels.style.minWidth = "0";
+        gridTopLabels.style.minHeight = "0";
+
+        gridTopLabels.style.width = "0";
+        gridTopLabels.style.height = "0";
+
+        gridTopLabels.style.pointerEvents = "none";
+    }
+
+    if (gridLeftLabels) {
+
+        gridLeftLabels.style.position = "absolute";
+        gridLeftLabels.style.left = "0";
+        gridLeftLabels.style.top = "0";
+
+        gridLeftLabels.style.minWidth = "0";
+        gridLeftLabels.style.minHeight = "0";
+
+        gridLeftLabels.style.width = "0";
+        gridLeftLabels.style.height = "0";
+
+        gridLeftLabels.style.pointerEvents = "none";
+    }
+}
 
     /* ---------------------------------------------------------
        DETAIL / GRID DENSITY CONTROL
@@ -789,219 +842,211 @@
     /* ---------------------------------------------------------
        ZOOM
        --------------------------------------------------------- */
+function updateZoom() {
 
-    function updateZoom() {
+    if (
+        !currentGrid ||
+        !rugWorkspace ||
+        !canvas
+    ) {
+        return;
+    }
 
-        if (
-            !currentGrid ||
-            !rugWorkspace
-        ) {
-            return;
-        }
+    /*
+       The preview frame NEVER depends on grid size.
 
+       Only the internal canvas representation changes.
+    */
 
-        /*
-           Screen representation only.
+    const baseCellSize = 24;
 
-           Physical grid stays exactly the same.
-        */
+    const cellSize =
+        baseCellSize * zoomLevel;
 
-        const baseCellSize = 24;
+    const visualWidth =
+        currentGrid.width * cellSize;
 
-
-        const cellSize =
-            baseCellSize *
-            zoomLevel;
-
-
-        const visualWidth =
-            currentGrid.width *
-            cellSize;
+    const visualHeight =
+        currentGrid.height * cellSize;
 
 
-        const visualHeight =
-            currentGrid.height *
-            cellSize;
+    /*
+       CANVAS
+       -----------------------------------------------------
+       The canvas becomes large, but its parent remains fixed.
+    */
+
+    canvas.style.width =
+        `${visualWidth}px`;
+
+    canvas.style.height =
+        `${visualHeight}px`;
+
+    canvas.style.maxWidth =
+        "none";
+
+    canvas.style.maxHeight =
+        "none";
+
+    canvas.style.display =
+        "block";
+
+    canvas.style.position =
+        "absolute";
+
+    canvas.style.left =
+        "0";
+
+    canvas.style.top =
+        "0";
+
+    canvas.style.flex =
+        "none";
 
 
-        /*
-           Canvas gets larger.
+    /*
+       SCROLL CONTAINER
+       -----------------------------------------------------
+       This is the ONLY element allowed to scroll.
+    */
 
-           The frame DOES NOT.
-        */
+    const scrollContainer =
+        rugCanvasWrap ||
+        rugWorkspace;
 
-        canvas.style.width =
+
+    if (scrollContainer) {
+
+        scrollContainer.style.overflow =
+            "auto";
+
+        scrollContainer.style.minWidth =
+            "0";
+
+        scrollContainer.style.minHeight =
+            "0";
+
+        scrollContainer.style.maxWidth =
+            "100%";
+
+        scrollContainer.style.maxHeight =
+            "100%";
+    }
+
+
+    /*
+       TOP LABELS
+    */
+
+    if (gridTopLabels) {
+
+        gridTopLabels.style.position =
+            "absolute";
+
+        gridTopLabels.style.left =
+            "0";
+
+        gridTopLabels.style.top =
+            "0";
+
+        gridTopLabels.style.width =
             `${visualWidth}px`;
 
-        canvas.style.height =
-            `${visualHeight}px`;
+        gridTopLabels.style.height =
+            `${cellSize}px`;
 
-        canvas.style.maxWidth =
-            "none";
-
-        canvas.style.maxHeight =
-            "none";
-
-        canvas.style.width =
+        gridTopLabels.style.minWidth =
             `${visualWidth}px`;
 
-        canvas.style.height =
+        gridTopLabels.style.minHeight =
+            `${cellSize}px`;
+
+        gridTopLabels.style.gridTemplateColumns =
+            `repeat(${currentGrid.width}, ${cellSize}px)`;
+    }
+
+
+    /*
+       LEFT LABELS
+    */
+
+    if (gridLeftLabels) {
+
+        gridLeftLabels.style.position =
+            "absolute";
+
+        gridLeftLabels.style.left =
+            "0";
+
+        gridLeftLabels.style.top =
+            "0";
+
+        gridLeftLabels.style.width =
+            `${cellSize}px`;
+
+        gridLeftLabels.style.height =
             `${visualHeight}px`;
 
-        canvas.style.display =
-            "block";
+        gridLeftLabels.style.minWidth =
+            `${cellSize}px`;
 
-        canvas.style.flex =
-            "none";
+        gridLeftLabels.style.minHeight =
+            `${visualHeight}px`;
 
-
-        /*
-           Put the canvas inside the actual scrolling
-           wrapper if one exists.
-        */
-
-        const scrollContainer =
-            rugCanvasWrap ||
-            rugWorkspace;
-
-
-        if (scrollContainer) {
-
-            scrollContainer.style.overflow =
-                "auto";
-
-            scrollContainer.style.minWidth =
-                "0";
-
-            scrollContainer.style.minHeight =
-                "0";
-        }
-
-
-        /*
-           Labels.
-        */
-
-        if (gridTopLabels) {
-
-            gridTopLabels.style.width =
-                `${visualWidth}px`;
-
-            gridTopLabels.style.gridTemplateColumns =
-                `repeat(${currentGrid.width}, ${cellSize}px)`;
-
-            gridTopLabels.style.minWidth =
-                `${visualWidth}px`;
-        }
-
-
-        if (gridLeftLabels) {
-
-            gridLeftLabels.style.height =
-                `${visualHeight}px`;
-
-            gridLeftLabels.style.gridTemplateRows =
-                `repeat(${currentGrid.height}, ${cellSize}px)`;
-
-            gridLeftLabels.style.minHeight =
-                `${visualHeight}px`;
-        }
-
-
-        if (zoomValue) {
-
-            zoomValue.textContent =
-                `${Math.round(zoomLevel * 100)}%`;
-        }
-
-
-        rugWorkspace.style.setProperty(
-            "--cell-size",
-            `${cellSize}px`
-        );
-
-        rugWorkspace.style.setProperty(
-            "--grid-width",
-            currentGrid.width
-        );
-
-        rugWorkspace.style.setProperty(
-            "--grid-height",
-            currentGrid.height
-        );
+        gridLeftLabels.style.gridTemplateRows =
+            `repeat(${currentGrid.height}, ${cellSize}px)`;
     }
 
 
-    if (zoomIn) {
+    /*
+       ZOOM LABEL
+    */
 
-        zoomIn.addEventListener(
-            "click",
-            () => {
+    if (zoomValue) {
 
-                zoomLevel =
-                    clamp(
-                        zoomLevel + ZOOM_STEP,
-                        MIN_ZOOM,
-                        MAX_ZOOM
-                    );
-
-
-                updateZoom();
-            }
-        );
+        zoomValue.textContent =
+            `${Math.round(zoomLevel * 100)}%`;
     }
 
 
-    if (zoomOut) {
+    /*
+       CSS VARIABLES
+    */
 
-        zoomOut.addEventListener(
-            "click",
-            () => {
+    rugWorkspace.style.setProperty(
+        "--cell-size",
+        `${cellSize}px`
+    );
 
-                zoomLevel =
-                    clamp(
-                        zoomLevel - ZOOM_STEP,
-                        MIN_ZOOM,
-                        MAX_ZOOM
-                    );
+    rugWorkspace.style.setProperty(
+        "--grid-width",
+        currentGrid.width
+    );
 
-
-                updateZoom();
-            }
-        );
-    }
-
-
-    if (zoomReset) {
-
-        zoomReset.addEventListener(
-            "click",
-            () => {
-
-                zoomLevel =
-                    1;
+    rugWorkspace.style.setProperty(
+        "--grid-height",
+        currentGrid.height
+    );
 
 
-                updateZoom();
+    /*
+       CRITICAL:
+       Explicitly prevent the workspace from acquiring
+       the canvas dimensions.
+    */
 
+    rugWorkspace.style.overflow =
+        "hidden";
 
-                const scrollContainer =
-                    rugCanvasWrap ||
-                    rugWorkspace;
+    rugWorkspace.style.minWidth =
+        "0";
 
+    rugWorkspace.style.minHeight =
+        "0";
 
-                if (scrollContainer) {
-
-                    scrollContainer.scrollLeft =
-                        0;
-
-                    scrollContainer.scrollTop =
-                        0;
-                }
-            }
-        );
-    }
-
+    rugWorkspace.style.maxWidth =
+        "100%";
+}
 
     /* ---------------------------------------------------------
        COLOR LEGEND
@@ -4094,40 +4139,237 @@
        INITIAL STATE
        --------------------------------------------------------- */
 
-    createDetailControl();
+    function createDetailControl() {
 
-
-    generatedPalette =
-        DEFAULT_PALETTE.slice(
-            0,
-            numberOfColors
+    const existing =
+        document.getElementById(
+            "rugDetailControl"
         );
 
 
-    renderPalette(
-        generatedPalette
-    );
+    if (existing) {
+
+        detailInput =
+            document.getElementById(
+                "rugDetailInput"
+            );
+
+        detailValue =
+            document.getElementById(
+                "rugDetailValue"
+            );
 
 
-    contrastValue.textContent =
-        contrastInput.value;
+        if (detailInput) {
+
+            detailInput.min =
+                "10";
+
+            detailInput.max =
+                "500";
+
+            detailInput.step =
+                "10";
+
+            detailInput.value =
+                String(detailLevel);
+        }
 
 
-    brightnessValue.textContent =
-        brightnessInput.value;
-
-
-    statColors.textContent =
-        numberOfColors;
-
-
-    if (zoomValue) {
-
-        zoomValue.textContent =
-            "100%";
+        return;
     }
 
 
-    setupFixedWorkspace();
+    const container =
+        document.createElement("div");
 
-})();
+
+    container.id =
+        "rugDetailControl";
+
+
+    container.style.cssText = `
+        width: calc(100% - 32px);
+        max-width: calc(100% - 32px);
+        box-sizing: border-box;
+
+        margin: 18px auto 0;
+        padding: 16px 0 0;
+
+        border-top: 1px solid #292925;
+
+        align-self: center;
+        flex: 0 0 auto;
+    `;
+
+
+    container.innerHTML = `
+        <div style="
+            width:100%;
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            margin-bottom:10px;
+            box-sizing:border-box;
+        ">
+            <span style="
+                font:10px 'DM Mono', monospace;
+                color:#f2f0ea;
+                letter-spacing:.04em;
+            ">
+                DETAIL
+            </span>
+
+            <span
+                id="rugDetailValue"
+                style="
+                    font:10px 'DM Mono', monospace;
+                    color:#77746d;
+                "
+            >
+                ${detailLevel}
+            </span>
+        </div>
+
+        <input
+            id="rugDetailInput"
+            type="range"
+            min="10"
+            max="500"
+            step="10"
+            value="${detailLevel}"
+            style="
+                display:block;
+                width:100%;
+                max-width:100%;
+                height:20px;
+
+                box-sizing:border-box;
+
+                margin:0;
+                padding:0;
+
+                cursor:pointer;
+
+                appearance:auto;
+            "
+        >
+
+        <div style="
+            width:100%;
+            display:flex;
+            justify-content:space-between;
+            box-sizing:border-box;
+
+            margin-top:6px;
+
+            font:8px 'DM Mono', monospace;
+            color:#55534e;
+        ">
+            <span>COARSE</span>
+            <span>FINE</span>
+        </div>
+    `;
+
+
+    /*
+       Find the actual left control column.
+
+       Prefer an element containing the width/height controls,
+       rather than an arbitrary .panel.
+    */
+
+    let target = null;
+
+
+    const widthParent =
+        widthInput?.parentElement;
+
+
+    if (widthParent) {
+
+        target =
+            widthParent.closest(
+                ".controls-panel, .settings-panel, .left-panel, .sidebar, .controls, .control-panel"
+            );
+    }
+
+
+    if (!target) {
+        target = findLeftPanel();
+    }
+
+
+    /*
+       Make sure the target itself cannot be expanded
+       by the detail control.
+    */
+
+    if (target) {
+
+        target.style.minWidth =
+            "0";
+
+        target.style.maxWidth =
+            "100%";
+
+        target.style.boxSizing =
+            "border-box";
+    }
+
+
+    if (!target) {
+        return;
+    }
+
+
+    target.appendChild(
+        container
+    );
+
+
+    detailInput =
+        document.getElementById(
+            "rugDetailInput"
+        );
+
+
+    detailValue =
+        document.getElementById(
+            "rugDetailValue"
+        );
+
+
+    if (!detailInput) {
+        return;
+    }
+
+
+    detailInput.addEventListener(
+        "input",
+        () => {
+
+            detailLevel =
+                clamp(
+                    Number(
+                        detailInput.value
+                    ) || 80,
+                    10,
+                    500
+                );
+
+
+            if (detailValue) {
+
+                detailValue.textContent =
+                    `${detailLevel}`;
+            }
+
+
+            if (sourceImage) {
+
+                generateRug();
+            }
+        }
+    );
+}
