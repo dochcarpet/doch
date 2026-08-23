@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0b0b0a">
+    <title>DOCH — Custom Rug</title>
+    <meta
+        name="description"
+        content="Turn any image into a handmade rug design."
+    >
+    <link rel="stylesheet" href="custom-rug.css">
+</head>
+
+<body>
+
+<div class="noise"></div>
+
+<header class="tool-header">
+    <a href="#" class="logo">DOCH<span>®</span></a>
+
+    <div class="tool-header-title">
+        CUSTOM RUG / IMAGE → YARN
+    </div>
+
+    <a href="#" class="back-link">BACK TO DOCH ↗</a>
+</header>
+
+<main class="custom-tool">
+
+    <section class="tool-intro">
+        <div class="eyebrow">CUSTOM RUG / 01</div>
+
+        <h1>
+            YOUR IMAGE.<br>
+            <em>YOUR RUG.</em>
+        </h1>
+
+        <p>
+            Upload any image and turn it into a simplified
+            yarn-color design.
+        </p>
+    </section>
+
+    <section class="workspace">
+
+        <div class="controls-panel">
+
+            <div class="control-section upload-section">
+
+                <div class="section-label">
+                    <span>01</span>
+                    IMAGE
+                </div>
+
+                <label class="upload-button" for="imageInput">
+                    <span>UPLOAD IMAGE</span>
+                    <span>↗</span>
+                </label>
+
+                <input
+                    id="imageInput"
+                    type="file"
+                    accept="image/*"
+                    hidden
+                >
+
+                <div class="file-name" id="fileName">
+                    NO IMAGE SELECTED
+                </div>
+
+            </div>
+
+            <div class="control-section">
+
+                <div class="section-label">
+                    <span>02</span>
+                    BACKGROUND
+                </div>
+
+                <div class="button-row">
+                    <button
+                        class="option-button active"
+                        id="keepBackground"
+                        type="button"
+                    >
+                        KEEP
+                    </button>
+
+                    <button
+                        class="option-button"
+                        id="removeBackground"
+                        type="button"
+                    >
+                        REMOVE
+                    </button>
+                </div>
+
+                <p class="control-note">
+                    REMOVE is a prototype mode: it removes
+                    pixels close to the selected background color.
+                </p>
+
+            </div>
+
+            <div class="control-section">
+
+                <div class="section-label">
+                    <span>03</span>
+                    COLORS
+                </div>
+
+                <div class="color-counts" id="colorCounts">
+                    <button type="button" data-colors="2">2</button>
+                    <button type="button" data-colors="3">3</button>
+                    <button type="button" data-colors="4" class="active">4</button>
+                    <button type="button" data-colors="5">5</button>
+                    <button type="button" data-colors="6">6</button>
+                    <button type="button" data-colors="8">8</button>
+                </div>
+
+            </div>
+
+            <div class="control-section">
+
+                <div class="section-label">
+                    <span>04</span>
+                    PALETTE
+                </div>
+
+                <div class="palette" id="palette"></div>
+
+                <button
+                    class="secondary-button"
+                    id="resetPalette"
+                    type="button"
+                >
+                    RESET PALETTE
+                </button>
+
+            </div>
+
+            <div class="control-section">
+
+                <div class="section-label">
+                    <span>05</span>
+                    SIZE
+                </div>
+
+                <div class="size-grid">
+
+                    <label>
+                        <span>WIDTH / CM</span>
+                        <input
+                            id="widthInput"
+                            type="number"
+                            min="20"
+                            max="500"
+                            value="100"
+                        >
+                    </label>
+
+                    <label>
+                        <span>HEIGHT / CM</span>
+                        <input
+                            id="heightInput"
+                            type="number"
+                            min="20"
+                            max="500"
+                            value="75"
+                        >
+                    </label>
+
+                </div>
+
+                <label class="checkbox-row">
+                    <input
+                        id="lockRatio"
+                        type="checkbox"
+                        checked
+                    >
+                    <span>KEEP IMAGE RATIO</span>
+                </label>
+
+            </div>
+
+            <div class="control-section">
+
+                <div class="section-label">
+                    <span>06</span>
+                    IMAGE
+                </div>
+
+                <label class="slider-row">
+                    <span>CONTRAST</span>
+                    <input
+                        id="contrastInput"
+                        type="range"
+                        min="-100"
+                        max="100"
+                        value="0"
+                    >
+                    <output id="contrastValue">0</output>
+                </label>
+
+                <label class="slider-row">
+                    <span>BRIGHTNESS</span>
+                    <input
+                        id="brightnessInput"
+                        type="range"
+                        min="-100"
+                        max="100"
+                        value="0"
+                    >
+                    <output id="brightnessValue">0</output>
+                </label>
+
+            </div>
+
+            <button
+                class="generate-button"
+                id="generateButton"
+                type="button"
+            >
+                <span>GENERATE RUG</span>
+                <span>→</span>
+            </button>
+
+        </div>
+
+        <div class="preview-panel">
+
+            <div class="preview-header">
+                <div>
+                    <div class="eyebrow">PREVIEW</div>
+                    <h2 id="previewTitle">RUG DESIGN</h2>
+                </div>
+
+                <div class="preview-status" id="previewStatus">
+                    WAITING FOR IMAGE
+                </div>
+            </div>
+
+            <div class="preview-stage">
+
+                <div class="empty-preview" id="emptyPreview">
+                    <div class="empty-icon">+</div>
+                    <strong>UPLOAD AN IMAGE</strong>
+                    <span>
+                        A logo, meme, drawing, photo — anything.
+                    </span>
+                </div>
+
+                <canvas id="rugCanvas"></canvas>
+
+            </div>
+
+            <div class="stats">
+
+                <div class="stat">
+                    <span>COLORS</span>
+                    <strong id="statColors">—</strong>
+                </div>
+
+                <div class="stat">
+                    <span>SIZE</span>
+                    <strong id="statSize">—</strong>
+                </div>
+
+                <div class="stat">
+                    <span>GRID</span>
+                    <strong id="statGrid">—</strong>
+                </div>
+
+                <div class="stat">
+                    <span>LOOPS / APPROX.</span>
+                    <strong id="statLoops">—</strong>
+                </div>
+
+            </div>
+
+            <div class="preview-note">
+                Prototype preview. Final yarn mapping will use the
+                studio's real yarn color library.
+            </div>
+
+        </div>
+
+    </section>
+
+</main>
+
+<footer class="tool-footer">
+    <span>DOCH® 2026</span>
+    <span>HANDMADE INTERNET ART</span>
+    <span>IMAGE → YARN → RUG</span>
+</footer>
+
+<script src="custom-rug.js"></script>
+
+</body>
+</html>
