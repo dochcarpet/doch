@@ -2,25 +2,23 @@
    DOCH — CUSTOM RUG
    IMAGE → YARN → RUG
 
-   DETAIL
-   ---------------------------------------------------------
-   Controls image processing resolution.
+   DETAIL ≠ GRID
+   PIXEL SHAPE ≠ GRID
 
-   10%  = coarse
-   50%  = medium
-   100% = maximum detail
+   DETAIL
+   - controls image processing resolution
+   - higher = more visual detail
+   - does NOT define physical rug grid
+
+   PIXEL SHAPE
+   - controls visual shape of each detail cell
+   - 0 = square
+   - 100 = strongly rounded
 
    GRID
-   ---------------------------------------------------------
-   Physical transfer grid.
-   Always based on GRID_CELL_CM.
-
-   Example:
-   100 × 75 cm
-   5 cm cells
-   = 20 × 15 physical cells
-
-   DETAIL and GRID are completely independent.
+   - physical transfer grid
+   - fixed at GRID_CELL_CM × GRID_CELL_CM
+   - used only as a guide for transferring the design
    ========================================================= */
 
 (() => {
@@ -80,11 +78,9 @@
         document.getElementById("rugCanvas");
 
     const ctx =
-        canvas
-            ? canvas.getContext("2d", {
-                willReadFrequently: true
-            })
-            : null;
+        canvas?.getContext("2d", {
+            willReadFrequently: true
+        });
 
     const emptyPreview =
         document.getElementById("emptyPreview");
@@ -154,19 +150,20 @@
 
     let currentDetailData = null;
 
-    let currentPreviewMode = "rug";
-
     let zoomLevel = 1;
 
-    let detailLevel = 50;
+    let detailLevel = 80;
+
+    /*
+       PIXEL SHAPE
+
+       0   = square
+       100 = maximum rounding
+    */
+
+    let pixelRoundness = 0;
 
     let isGenerating = false;
-
-    let generationTimer = null;
-
-    let detailInput = null;
-
-    let detailValue = null;
 
 
     /* =========================================================
@@ -175,49 +172,14 @@
 
     const GRID_CELL_CM = 5;
 
-    /*
-       DETAIL is now a percentage.
+    const MIN_DETAIL = 20;
+    const MAX_DETAIL = 500;
 
-       10  = coarse
-       50  = medium
-       100 = fine
-    */
-
-    const MIN_DETAIL = 10;
-    const MAX_DETAIL = 100;
-    const DETAIL_STEP = 5;
-
-    /*
-       Maximum pixels used while processing source image.
-    */
-
-    const MAX_SOURCE_SIZE = 900;
-
-    /*
-       Maximum detail grid dimension.
-
-       Prevents absurdly large 500×375 / 1000×750
-       processing grids.
-    */
-
-    const MAX_DETAIL_WIDTH = 300;
-
-    /*
-       Zoom
-    */
+    const MAX_SOURCE_SIZE = 700;
 
     const MIN_ZOOM = 0.5;
     const MAX_ZOOM = 5;
     const ZOOM_STEP = 0.25;
-
-    /*
-       Default preview cell size.
-
-       This is only a rendering unit.
-       It has NOTHING to do with physical rug cells.
-    */
-
-    const PREVIEW_CELL = 8;
 
 
     const DEFAULT_PALETTE = [
@@ -230,6 +192,17 @@
         "#8B5A3C",
         "#777777"
     ];
+
+
+    /* =========================================================
+       DYNAMIC CONTROLS
+       ========================================================= */
+
+    let detailInput = null;
+    let detailValue = null;
+
+    let shapeInput = null;
+    let shapeValue = null;
 
 
     /* =========================================================
@@ -335,6 +308,7 @@
 
 
     function hexToRgbArray(palette) {
+
         return palette.map(hexToRgb);
     }
 
@@ -376,8 +350,8 @@
         const height =
             Number(heightInput?.value) || 75;
 
-        return {
 
+        return {
             width: Math.max(
                 1,
                 Math.round(
@@ -398,17 +372,295 @@
 
 
     /* =========================================================
+       CONTROL LOCATION
+       ========================================================= */
+
+    function findControlsTarget() {
+
+        /*
+           We deliberately try to put the sliders
+           immediately after the COLOR / PALETTE area.
+        */
+
+        if (paletteElement) {
+
+            const paletteParent =
+                paletteElement.parentElement;
+
+            if (paletteParent) {
+                return paletteParent;
+            }
+        }
+
+
+        if (colorCounts) {
+
+            const colorParent =
+                colorCounts.parentElement;
+
+            if (colorParent) {
+                return colorParent;
+            }
+        }
+
+
+        if (widthInput) {
+
+            return (
+                widthInput.closest(
+                    ".controls-panel, .settings-panel, .left-panel, .sidebar, .controls, .control-panel"
+                ) ||
+                widthInput.parentElement?.parentElement ||
+                document.body
+            );
+        }
+
+
+        return document.body;
+    }
+
+
+    /* =========================================================
+       RANGE STYLE
+       ========================================================= */
+
+    function styleRangeInput(input) {
+
+        if (!input) {
+            return;
+        }
+
+
+        input.style.cssText = `
+            display:block;
+            width:100%;
+            max-width:100%;
+            box-sizing:border-box;
+            margin:0;
+            padding:0;
+            cursor:pointer;
+            accent-color:#f2f0ea;
+        `;
+    }
+
+
+    /* =========================================================
+       PIXEL SHAPE CONTROL
+       ========================================================= */
+
+    function createShapeControl() {
+
+        if (
+            document.getElementById(
+                "rugShapeControl"
+            )
+        ) {
+
+            shapeInput =
+                document.getElementById(
+                    "rugShapeInput"
+                );
+
+            shapeValue =
+                document.getElementById(
+                    "rugShapeValue"
+                );
+
+            return;
+        }
+
+
+        const container =
+            document.createElement("div");
+
+
+        container.id =
+            "rugShapeControl";
+
+
+        container.style.cssText = `
+            width:100%;
+            max-width:100%;
+            box-sizing:border-box;
+            margin:18px 0 0;
+            padding:16px 0 0;
+            border-top:1px solid #292925;
+        `;
+
+
+        container.innerHTML = `
+            <div style="
+                width:100%;
+                display:flex;
+                justify-content:space-between;
+                align-items:center;
+                margin-bottom:10px;
+            ">
+                <span style="
+                    font:10px 'DM Mono',monospace;
+                    color:#f2f0ea;
+                    letter-spacing:.04em;
+                ">
+                    PIXEL SHAPE
+                </span>
+
+                <span
+                    id="rugShapeValue"
+                    style="
+                        font:10px 'DM Mono',monospace;
+                        color:#77746d;
+                    "
+                >
+                    SQUARE
+                </span>
+            </div>
+
+            <input
+                id="rugShapeInput"
+                type="range"
+                min="0"
+                max="100"
+                step="1"
+                value="${pixelRoundness}"
+            >
+
+            <div style="
+                width:100%;
+                display:flex;
+                justify-content:space-between;
+                margin-top:6px;
+                font:8px 'DM Mono',monospace;
+                color:#55534e;
+            ">
+                <span>SQUARE</span>
+                <span>ROUNDED</span>
+            </div>
+        `;
+
+
+        const target =
+            findControlsTarget();
+
+
+        /*
+           Insert immediately after palette/color block.
+        */
+
+        if (paletteElement) {
+
+            paletteElement.insertAdjacentElement(
+                "afterend",
+                container
+            );
+
+        } else {
+
+            target.appendChild(
+                container
+            );
+        }
+
+
+        shapeInput =
+            document.getElementById(
+                "rugShapeInput"
+            );
+
+        shapeValue =
+            document.getElementById(
+                "rugShapeValue"
+            );
+
+
+        styleRangeInput(
+            shapeInput
+        );
+
+
+        shapeInput.addEventListener(
+            "input",
+            () => {
+
+                pixelRoundness =
+                    clamp(
+                        Number(
+                            shapeInput.value
+                        ) || 0,
+                        0,
+                        100
+                    );
+
+
+                updateShapeValue();
+
+
+                if (sourceImage) {
+                    drawCurrentPreview();
+                }
+            }
+        );
+    }
+
+
+    function updateShapeValue() {
+
+        if (!shapeValue) {
+            return;
+        }
+
+
+        if (pixelRoundness <= 5) {
+
+            shapeValue.textContent =
+                "SQUARE";
+
+            return;
+        }
+
+
+        if (pixelRoundness < 35) {
+
+            shapeValue.textContent =
+                "SLIGHTLY ROUNDED";
+
+            return;
+        }
+
+
+        if (pixelRoundness < 65) {
+
+            shapeValue.textContent =
+                "ROUNDED";
+
+            return;
+        }
+
+
+        if (pixelRoundness < 90) {
+
+            shapeValue.textContent =
+                "VERY ROUNDED";
+
+            return;
+        }
+
+
+        shapeValue.textContent =
+            "MAXIMUM";
+    }
+
+
+    /* =========================================================
        DETAIL CONTROL
        ========================================================= */
 
     function createDetailControl() {
 
-        const existing =
+        if (
             document.getElementById(
                 "rugDetailControl"
-            );
-
-        if (existing) {
+            )
+        ) {
 
             detailInput =
                 document.getElementById(
@@ -419,28 +671,6 @@
                 document.getElementById(
                     "rugDetailValue"
                 );
-
-            if (detailInput) {
-
-                detailInput.min =
-                    MIN_DETAIL;
-
-                detailInput.max =
-                    MAX_DETAIL;
-
-                detailInput.step =
-                    DETAIL_STEP;
-
-                detailInput.value =
-                    detailLevel;
-            }
-
-            if (detailValue) {
-                detailValue.textContent =
-                    `${detailLevel}%`;
-            }
-
-            bindDetailInput();
 
             return;
         }
@@ -487,7 +717,7 @@
                         color:#77746d;
                     "
                 >
-                    ${detailLevel}%
+                    ${detailLevel}
                 </span>
             </div>
 
@@ -496,24 +726,15 @@
                 type="range"
                 min="${MIN_DETAIL}"
                 max="${MAX_DETAIL}"
-                step="${DETAIL_STEP}"
+                step="10"
                 value="${detailLevel}"
-                aria-label="Image detail"
-                style="
-                    display:block;
-                    width:100%;
-                    max-width:100%;
-                    box-sizing:border-box;
-                    margin:0;
-                    cursor:pointer;
-                "
             >
 
             <div style="
                 width:100%;
                 display:flex;
                 justify-content:space-between;
-                margin-top:7px;
+                margin-top:6px;
                 font:8px 'DM Mono',monospace;
                 color:#55534e;
             ">
@@ -523,31 +744,33 @@
         `;
 
 
-        let target = null;
+        /*
+           Detail goes immediately after
+           the shape slider.
+        */
+
+        const shapeControl =
+            document.getElementById(
+                "rugShapeControl"
+            );
 
 
-        if (widthInput) {
+        if (shapeControl) {
 
-            target =
-                widthInput.closest(
-                    ".controls-panel, .settings-panel, .left-panel, .sidebar, .controls, .control-panel"
-                );
+            shapeControl.insertAdjacentElement(
+                "afterend",
+                container
+            );
+
+        } else {
+
+            const target =
+                findControlsTarget();
+
+            target.appendChild(
+                container
+            );
         }
-
-
-        if (!target && widthInput) {
-
-            target =
-                widthInput.parentElement?.parentElement;
-        }
-
-
-        if (!target) {
-            target = document.body;
-        }
-
-
-        target.appendChild(container);
 
 
         detailInput =
@@ -561,22 +784,9 @@
             );
 
 
-        bindDetailInput();
-    }
-
-
-    function bindDetailInput() {
-
-        if (
-            !detailInput ||
-            detailInput.dataset.bound === "true"
-        ) {
-            return;
-        }
-
-
-        detailInput.dataset.bound =
-            "true";
+        styleRangeInput(
+            detailInput
+        );
 
 
         detailInput.addEventListener(
@@ -587,24 +797,127 @@
                     clamp(
                         Number(
                             detailInput.value
-                        ) || 50,
+                        ) || 80,
                         MIN_DETAIL,
                         MAX_DETAIL
                     );
 
 
-                if (detailValue) {
-
-                    detailValue.textContent =
-                        `${detailLevel}%`;
-                }
+                detailValue.textContent =
+                    String(detailLevel);
 
 
                 if (sourceImage) {
-                    scheduleGeneration();
+                    generateRug();
                 }
             }
         );
+    }
+
+
+    /* =========================================================
+       IMAGE PREVIEW
+       ========================================================= */
+
+    function showSourceImage() {
+
+        if (!sourceImage || !canvas) {
+            return;
+        }
+
+
+        const maxWidth = 900;
+        const maxHeight = 700;
+
+
+        let width =
+            sourceImage.naturalWidth;
+
+        let height =
+            sourceImage.naturalHeight;
+
+
+        const ratio =
+            Math.min(
+                maxWidth / width,
+                maxHeight / height,
+                1
+            );
+
+
+        width =
+            Math.max(
+                1,
+                Math.round(
+                    width * ratio
+                )
+            );
+
+        height =
+            Math.max(
+                1,
+                Math.round(
+                    height * ratio
+                )
+            );
+
+
+        canvas.width =
+            width;
+
+        canvas.height =
+            height;
+
+
+        canvas.style.display =
+            "block";
+
+        canvas.style.position =
+            "relative";
+
+        canvas.style.width =
+            `${width}px`;
+
+        canvas.style.height =
+            `${height}px`;
+
+        canvas.style.maxWidth =
+            "100%";
+
+        canvas.style.maxHeight =
+            "100%";
+
+        canvas.style.imageRendering =
+            "auto";
+
+
+        ctx.clearRect(
+            0,
+            0,
+            width,
+            height
+        );
+
+
+        ctx.drawImage(
+            sourceImage,
+            0,
+            0,
+            width,
+            height
+        );
+
+
+        if (emptyPreview) {
+            emptyPreview.style.display =
+                "none";
+        }
+
+
+        if (previewStatus) {
+            previewStatus.textContent =
+                "IMAGE LOADED";
+        }
     }
 
 
@@ -622,17 +935,17 @@
         rugWorkspace.style.position =
             "relative";
 
-        rugWorkspace.style.width =
-            "100%";
-
-        rugWorkspace.style.height =
-            "100%";
-
         rugWorkspace.style.minWidth =
             "0";
 
         rugWorkspace.style.minHeight =
             "0";
+
+        rugWorkspace.style.width =
+            "100%";
+
+        rugWorkspace.style.maxWidth =
+            "100%";
 
         rugWorkspace.style.overflow =
             "hidden";
@@ -663,323 +976,7 @@
 
             rugCanvasWrap.style.boxSizing =
                 "border-box";
-
-            rugCanvasWrap.style.display =
-                "flex";
-
-            rugCanvasWrap.style.alignItems =
-                "center";
-
-            rugCanvasWrap.style.justifyContent =
-                "center";
-
-            rugCanvasWrap.style.padding =
-                "28px";
-
-            rugCanvasWrap.style.scrollbarGutter =
-                "stable";
         }
-    }
-
-
-    /* =========================================================
-       FIT PREVIEW
-       ========================================================= */
-
-    function getWorkspaceSize() {
-
-        if (!rugCanvasWrap) {
-
-            return {
-                width: 900,
-                height: 700
-            };
-        }
-
-
-        return {
-
-            width:
-                Math.max(
-                    100,
-                    rugCanvasWrap.clientWidth -
-                    56
-                ),
-
-            height:
-                Math.max(
-                    100,
-                    rugCanvasWrap.clientHeight -
-                    56
-                )
-        };
-    }
-
-
-    function getBasePreviewSize() {
-
-        if (!currentDetailData) {
-
-            return {
-                width: 1,
-                height: 1
-            };
-        }
-
-
-        return {
-
-            width:
-                currentDetailData.width *
-                PREVIEW_CELL,
-
-            height:
-                currentDetailData.height *
-                PREVIEW_CELL
-        };
-    }
-
-
-    function calculateFitZoom() {
-
-        const workspace =
-            getWorkspaceSize();
-
-        const base =
-            getBasePreviewSize();
-
-
-        if (
-            !base.width ||
-            !base.height
-        ) {
-            return 1;
-        }
-
-
-        const fitX =
-            workspace.width /
-            base.width;
-
-        const fitY =
-            workspace.height /
-            base.height;
-
-
-        return clamp(
-            Math.min(
-                fitX,
-                fitY,
-                1
-            ),
-            MIN_ZOOM,
-            1
-        );
-    }
-
-
-    /* =========================================================
-       SOURCE IMAGE PREVIEW
-       ========================================================= */
-
-    function showSourceImage() {
-
-        if (
-            !sourceImage ||
-            !canvas ||
-            !ctx
-        ) {
-            return;
-        }
-
-
-        const workspace =
-            getWorkspaceSize();
-
-
-        const imageWidth =
-            sourceImage.naturalWidth;
-
-        const imageHeight =
-            sourceImage.naturalHeight;
-
-
-        const fit =
-            Math.min(
-                workspace.width /
-                    imageWidth,
-
-                workspace.height /
-                    imageHeight,
-
-                1
-            );
-
-
-        const width =
-            Math.max(
-                1,
-                Math.round(
-                    imageWidth * fit
-                )
-            );
-
-
-        const height =
-            Math.max(
-                1,
-                Math.round(
-                    imageHeight * fit
-                )
-            );
-
-
-        canvas.width =
-            width;
-
-        canvas.height =
-            height;
-
-
-        canvas.style.position =
-            "relative";
-
-        canvas.style.left =
-            "auto";
-
-        canvas.style.top =
-            "auto";
-
-        canvas.style.width =
-            `${width}px`;
-
-        canvas.style.height =
-            `${height}px`;
-
-        canvas.style.maxWidth =
-            "100%";
-
-        canvas.style.maxHeight =
-            "100%";
-
-        canvas.style.imageRendering =
-            "auto";
-
-        canvas.style.display =
-            "block";
-
-
-        ctx.clearRect(
-            0,
-            0,
-            width,
-            height
-        );
-
-
-        ctx.imageSmoothingEnabled =
-            true;
-
-
-        ctx.drawImage(
-            sourceImage,
-            0,
-            0,
-            width,
-            height
-        );
-
-
-        currentPreviewMode =
-            "source";
-
-
-        if (emptyPreview) {
-
-            emptyPreview.style.display =
-                "none";
-        }
-
-
-        if (previewStatus) {
-
-            previewStatus.textContent =
-                "IMAGE LOADED";
-        }
-    }
-
-
-    /* =========================================================
-       DETAIL GRID
-       ========================================================= */
-
-    function calculateDetailGrid() {
-
-        const width =
-            Number(widthInput?.value) || 100;
-
-        const height =
-            Number(heightInput?.value) || 75;
-
-
-        /*
-           Physical dimensions define aspect ratio.
-
-           DETAIL controls how many processing cells
-           are used across the width.
-        */
-
-        const minWidth =
-            Math.max(
-                20,
-                calculatePhysicalGrid().width * 2
-            );
-
-
-        const maxWidth =
-            Math.max(
-                minWidth,
-                MAX_DETAIL_WIDTH
-            );
-
-
-        const detailWidth =
-            Math.round(
-                minWidth +
-                (
-                    maxWidth -
-                    minWidth
-                ) *
-                (
-                    detailLevel -
-                    MIN_DETAIL
-                ) /
-                (
-                    MAX_DETAIL -
-                    MIN_DETAIL
-                )
-            );
-
-
-        const detailHeight =
-            Math.max(
-                1,
-                Math.round(
-                    detailWidth *
-                    height /
-                    width
-                )
-            );
-
-
-        return {
-
-            width:
-                detailWidth,
-
-            height:
-                detailHeight
-        };
     }
 
 
@@ -990,41 +987,46 @@
     function updateZoom() {
 
         if (
-            !canvas ||
-            !currentDetailData
+            !currentDetailData ||
+            !rugWorkspace ||
+            !canvas
         ) {
             return;
         }
 
 
-        const base =
-            getBasePreviewSize();
+        const baseCellSize = 8;
 
 
-        const width =
-            base.width *
+        const visualWidth =
+            currentDetailData.width *
+            baseCellSize *
             zoomLevel;
 
 
-        const height =
-            base.height *
+        const visualHeight =
+            currentDetailData.height *
+            baseCellSize *
             zoomLevel;
 
+
+        canvas.style.display =
+            "block";
 
         canvas.style.position =
-            "relative";
+            "absolute";
 
         canvas.style.left =
-            "auto";
+            "0";
 
         canvas.style.top =
-            "auto";
+            "0";
 
         canvas.style.width =
-            `${width}px`;
+            `${visualWidth}px`;
 
         canvas.style.height =
-            `${height}px`;
+            `${visualHeight}px`;
 
         canvas.style.maxWidth =
             "none";
@@ -1032,11 +1034,8 @@
         canvas.style.maxHeight =
             "none";
 
-        canvas.style.display =
-            "block";
-
         canvas.style.imageRendering =
-            "pixelated";
+            "auto";
 
 
         if (zoomValue) {
@@ -1048,45 +1047,7 @@
         }
 
 
-        if (rugCanvasWrap) {
-
-            if (zoomLevel <= 1) {
-
-                rugCanvasWrap.style.overflow =
-                    "hidden";
-
-            } else {
-
-                rugCanvasWrap.style.overflow =
-                    "auto";
-            }
-        }
-
-
-        requestAnimationFrame(
-            drawPhysicalGridOverlay
-        );
-    }
-
-
-    function resetZoomToFit() {
-
-        zoomLevel =
-            calculateFitZoom();
-
-
-        /*
-           Never go below 50%.
-        */
-
-        zoomLevel =
-            Math.max(
-                MIN_ZOOM,
-                zoomLevel
-            );
-
-
-        updateZoom();
+        drawCurrentPreview();
     }
 
 
@@ -1118,14 +1079,10 @@
         ) {
 
             const span =
-                document.createElement(
-                    "span"
-                );
-
+                document.createElement("span");
 
             span.textContent =
                 columnLabel(x);
-
 
             gridTopLabels.appendChild(
                 span
@@ -1140,137 +1097,15 @@
         ) {
 
             const span =
-                document.createElement(
-                    "span"
-                );
-
+                document.createElement("span");
 
             span.textContent =
-                String(y + 1);
-
+                y + 1;
 
             gridLeftLabels.appendChild(
                 span
             );
         }
-    }
-
-
-    /* =========================================================
-       PHYSICAL GRID OVERLAY
-       ========================================================= */
-
-    function drawPhysicalGridOverlay() {
-
-        if (
-            !rugCanvasWrap ||
-            !currentDetailData ||
-            !currentGrid
-        ) {
-            return;
-        }
-
-
-        let overlay =
-            document.getElementById(
-                "physicalGridOverlay"
-            );
-
-
-        if (!overlay) {
-
-            overlay =
-                document.createElement(
-                    "div"
-                );
-
-
-            overlay.id =
-                "physicalGridOverlay";
-
-
-            overlay.style.cssText = `
-                position:absolute;
-                pointer-events:none;
-                z-index:20;
-                box-sizing:border-box;
-            `;
-
-
-            rugCanvasWrap.appendChild(
-                overlay
-            );
-        }
-
-
-        const base =
-            getBasePreviewSize();
-
-
-        const width =
-            base.width *
-            zoomLevel;
-
-        const height =
-            base.height *
-            zoomLevel;
-
-
-        /*
-           IMPORTANT:
-
-           Physical grid is calculated directly
-           from physical grid dimensions.
-
-           It does NOT depend on detail resolution.
-        */
-
-        const cellWidth =
-            width /
-            currentGrid.width;
-
-        const cellHeight =
-            height /
-            currentGrid.height;
-
-
-        overlay.style.width =
-            `${width}px`;
-
-        overlay.style.height =
-            `${height}px`;
-
-
-        overlay.style.left =
-            "50%";
-
-        overlay.style.top =
-            "50%";
-
-        overlay.style.transform =
-            "translate(-50%, -50%)";
-
-
-        overlay.style.backgroundImage = `
-            linear-gradient(
-                to right,
-                rgba(255,255,255,.28) 1px,
-                transparent 1px
-            ),
-            linear-gradient(
-                to bottom,
-                rgba(255,255,255,.28) 1px,
-                transparent 1px
-            )
-        `;
-
-
-        overlay.style.backgroundSize =
-            `${cellWidth}px ${cellHeight}px`;
-
-
-        overlay.style.border =
-            "1px solid rgba(255,255,255,.65)";
     }
 
 
@@ -1307,7 +1142,6 @@
                     width * scale
                 )
             );
-
 
         height =
             Math.max(
@@ -1446,12 +1280,8 @@
 
 
         return {
-
-            canvas:
-                tempCanvas,
-
-            imageData:
-                imageData
+            canvas: tempCanvas,
+            imageData
         };
     }
 
@@ -1483,7 +1313,6 @@
 
 
         const positions = [
-
             0,
 
             (width - 1) * 4,
@@ -1508,19 +1337,17 @@
         };
 
 
-        positions.forEach(
-            position => {
+        positions.forEach(position => {
 
-                background.r +=
-                    data[position];
+            background.r +=
+                data[position];
 
-                background.g +=
-                    data[position + 1];
+            background.g +=
+                data[position + 1];
 
-                background.b +=
-                    data[position + 2];
-            }
-        );
+            background.b +=
+                data[position + 2];
+        });
 
 
         background.r /= 4;
@@ -1538,14 +1365,9 @@
         ) {
 
             const color = {
-
                 r: data[i],
-
-                g:
-                    data[i + 1],
-
-                b:
-                    data[i + 2]
+                g: data[i + 1],
+                b: data[i + 2]
             };
 
 
@@ -1556,8 +1378,7 @@
                 ) < threshold
             ) {
 
-                data[i + 3] =
-                    0;
+                data[i + 3] = 0;
             }
         }
     }
@@ -1598,12 +1419,10 @@
                     data[i] / 16
                 ) * 16;
 
-
             const g =
                 Math.floor(
                     data[i + 1] / 16
                 ) * 16;
-
 
             const b =
                 Math.floor(
@@ -1632,31 +1451,25 @@
                         b[1] - a[1]
                 )
                 .slice(0, 60)
-                .map(
-                    ([key, weight]) => {
+                .map(([key, weight]) => {
 
-                        const [
-                            r,
-                            g,
-                            b
-                        ] =
-                            key
-                                .split(",")
-                                .map(Number);
+                    const [
+                        r,
+                        g,
+                        b
+                    ] =
+                        key
+                            .split(",")
+                            .map(Number);
 
 
-                        return {
-
-                            r,
-
-                            g,
-
-                            b,
-
-                            weight
-                        };
-                    }
-                );
+                    return {
+                        r,
+                        g,
+                        b,
+                        weight
+                    };
+                });
 
 
         if (!sorted.length) {
@@ -1679,68 +1492,61 @@
         ) {
 
             let best = null;
-
-            let bestScore =
-                -Infinity;
+            let bestScore = -Infinity;
 
 
-            sorted.forEach(
-                candidate => {
+            sorted.forEach(candidate => {
 
-                    const duplicate =
-                        result.some(
-                            selected =>
-                                colorDistance(
-                                    selected,
-                                    candidate
-                                ) < 12
-                        );
-
-
-                    if (duplicate) {
-                        return;
-                    }
-
-
-                    let minimum =
-                        Infinity;
-
-
-                    result.forEach(
-                        selected => {
-
-                            minimum =
-                                Math.min(
-                                    minimum,
-                                    colorDistance(
-                                        selected,
-                                        candidate
-                                    )
-                                );
-                        }
+                const duplicate =
+                    result.some(
+                        selected =>
+                            colorDistance(
+                                selected,
+                                candidate
+                            ) < 12
                     );
 
 
-                    const score =
-                        minimum +
-                        Math.log(
-                            candidate.weight + 1
-                        ) * 3;
-
-
-                    if (
-                        score >
-                        bestScore
-                    ) {
-
-                        bestScore =
-                            score;
-
-                        best =
-                            candidate;
-                    }
+                if (duplicate) {
+                    return;
                 }
-            );
+
+
+                let minimum =
+                    Infinity;
+
+
+                result.forEach(selected => {
+
+                    minimum =
+                        Math.min(
+                            minimum,
+                            colorDistance(
+                                selected,
+                                candidate
+                            )
+                        );
+                });
+
+
+                const score =
+                    minimum +
+                    Math.log(
+                        candidate.weight + 1
+                    ) * 3;
+
+
+                if (
+                    score > bestScore
+                ) {
+
+                    bestScore =
+                        score;
+
+                    best =
+                        candidate;
+                }
+            });
 
 
             if (!best) {
@@ -1752,14 +1558,52 @@
         }
 
 
-        return result.map(
-            color =>
-                rgbToHex(
-                    color.r,
-                    color.g,
-                    color.b
-                )
+        return result.map(color =>
+            rgbToHex(
+                color.r,
+                color.g,
+                color.b
+            )
         );
+    }
+
+
+    /* =========================================================
+       DETAIL GRID
+       ========================================================= */
+
+    function calculateDetailGrid() {
+
+        const width =
+            Number(widthInput?.value) || 100;
+
+        const height =
+            Number(heightInput?.value) || 75;
+
+
+        const detailWidth =
+            clamp(
+                Math.round(detailLevel),
+                MIN_DETAIL,
+                MAX_DETAIL
+            );
+
+
+        const detailHeight =
+            Math.max(
+                1,
+                Math.round(
+                    detailWidth *
+                    height /
+                    width
+                )
+            );
+
+
+        return {
+            width: detailWidth,
+            height: detailHeight
+        };
     }
 
 
@@ -1845,9 +1689,7 @@
                     Math.max(
                         sx + 1,
                         Math.floor(
-                            (
-                                x + 1
-                            ) /
+                            (x + 1) /
                             detailGrid.width *
                             sourceCanvas.width
                         )
@@ -1858,9 +1700,7 @@
                     Math.max(
                         sy + 1,
                         Math.floor(
-                            (
-                                y + 1
-                            ) /
+                            (y + 1) /
                             detailGrid.height *
                             sourceCanvas.height
                         )
@@ -1899,9 +1739,7 @@
                             ];
 
 
-                        if (
-                            alpha < 20
-                        ) {
+                        if (alpha < 20) {
                             continue;
                         }
 
@@ -1935,15 +1773,9 @@
 
 
                 const average = {
-
-                    r:
-                        r / pixels,
-
-                    g:
-                        g / pixels,
-
-                    b:
-                        b / pixels
+                    r: r / pixels,
+                    g: g / pixels,
+                    b: b / pixels
                 };
 
 
@@ -1954,29 +1786,27 @@
                     Infinity;
 
 
-                palette.forEach(
-                    color => {
+                palette.forEach(color => {
 
-                        const distance =
-                            colorDistance(
-                                average,
-                                color
-                            );
+                    const distance =
+                        colorDistance(
+                            average,
+                            color
+                        );
 
 
-                        if (
-                            distance <
-                            closestDistance
-                        ) {
+                    if (
+                        distance <
+                        closestDistance
+                    ) {
 
-                            closestDistance =
-                                distance;
+                        closestDistance =
+                            distance;
 
-                            closest =
-                                color;
-                        }
+                        closest =
+                            color;
                     }
-                );
+                });
 
 
                 row.push(
@@ -1998,6 +1828,211 @@
 
 
     /* =========================================================
+       DRAW ROUNDED CELL
+       ========================================================= */
+
+    function drawRoundedCell(
+        context,
+        x,
+        y,
+        width,
+        height,
+        color,
+        roundness
+    ) {
+
+        context.fillStyle =
+            color;
+
+
+        /*
+           Roundness controls BOTH:
+           - corner radius
+           - small visual gap between cells
+
+           0:
+           completely square.
+
+           100:
+           strongly rounded.
+        */
+
+
+        const normalized =
+            clamp(
+                roundness / 100,
+                0,
+                1
+            );
+
+
+        /*
+           Maximum inset is deliberately limited.
+
+           This keeps the cells connected enough
+           to still look like a rug rather than dots.
+        */
+
+        const maxGap =
+            Math.min(
+                width,
+                height
+            ) * 0.22;
+
+
+        const gap =
+            maxGap *
+            normalized;
+
+
+        const cellX =
+            x + gap / 2;
+
+        const cellY =
+            y + gap / 2;
+
+        const cellWidth =
+            Math.max(
+                0.1,
+                width - gap
+            );
+
+        const cellHeight =
+            Math.max(
+                0.1,
+                height - gap
+            );
+
+
+        /*
+           Maximum radius.
+        */
+
+        const maxRadius =
+            Math.min(
+                cellWidth,
+                cellHeight
+            ) / 2;
+
+
+        /*
+           At 100 the corners are almost
+           fully circular.
+
+           At lower values the corners
+           remain more square.
+        */
+
+        const radius =
+            maxRadius *
+            Math.pow(
+                normalized,
+                0.72
+            );
+
+
+        /*
+           Canvas roundRect is supported
+           in modern browsers.
+
+           Fallback included for safety.
+        */
+
+        if (
+            typeof context.roundRect ===
+            "function"
+        ) {
+
+            context.beginPath();
+
+            context.roundRect(
+                cellX,
+                cellY,
+                cellWidth,
+                cellHeight,
+                radius
+            );
+
+            context.fill();
+
+            return;
+        }
+
+
+        /*
+           Fallback rounded rectangle.
+        */
+
+        context.beginPath();
+
+        context.moveTo(
+            cellX + radius,
+            cellY
+        );
+
+        context.lineTo(
+            cellX +
+            cellWidth -
+            radius,
+            cellY
+        );
+
+        context.quadraticCurveTo(
+            cellX + cellWidth,
+            cellY,
+            cellX + cellWidth,
+            cellY + radius
+        );
+
+        context.lineTo(
+            cellX + cellWidth,
+            cellY +
+            cellHeight -
+            radius
+        );
+
+        context.quadraticCurveTo(
+            cellX + cellWidth,
+            cellY + cellHeight,
+            cellX +
+            cellWidth -
+            radius,
+            cellY + cellHeight
+        );
+
+        context.lineTo(
+            cellX + radius,
+            cellY + cellHeight
+        );
+
+        context.quadraticCurveTo(
+            cellX,
+            cellY + cellHeight,
+            cellX,
+            cellY +
+            cellHeight -
+            radius
+        );
+
+        context.lineTo(
+            cellX,
+            cellY + radius
+        );
+
+        context.quadraticCurveTo(
+            cellX,
+            cellY,
+            cellX + radius,
+            cellY
+        );
+
+        context.closePath();
+
+        context.fill();
+    }
+
+
+    /* =========================================================
        DRAW DETAIL PREVIEW
        ========================================================= */
 
@@ -2006,10 +2041,7 @@
         detailGrid
     ) {
 
-        if (
-            !canvas ||
-            !ctx
-        ) {
+        if (!canvas) {
             return;
         }
 
@@ -2030,7 +2062,41 @@
 
 
         ctx.imageSmoothingEnabled =
-            false;
+            true;
+
+
+        /*
+           At the internal 1×1 canvas level
+           the shape slider cannot be visible.
+
+           Therefore the canvas is rendered at
+           a higher internal resolution.
+        */
+
+
+        const INTERNAL_CELL =
+            20;
+
+
+        canvas.width =
+            detailGrid.width *
+            INTERNAL_CELL;
+
+        canvas.height =
+            detailGrid.height *
+            INTERNAL_CELL;
+
+
+        ctx.clearRect(
+            0,
+            0,
+            canvas.width,
+            canvas.height
+        );
+
+
+        ctx.imageSmoothingEnabled =
+            true;
 
 
         for (
@@ -2046,19 +2112,16 @@
             ) {
 
                 const color =
-                    data[y]?.[x];
+                    data[y][x];
 
 
-                ctx.fillStyle =
-                    color ||
-                    "#11110f";
-
-
-                ctx.fillRect(
-                    x,
-                    y,
-                    1,
-                    1
+                drawRoundedCell(
+                    ctx,
+                    x * INTERNAL_CELL,
+                    y * INTERNAL_CELL,
+                    INTERNAL_CELL,
+                    INTERNAL_CELL,
+                    pixelRoundness
                 );
             }
         }
@@ -2068,28 +2131,264 @@
             detailGrid;
 
 
-        currentPreviewMode =
-            "rug";
+        canvas.style.imageRendering =
+            "auto";
 
 
-        /*
-           IMPORTANT:
-           after every regeneration the image
-           automatically fits the available workspace.
-        */
-
-        zoomLevel =
-            calculateFitZoom();
+        updateZoomOnly();
+    }
 
 
-        updateZoom();
+    /* =========================================================
+       UPDATE ZOOM WITHOUT REDRAW LOOP
+       ========================================================= */
 
+    function updateZoomOnly() {
 
-        if (emptyPreview) {
-
-            emptyPreview.style.display =
-                "none";
+        if (
+            !currentDetailData ||
+            !canvas
+        ) {
+            return;
         }
+
+
+        const baseCellSize = 8;
+
+
+        const visualWidth =
+            currentDetailData.width *
+            baseCellSize *
+            zoomLevel;
+
+
+        const visualHeight =
+            currentDetailData.height *
+            baseCellSize *
+            zoomLevel;
+
+
+        canvas.style.display =
+            "block";
+
+        canvas.style.position =
+            "absolute";
+
+        canvas.style.left =
+            "0";
+
+        canvas.style.top =
+            "0";
+
+        canvas.style.width =
+            `${visualWidth}px`;
+
+        canvas.style.height =
+            `${visualHeight}px`;
+
+        canvas.style.maxWidth =
+            "none";
+
+        canvas.style.maxHeight =
+            "none";
+
+
+        if (zoomValue) {
+
+            zoomValue.textContent =
+                `${Math.round(
+                    zoomLevel * 100
+                )}%`;
+        }
+    }
+
+
+    /* =========================================================
+       DRAW CURRENT PREVIEW
+       ========================================================= */
+
+    function drawCurrentPreview() {
+
+        if (
+            !currentDetailData ||
+            !currentGridData ||
+            !canvas
+        ) {
+            return;
+        }
+
+
+        const data =
+            currentGridData;
+
+        const detailGrid =
+            currentDetailData;
+
+
+        const INTERNAL_CELL =
+            20;
+
+
+        canvas.width =
+            detailGrid.width *
+            INTERNAL_CELL;
+
+        canvas.height =
+            detailGrid.height *
+            INTERNAL_CELL;
+
+
+        ctx.clearRect(
+            0,
+            0,
+            canvas.width,
+            canvas.height
+        );
+
+
+        ctx.imageSmoothingEnabled =
+            true;
+
+
+        for (
+            let y = 0;
+            y < detailGrid.height;
+            y++
+        ) {
+
+            for (
+                let x = 0;
+                x < detailGrid.width;
+                x++
+            ) {
+
+                const color =
+                    data[y][x];
+
+
+                drawRoundedCell(
+                    ctx,
+                    x * INTERNAL_CELL,
+                    y * INTERNAL_CELL,
+                    INTERNAL_CELL,
+                    INTERNAL_CELL,
+                    pixelRoundness
+                );
+            }
+        }
+
+
+        updateZoomOnly();
+
+        drawPhysicalGridOverlay();
+    }
+
+
+    /* =========================================================
+       PHYSICAL GRID OVERLAY
+       ========================================================= */
+
+    function drawPhysicalGridOverlay() {
+
+        if (
+            !rugCanvasWrap ||
+            !currentDetailData ||
+            !currentGrid
+        ) {
+            return;
+        }
+
+
+        let overlay =
+            document.getElementById(
+                "physicalGridOverlay"
+            );
+
+
+        if (!overlay) {
+
+            overlay =
+                document.createElement(
+                    "div"
+                );
+
+            overlay.id =
+                "physicalGridOverlay";
+
+
+            overlay.style.cssText = `
+                position:absolute;
+                pointer-events:none;
+                z-index:10;
+                box-sizing:border-box;
+            `;
+
+
+            rugCanvasWrap.appendChild(
+                overlay
+            );
+        }
+
+
+        const baseCellSize =
+            8;
+
+
+        const width =
+            currentDetailData.width *
+            baseCellSize *
+            zoomLevel;
+
+
+        const height =
+            currentDetailData.height *
+            baseCellSize *
+            zoomLevel;
+
+
+        const cellWidth =
+            width /
+            currentGrid.width;
+
+
+        const cellHeight =
+            height /
+            currentGrid.height;
+
+
+        overlay.style.left =
+            "0";
+
+        overlay.style.top =
+            "0";
+
+        overlay.style.width =
+            `${width}px`;
+
+        overlay.style.height =
+            `${height}px`;
+
+
+        overlay.style.backgroundImage = `
+            linear-gradient(
+                to right,
+                rgba(255,255,255,.25) 1px,
+                transparent 1px
+            ),
+            linear-gradient(
+                to bottom,
+                rgba(255,255,255,.25) 1px,
+                transparent 1px
+            )
+        `;
+
+
+        overlay.style.backgroundSize =
+            `${cellWidth}px ${cellHeight}px`;
+
+
+        overlay.style.border =
+            "1px solid rgba(255,255,255,.65)";
     }
 
 
@@ -2115,29 +2414,24 @@
             new Map();
 
 
-        data.forEach(
-            row => {
+        data.forEach(row => {
 
-                row.forEach(
-                    color => {
+            row.forEach(color => {
 
-                        if (!color) {
-                            return;
-                        }
+                if (!color) {
+                    return;
+                }
 
 
-                        counts.set(
-                            color,
-                            (
-                                counts.get(
-                                    color
-                                ) || 0
-                            ) + 1
-                        );
-                    }
+                counts.set(
+                    color,
+                    (
+                        counts.get(color) ||
+                        0
+                    ) + 1
                 );
-            }
-        );
+            });
+        });
 
 
         palette.forEach(
@@ -2293,7 +2587,6 @@
 
 
                     if (text) {
-
                         text.value =
                             event.target.value
                                 .toUpperCase();
@@ -2301,7 +2594,7 @@
 
 
                     if (sourceImage) {
-                        scheduleGeneration();
+                        generateRug();
                     }
                 }
             }
@@ -2357,7 +2650,7 @@
 
 
                     if (sourceImage) {
-                        scheduleGeneration();
+                        generateRug();
                     }
                 }
             }
@@ -2428,7 +2721,7 @@
 
 
                 if (sourceImage) {
-                    scheduleGeneration();
+                    generateRug();
                 }
             }
         );
@@ -2446,7 +2739,7 @@
 
                 if (sourceImage) {
 
-                    scheduleGeneration();
+                    generateRug();
 
                 } else {
 
@@ -2455,7 +2748,6 @@
                             0,
                             numberOfColors
                         );
-
 
                     renderPalette(
                         generatedPalette
@@ -2500,7 +2792,6 @@
 
 
                 if (fileName) {
-
                     fileName.textContent =
                         file.name;
                 }
@@ -2538,22 +2829,16 @@
 
 
                                 /*
-                                   SHOW ORIGINAL IMAGE.
-
-                                   This remains visible until
-                                   rug generation actually finishes.
+                                   Show uploaded image
+                                   immediately.
                                 */
 
                                 showSourceImage();
 
 
-                                /*
-                                   Generate after browser had a chance
-                                   to paint the uploaded image.
-                                */
-
-                                scheduleGeneration(
-                                    50
+                                setTimeout(
+                                    generateRug,
+                                    30
                                 );
                             };
 
@@ -2603,7 +2888,7 @@
 
 
                 if (sourceImage) {
-                    scheduleGeneration();
+                    generateRug();
                 }
             }
         );
@@ -2631,7 +2916,7 @@
 
 
                 if (sourceImage) {
-                    scheduleGeneration();
+                    generateRug();
                 }
             }
         );
@@ -2669,11 +2954,10 @@
                     .querySelectorAll(
                         "button"
                     )
-                    .forEach(
-                        item =>
-                            item.classList.remove(
-                                "active"
-                            )
+                    .forEach(item =>
+                        item.classList.remove(
+                            "active"
+                        )
                     );
 
 
@@ -2687,7 +2971,7 @@
 
                 if (sourceImage) {
 
-                    scheduleGeneration();
+                    generateRug();
 
                 } else {
 
@@ -2755,7 +3039,7 @@
 
 
                 if (sourceImage) {
-                    scheduleGeneration();
+                    generateRug();
                 }
             }
         );
@@ -2773,7 +3057,7 @@
                     !lockRatio?.checked
                 ) {
 
-                    scheduleGeneration();
+                    generateRug();
                 }
             }
         );
@@ -2795,7 +3079,7 @@
 
 
                 if (sourceImage) {
-                    scheduleGeneration();
+                    generateRug();
                 }
             }
         );
@@ -2813,14 +3097,13 @@
             () => {
 
                 if (contrastValue) {
-
                     contrastValue.textContent =
                         contrastInput.value;
                 }
 
 
                 if (sourceImage) {
-                    scheduleGeneration();
+                    generateRug();
                 }
             }
         );
@@ -2834,14 +3117,13 @@
             () => {
 
                 if (brightnessValue) {
-
                     brightnessValue.textContent =
                         brightnessInput.value;
                 }
 
 
                 if (sourceImage) {
-                    scheduleGeneration();
+                    generateRug();
                 }
             }
         );
@@ -2910,27 +3192,6 @@
 
 
     /* =========================================================
-       GENERATION SCHEDULER
-       ========================================================= */
-
-    function scheduleGeneration(
-        delay = 80
-    ) {
-
-        clearTimeout(
-            generationTimer
-        );
-
-
-        generationTimer =
-            setTimeout(
-                generateRug,
-                delay
-            );
-    }
-
-
-    /* =========================================================
        GENERATE
        ========================================================= */
 
@@ -2949,18 +3210,10 @@
 
 
         if (previewStatus) {
-
             previewStatus.textContent =
                 "PROCESSING…";
         }
 
-
-        /*
-           Keep source image visible while processing.
-
-           This is especially important when DETAIL
-           is high and processing takes some time.
-        */
 
         setTimeout(
             () => {
@@ -2999,8 +3252,8 @@
 
 
                     /*
-                       Generate palette only if
-                       user has not manually edited it.
+                       Generate palette unless
+                       manually edited.
                     */
 
                     if (
@@ -3051,10 +3304,21 @@
                         detailGrid;
 
 
+                    /*
+                       Draw image.
+                    */
+
                     drawDetailPreview(
                         detailData,
                         detailGrid
                     );
+
+
+                    /*
+                       Physical grid.
+                    */
+
+                    drawPhysicalGridOverlay();
 
 
                     renderGridLabels(
@@ -3064,7 +3328,6 @@
 
                     renderColorLegend(
                         detailData,
-
                         customPalette.length
                             ? customPalette
                             : generatedPalette
@@ -3074,15 +3337,19 @@
                     updateStats();
 
 
-                    if (previewStatus) {
+                    if (emptyPreview) {
+                        emptyPreview.style.display =
+                            "none";
+                    }
 
+
+                    if (previewStatus) {
                         previewStatus.textContent =
                             "RUG READY";
                     }
 
 
                     createExportControls();
-
 
                 } catch (error) {
 
@@ -3093,7 +3360,6 @@
 
 
                     if (previewStatus) {
-
                         previewStatus.textContent =
                             "PROCESSING ERROR";
                     }
@@ -3106,182 +3372,6 @@
 
             },
             20
-        );
-    }
-
-
-    /* =========================================================
-       PREVIEW RESIZE
-       ========================================================= */
-
-    let resizeTimer = null;
-
-
-    window.addEventListener(
-        "resize",
-        () => {
-
-            clearTimeout(
-                resizeTimer
-            );
-
-
-            resizeTimer =
-                setTimeout(
-                    () => {
-
-                        if (
-                            currentPreviewMode ===
-                            "source"
-                        ) {
-
-                            showSourceImage();
-
-                        } else if (
-                            currentDetailData
-                        ) {
-
-                            /*
-                               Keep the current zoom
-                               if user intentionally zoomed.
-
-                               Otherwise fit automatically.
-                            */
-
-                            if (
-                                zoomLevel <= 1
-                            ) {
-
-                                zoomLevel =
-                                    calculateFitZoom();
-                            }
-
-
-                            updateZoom();
-                        }
-
-                    },
-                    100
-                );
-        }
-    );
-
-
-    /* =========================================================
-       MOUSE WHEEL ZOOM
-       ========================================================= */
-
-    if (rugCanvasWrap) {
-
-        rugCanvasWrap.addEventListener(
-            "wheel",
-            event => {
-
-                if (
-                    currentPreviewMode !==
-                    "rug"
-                ) {
-                    return;
-                }
-
-
-                /*
-                   CTRL / CMD + wheel:
-                   browser-style zoom.
-
-                   Plain wheel:
-                   zoom too, because this is the
-                   rug workspace.
-                */
-
-                event.preventDefault();
-
-
-                const direction =
-                    event.deltaY < 0
-                        ? 1
-                        : -1;
-
-
-                zoomLevel =
-                    clamp(
-                        zoomLevel +
-                        direction *
-                        ZOOM_STEP,
-
-                        MIN_ZOOM,
-
-                        MAX_ZOOM
-                    );
-
-
-                updateZoom();
-            },
-            {
-                passive: false
-            }
-        );
-    }
-
-
-    /* =========================================================
-       ZOOM BUTTONS
-       ========================================================= */
-
-    if (zoomIn) {
-
-        zoomIn.addEventListener(
-            "click",
-            () => {
-
-                zoomLevel =
-                    clamp(
-                        zoomLevel +
-                        ZOOM_STEP,
-
-                        MIN_ZOOM,
-
-                        MAX_ZOOM
-                    );
-
-
-                updateZoom();
-            }
-        );
-    }
-
-
-    if (zoomOut) {
-
-        zoomOut.addEventListener(
-            "click",
-            () => {
-
-                zoomLevel =
-                    clamp(
-                        zoomLevel -
-                        ZOOM_STEP,
-
-                        MIN_ZOOM,
-
-                        MAX_ZOOM
-                    );
-
-
-                updateZoom();
-            }
-        );
-    }
-
-
-    if (zoomReset) {
-
-        zoomReset.addEventListener(
-            "click",
-            () => {
-
-                resetZoomToFit();
-            }
         );
     }
 
@@ -3328,7 +3418,6 @@
         downloadButton.type =
             "button";
 
-
         downloadButton.textContent =
             "DOWNLOAD PNG";
 
@@ -3351,7 +3440,6 @@
 
         projectorButton.type =
             "button";
-
 
         projectorButton.textContent =
             "PROJECTOR MODE";
@@ -3382,7 +3470,6 @@
         container.appendChild(
             downloadButton
         );
-
 
         container.appendChild(
             projectorButton
@@ -3424,19 +3511,26 @@
         }
 
 
-        const CELL = 40;
+        const CELL =
+            40;
 
-        const LABEL = 55;
 
-        const HEADER = 90;
+        const LABEL =
+            55;
 
-        const LEGEND = 150;
+
+        const HEADER =
+            90;
+
+
+        const LEGEND =
+            150;
 
 
         const width =
             Math.round(
                 Number(
-                    widthInput?.value
+                    widthInput.value
                 ) || 100
             );
 
@@ -3444,7 +3538,7 @@
         const height =
             Math.round(
                 Number(
-                    heightInput?.value
+                    heightInput.value
                 ) || 75
             );
 
@@ -3485,7 +3579,6 @@
         exportCanvas.width =
             exportWidth;
 
-
         exportCanvas.height =
             exportHeight;
 
@@ -3497,7 +3590,7 @@
 
 
         exportCtx.imageSmoothingEnabled =
-            false;
+            true;
 
 
         exportCtx.fillStyle =
@@ -3519,10 +3612,8 @@
         exportCtx.fillStyle =
             "#f2f0ea";
 
-
         exportCtx.font =
             "bold 22px Arial";
-
 
         exportCtx.fillText(
             "DOCH / RUG GRID",
@@ -3534,13 +3625,12 @@
         exportCtx.fillStyle =
             "#77746d";
 
-
         exportCtx.font =
             "12px Arial";
 
 
         exportCtx.fillText(
-            `${width} × ${height} CM · ${currentGrid.width} × ${currentGrid.height} GRID · ${GRID_CELL_CM} CM CELL · ${colors} COLORS · DETAIL ${detailLevel}%`,
+            `${width} × ${height} CM · ${currentGrid.width} × ${currentGrid.height} GRID · ${GRID_CELL_CM} CM CELL · ${colors} COLORS · DETAIL ${detailLevel} · SHAPE ${pixelRoundness}`,
             25,
             58
         );
@@ -3555,7 +3645,10 @@
 
 
         /*
-           DETAIL IMAGE
+           DRAW DETAIL IMAGE
+
+           Rounded pixels are preserved
+           in the exported PNG.
         */
 
         for (
@@ -3570,27 +3663,24 @@
                 x++
             ) {
 
-                exportCtx.fillStyle =
-                    currentGridData[y][x] ||
-                    "#11110f";
-
-
-                exportCtx.fillRect(
+                drawRoundedCell(
+                    exportCtx,
                     gridX +
-                    x * CELL,
-
+                        x *
+                        CELL,
                     gridY +
-                    y * CELL,
-
+                        y *
+                        CELL,
                     CELL,
-                    CELL
+                    CELL,
+                    pixelRoundness
                 );
             }
         }
 
 
         /*
-           PHYSICAL GRID
+           PHYSICAL 5 CM GRID
         */
 
         const physicalCellWidth =
@@ -3626,19 +3716,16 @@
 
             exportCtx.beginPath();
 
-
             exportCtx.moveTo(
                 px,
                 gridY
             );
-
 
             exportCtx.lineTo(
                 px,
                 gridY +
                 imageHeight
             );
-
 
             exportCtx.stroke();
         }
@@ -3659,19 +3746,16 @@
 
             exportCtx.beginPath();
 
-
             exportCtx.moveTo(
                 gridX,
                 py
             );
-
 
             exportCtx.lineTo(
                 gridX +
                 imageWidth,
                 py
             );
-
 
             exportCtx.stroke();
         }
@@ -3683,7 +3767,6 @@
 
         exportCtx.strokeStyle =
             "#f2f0ea";
-
 
         exportCtx.lineWidth =
             2;
@@ -3704,10 +3787,8 @@
         exportCtx.fillStyle =
             "#aaa79f";
 
-
         exportCtx.font =
             "10px Arial";
-
 
         exportCtx.textAlign =
             "center";
@@ -3780,7 +3861,6 @@
         exportCtx.fillStyle =
             "#f2f0ea";
 
-
         exportCtx.font =
             "bold 12px Arial";
 
@@ -3796,29 +3876,24 @@
             new Map();
 
 
-        currentGridData.forEach(
-            row => {
+        currentGridData.forEach(row => {
 
-                row.forEach(
-                    color => {
+            row.forEach(color => {
 
-                        if (!color) {
-                            return;
-                        }
+                if (!color) {
+                    return;
+                }
 
 
-                        counts.set(
-                            color,
-                            (
-                                counts.get(
-                                    color
-                                ) || 0
-                            ) + 1
-                        );
-                    }
+                counts.set(
+                    color,
+                    (
+                        counts.get(color) ||
+                        0
+                    ) + 1
                 );
-            }
-        );
+            });
+        });
 
 
         const palette =
@@ -3836,18 +3911,14 @@
 
                 const itemX =
                     25 +
-                    (
-                        index % 4
-                    ) *
+                    (index % 4) *
                     190;
 
 
                 const itemY =
                     legendY +
                     25 +
-                    Math.floor(
-                        index / 4
-                    ) *
+                    Math.floor(index / 4) *
                     30;
 
 
@@ -3904,13 +3975,11 @@
 
 
         const link =
-            document.createElement(
-                "a"
-            );
+            document.createElement("a");
 
 
         link.download =
-            `doch-rug-${width}x${height}cm-${currentGrid.width}x${currentGrid.height}-grid-detail-${detailLevel}.png`;
+            `doch-rug-${width}x${height}cm-${currentGrid.width}x${currentGrid.height}-grid-detail-${detailLevel}-shape-${pixelRoundness}.png`;
 
 
         link.href =
@@ -3963,23 +4032,18 @@
 
         const width =
             Math.round(
-                Number(
-                    widthInput?.value
-                ) || 100
+                Number(widthInput.value)
             );
 
 
         const height =
             Math.round(
-                Number(
-                    heightInput?.value
-                ) || 75
+                Number(heightInput.value)
             );
 
 
         const ratio =
-            width /
-            height;
+            width / height;
 
 
         const workspace =
@@ -4002,11 +4066,12 @@
 
 
         projectorCanvas.width =
-            currentDetailData.width;
-
+            currentDetailData.width *
+            20;
 
         projectorCanvas.height =
-            currentDetailData.height;
+            currentDetailData.height *
+            20;
 
 
         projectorCanvas.style.cssText = `
@@ -4014,7 +4079,6 @@
             inset:0;
             width:100%;
             height:100%;
-            image-rendering:pixelated;
         `;
 
 
@@ -4025,7 +4089,11 @@
 
 
         projectorCtx.imageSmoothingEnabled =
-            false;
+            true;
+
+
+        const INTERNAL_CELL =
+            20;
 
 
         for (
@@ -4040,16 +4108,13 @@
                 x++
             ) {
 
-                projectorCtx.fillStyle =
-                    currentGridData[y][x] ||
-                    "#11110f";
-
-
-                projectorCtx.fillRect(
-                    x,
-                    y,
-                    1,
-                    1
+                drawRoundedCell(
+                    projectorCtx,
+                    x * INTERNAL_CELL,
+                    y * INTERNAL_CELL,
+                    INTERNAL_CELL,
+                    INTERNAL_CELL,
+                    pixelRoundness
                 );
             }
         }
@@ -4099,93 +4164,6 @@
 
 
         /*
-           GRID LABELS
-        */
-
-        for (
-            let x = 0;
-            x < currentGrid.width;
-            x++
-        ) {
-
-            const label =
-                document.createElement(
-                    "span"
-                );
-
-
-            label.textContent =
-                columnLabel(x);
-
-
-            label.style.cssText = `
-                position:absolute;
-                top:-18px;
-                left:${(
-                    x +
-                    0.5
-                ) * (
-                    100 /
-                    currentGrid.width
-                )}%;
-                transform:translateX(-50%);
-                color:#aaa79f;
-                font:9px Arial;
-                pointer-events:none;
-            `;
-
-
-            workspace.appendChild(
-                label
-            );
-        }
-
-
-        for (
-            let y = 0;
-            y < currentGrid.height;
-            y++
-        ) {
-
-            const label =
-                document.createElement(
-                    "span"
-                );
-
-
-            label.textContent =
-                String(y + 1);
-
-
-            label.style.cssText = `
-                position:absolute;
-                left:-22px;
-                top:${(
-                    y +
-                    0.5
-                ) * (
-                    100 /
-                    currentGrid.height
-                )}%;
-                transform:translateY(-50%);
-                color:#aaa79f;
-                font:9px Arial;
-                pointer-events:none;
-            `;
-
-
-            workspace.appendChild(
-                label
-            );
-        }
-
-
-        overlay.appendChild(
-            workspace
-        );
-
-
-        /*
            INFO
         */
 
@@ -4208,17 +4186,21 @@
 
 
         info.innerHTML = `
-            <span>
-                DOCH / PROJECTOR MODE
-            </span>
+            <span>DOCH / PROJECTOR MODE</span>
 
             <span>
                 ${width} × ${height} CM
                 · ${currentGrid.width} × ${currentGrid.height} GRID
                 · ${GRID_CELL_CM} CM CELL
-                · DETAIL ${detailLevel}%
+                · DETAIL ${detailLevel}
+                · SHAPE ${pixelRoundness}
             </span>
         `;
+
+
+        overlay.appendChild(
+            workspace
+        );
 
 
         overlay.appendChild(
@@ -4266,7 +4248,6 @@
                         .catch(() => {});
                 }
 
-
                 overlay.remove();
             };
 
@@ -4293,6 +4274,73 @@
 
 
     /* =========================================================
+       ZOOM BUTTONS
+       ========================================================= */
+
+    if (zoomIn) {
+
+        zoomIn.addEventListener(
+            "click",
+            () => {
+
+                zoomLevel =
+                    clamp(
+                        zoomLevel +
+                        ZOOM_STEP,
+                        MIN_ZOOM,
+                        MAX_ZOOM
+                    );
+
+
+                updateZoomOnly();
+
+                drawPhysicalGridOverlay();
+            }
+        );
+    }
+
+
+    if (zoomOut) {
+
+        zoomOut.addEventListener(
+            "click",
+            () => {
+
+                zoomLevel =
+                    clamp(
+                        zoomLevel -
+                        ZOOM_STEP,
+                        MIN_ZOOM,
+                        MAX_ZOOM
+                    );
+
+
+                updateZoomOnly();
+
+                drawPhysicalGridOverlay();
+            }
+        );
+    }
+
+
+    if (zoomReset) {
+
+        zoomReset.addEventListener(
+            "click",
+            () => {
+
+                zoomLevel = 1;
+
+
+                updateZoomOnly();
+
+                drawPhysicalGridOverlay();
+            }
+        );
+    }
+
+
+    /* =========================================================
        GENERATE BUTTON
        ========================================================= */
 
@@ -4310,7 +4358,7 @@
                 }
 
 
-                scheduleGeneration(0);
+                generateRug();
             }
         );
     }
@@ -4321,6 +4369,17 @@
        ========================================================= */
 
     setupWorkspace();
+
+
+    /*
+       IMPORTANT:
+       Shape first, Detail second.
+
+       Both are inserted directly after
+       the palette/color section.
+    */
+
+    createShapeControl();
 
     createDetailControl();
 
@@ -4337,10 +4396,10 @@
     );
 
 
-    if (
-        contrastValue &&
-        contrastInput
-    ) {
+    updateShapeValue();
+
+
+    if (contrastValue && contrastInput) {
 
         contrastValue.textContent =
             contrastInput.value;
@@ -4354,27 +4413,6 @@
 
         brightnessValue.textContent =
             brightnessInput.value;
-    }
-
-
-    /*
-       Default background button state.
-    */
-
-    if (keepBackground) {
-        keepBackground.classList.add(
-            "active"
-        );
-    }
-
-
-    /*
-       Default zoom.
-    */
-
-    if (zoomValue) {
-        zoomValue.textContent =
-            "100%";
     }
 
 })();
