@@ -248,18 +248,63 @@
                 </div>
             </div>
 
-            <div class="preview-stage">
+<div class="preview-stage">
 
-                <div class="empty-preview" id="emptyPreview">
-                    <div class="empty-icon">+</div>
-                    <strong>UPLOAD AN IMAGE</strong>
-                    <span>
-                        A logo, meme, drawing, photo — anything.
-                    </span>
+    <div class="empty-preview" id="emptyPreview">
+        <div class="empty-icon">+</div>
+        <strong>UPLOAD AN IMAGE</strong>
+        <span>
+            A logo, meme, drawing, photo — anything.
+        </span>
+    </div>
+
+    <div class="rug-workspace" id="rugWorkspace">
+
+        <div class="grid-corner"></div>
+
+        <div class="grid-top-labels" id="gridTopLabels"></div>
+
+        <div class="grid-left-labels" id="gridLeftLabels"></div>
+
+        <div class="rug-canvas-wrap" id="rugCanvasWrap">
+            <canvas id="rugCanvas"></canvas>
+        </div>
+
+    </div>
+
+</div>
+
+<div class="rug-view-controls" id="rugViewControls">
+
+    <button type="button" id="zoomOut">−</button>
+
+    <output id="zoomValue">100%</output>
+
+    <button type="button" id="zoomIn">+</button>
+
+    <button type="button" id="zoomReset">
+        RESET VIEW
+    </button>
+
+</div>
+            
+            <div class="rug-information" id="rugInformation">
+            
+                <div class="rug-info-block">
+            
+                    <div class="rug-info-title">
+                        GRID / COLOR MAP
+                    </div>
+            
+                    <div class="rug-info-description">
+                        Coordinates correspond to the projected rug grid.
+                        Use letters across and numbers down to locate each cell.
+                    </div>
+            
+                    <div class="color-legend" id="colorLegend"></div>
+            
                 </div>
-
-                <canvas id="rugCanvas"></canvas>
-
+            
             </div>
 
             <div class="stats">
