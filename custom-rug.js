@@ -83,12 +83,9 @@
         document.getElementById("statLoops");
 
 
-    /*
-       New grid / zoom elements.
-
-       These are optional so the old page does not completely
-       break if the new HTML hasn't been pasted yet.
-    */
+    /* ---------------------------------------------------------
+       NEW GRID / ZOOM ELEMENTS
+       --------------------------------------------------------- */
 
     const rugWorkspace =
         document.getElementById("rugWorkspace");
@@ -143,10 +140,31 @@
     let zoomLevel = 1;
 
 
-    /*
-       Zoom settings.
+    /* ---------------------------------------------------------
+       GRID SETTINGS
+       --------------------------------------------------------- */
 
-       100% = 12 screen pixels per rug cell.
+    /*
+       Physical grid size.
+
+       5 cm × 5 cm is intentional.
+
+       Example:
+       100 × 75 cm rug
+       → 20 × 15 cells
+
+       This gives a practical number of cells while
+       keeping the grid physically meaningful.
+    */
+
+    const GRID_CELL_CM = 5;
+
+
+    /*
+       Preview zoom.
+
+       Zoom changes ONLY the rug inside the fixed
+       preview window. The window itself never changes.
     */
 
     const MIN_ZOOM = 0.5;
@@ -157,12 +175,10 @@
 
 
     /*
-       Maximum manufacturing preview resolution.
+       Maximum source processing resolution.
     */
 
-    const MAX_GRID_WIDTH = 140;
-
-    const MAX_GRID_HEIGHT = 140;
+    const MAX_SOURCE_SIZE = 500;
 
 
     const DEFAULT_PALETTE = [
@@ -320,7 +336,6 @@
 
     /* ---------------------------------------------------------
        COLUMN LABELS
-       A B C ... Z AA AB ...
        --------------------------------------------------------- */
 
     function columnLabel(
@@ -418,6 +433,48 @@
 
 
     /* ---------------------------------------------------------
+       FIXED PREVIEW WORKSPACE
+       --------------------------------------------------------- */
+
+    function setupFixedWorkspace() {
+
+        if (!rugWorkspace) {
+            return;
+        }
+
+
+        /*
+           IMPORTANT:
+
+           The workspace itself is fixed.
+
+           Zoom must never change its width or height.
+           Only the inner rug changes size.
+        */
+
+        rugWorkspace.style.position =
+            "relative";
+
+        rugWorkspace.style.overflow =
+            "auto";
+
+        rugWorkspace.style.boxSizing =
+            "border-box";
+
+
+        /*
+           Do not allow the workspace to grow with
+           the zoomed canvas.
+        */
+
+        rugWorkspace.style.setProperty(
+            "--zoom",
+            "1"
+        );
+    }
+
+
+    /* ---------------------------------------------------------
        ZOOM
        --------------------------------------------------------- */
 
@@ -431,7 +488,14 @@
         }
 
 
-        const baseCellSize = 12;
+        /*
+           Base visual cell size.
+
+           This is ONLY screen representation.
+           Physical grid remains 5 cm.
+        */
+
+        const baseCellSize = 24;
 
 
         const cellSize =
@@ -439,25 +503,53 @@
             zoomLevel;
 
 
-        rugWorkspace.style
-            .setProperty(
-                "--cell-size",
-                `${cellSize}px`
-            );
+        /*
+           IMPORTANT:
+
+           We do NOT resize rugWorkspace.
+
+           Only the canvas gets larger/smaller.
+        */
+
+        canvas.style.width =
+            `${currentGrid.width * cellSize}px`;
+
+        canvas.style.height =
+            `${currentGrid.height * cellSize}px`;
+
+        canvas.style.maxWidth =
+            "none";
+
+        canvas.style.maxHeight =
+            "none";
+
+        canvas.style.flex =
+            "none";
 
 
-        rugWorkspace.style
-            .setProperty(
-                "--grid-width",
-                currentGrid.width
-            );
+        /*
+           Keep labels synchronized with
+           the actual cell size.
+        */
+
+        if (gridTopLabels) {
+
+            gridTopLabels.style.width =
+                `${currentGrid.width * cellSize}px`;
+
+            gridTopLabels.style.gridTemplateColumns =
+                `repeat(${currentGrid.width}, ${cellSize}px)`;
+        }
 
 
-        rugWorkspace.style
-            .setProperty(
-                "--grid-height",
-                currentGrid.height
-            );
+        if (gridLeftLabels) {
+
+            gridLeftLabels.style.height =
+                `${currentGrid.height * cellSize}px`;
+
+            gridLeftLabels.style.gridTemplateRows =
+                `repeat(${currentGrid.height}, ${cellSize}px)`;
+        }
 
 
         if (zoomValue) {
@@ -465,6 +557,27 @@
             zoomValue.textContent =
                 `${Math.round(zoomLevel * 100)}%`;
         }
+
+
+        /*
+           CSS variable is useful if the HTML/CSS
+           uses it elsewhere.
+        */
+
+        rugWorkspace.style.setProperty(
+            "--cell-size",
+            `${cellSize}px`
+        );
+
+        rugWorkspace.style.setProperty(
+            "--grid-width",
+            currentGrid.width
+        );
+
+        rugWorkspace.style.setProperty(
+            "--grid-height",
+            currentGrid.height
+        );
     }
 
 
@@ -476,8 +589,7 @@
 
                 zoomLevel =
                     clamp(
-                        zoomLevel +
-                        ZOOM_STEP,
+                        zoomLevel + ZOOM_STEP,
                         MIN_ZOOM,
                         MAX_ZOOM
                     );
@@ -497,8 +609,7 @@
 
                 zoomLevel =
                     clamp(
-                        zoomLevel -
-                        ZOOM_STEP,
+                        zoomLevel - ZOOM_STEP,
                         MIN_ZOOM,
                         MAX_ZOOM
                     );
@@ -521,13 +632,23 @@
                 updateZoom();
 
 
-                if (rugWorkspace) {
+                /*
+                   Reset scroll position without
+                   moving the whole page.
+                */
 
-                    rugWorkspace.scrollIntoView({
-                        behavior: "smooth",
-                        block: "nearest",
-                        inline: "center"
-                    });
+                if (rugCanvasWrap) {
+
+                    rugCanvasWrap.scrollLeft = 0;
+
+                    rugCanvasWrap.scrollTop = 0;
+                }
+
+                else {
+
+                    rugWorkspace.scrollLeft = 0;
+
+                    rugWorkspace.scrollTop = 0;
                 }
             }
         );
@@ -1391,9 +1512,6 @@
         }
 
 
-        const maxSize = 500;
-
-
         let width =
             sourceImage.naturalWidth;
 
@@ -1404,8 +1522,8 @@
 
         const ratio =
             Math.min(
-                maxSize / width,
-                maxSize / height,
+                MAX_SOURCE_SIZE / width,
+                MAX_SOURCE_SIZE / height,
                 1
             );
 
@@ -1515,10 +1633,8 @@
             r +=
                 brightness * 2.55;
 
-
             g +=
                 brightness * 2.55;
-
 
             b +=
                 brightness * 2.55;
@@ -1529,12 +1645,10 @@
                 (r - 128) +
                 128;
 
-
             g =
                 factor *
                 (g - 128) +
                 128;
-
 
             b =
                 factor *
@@ -1549,14 +1663,12 @@
                     255
                 );
 
-
             data[i + 1] =
                 clamp(
                     g,
                     0,
                     255
                 );
-
 
             data[i + 2] =
                 clamp(
@@ -1740,12 +1852,10 @@
                     r / 16
                 ) * 16;
 
-
             g =
                 Math.floor(
                     g / 16
                 ) * 16;
-
 
             b =
                 Math.floor(
@@ -1934,81 +2044,52 @@
             ) || 75;
 
 
-        const ratio =
-            rugWidth /
-            rugHeight;
+        /*
+           Grid is now based on real physical size.
 
+           100 × 75 cm:
+           100 / 5 = 20 columns
+           75 / 5 = 15 rows
+
+           No artificial 140 × 100 grid anymore.
+        */
 
         let gridWidth =
-            Math.round(
-                Math.sqrt(
-                    MAX_GRID_WIDTH *
-                    MAX_GRID_HEIGHT *
-                    ratio
+            Math.max(
+                1,
+                Math.round(
+                    rugWidth /
+                    GRID_CELL_CM
                 )
             );
 
 
         let gridHeight =
-            Math.round(
-                gridWidth /
-                ratio
-            );
-
-
-        if (
-            gridWidth >
-            MAX_GRID_WIDTH
-        ) {
-
-            gridWidth =
-                MAX_GRID_WIDTH;
-
-
-            gridHeight =
+            Math.max(
+                1,
                 Math.round(
-                    gridWidth /
-                    ratio
-                );
-        }
-
-
-        if (
-            gridHeight >
-            MAX_GRID_HEIGHT
-        ) {
-
-            gridHeight =
-                MAX_GRID_HEIGHT;
-
-
-            gridWidth =
-                Math.round(
-                    gridHeight *
-                    ratio
-                );
-        }
-
-
-        gridWidth =
-            clamp(
-                gridWidth,
-                20,
-                MAX_GRID_WIDTH
+                    rugHeight /
+                    GRID_CELL_CM
+                )
             );
 
 
-        gridHeight =
-            clamp(
-                gridHeight,
-                20,
-                MAX_GRID_HEIGHT
-            );
-
+        /*
+           If the dimensions are not divisible by 5,
+           we use the nearest practical number of cells.
+        */
 
         return {
             width: gridWidth,
-            height: gridHeight
+            height: gridHeight,
+
+            cellSizeCm: GRID_CELL_CM,
+
+            physicalWidth:
+                rugWidth,
+
+            physicalHeight:
+                rugHeight
         };
     }
 
@@ -2109,7 +2190,9 @@
 
 
                 let r = 0;
+
                 let g = 0;
+
                 let b = 0;
 
                 let alpha = 0;
@@ -2153,11 +2236,9 @@
                             sourceData
                                 .data[index];
 
-
                         g +=
                             sourceData
                                 .data[index + 1];
-
 
                         b +=
                             sourceData
@@ -2268,6 +2349,25 @@
             grid.height;
 
 
+        /*
+           Reset inline dimensions first.
+
+           updateZoom() will then apply the actual
+           visual size.
+        */
+
+        canvas.style.imageRendering =
+            "pixelated";
+
+
+        canvas.style.display =
+            "block";
+
+
+        canvas.style.objectFit =
+            "fill";
+
+
         ctx.clearRect(
             0,
             0,
@@ -2327,14 +2427,6 @@
         ctx.imageSmoothingEnabled =
             false;
 
-
-        canvas.style.imageRendering =
-            "pixelated";
-
-
-        /*
-           New grid information.
-        */
 
         renderGridLabels(
             grid
@@ -2539,672 +2631,308 @@
     }
 
 
-/* ---------------------------------------------------------
-   DOWNLOAD PNG — TECHNICAL RUG GRID
-   --------------------------------------------------------- */
+    /* =========================================================
+       DOWNLOAD PNG
+       ========================================================= */
 
-function downloadRugPNG() {
+    function downloadRugPNG() {
 
-    if (
-        !currentGridData ||
-        !currentGrid
-    ) {
+        if (
+            !currentGridData ||
+            !currentGrid
+        ) {
 
-        alert(
-            "Generate the rug first."
-        );
+            alert(
+                "Generate the rug first."
+            );
 
-        return;
-    }
-
-
-    const EXPORT_CELL_SIZE = 40;
-
-    const LABEL_SIZE = 70;
-
-    const TOP_INFO = 80;
-
-    const LEGEND_HEIGHT = 150;
-
-    const BORDER = 2;
+            return;
+        }
 
 
-    const rugPixelWidth =
-        currentGrid.width *
-        EXPORT_CELL_SIZE;
+        const EXPORT_CELL_SIZE = 80;
+
+        const LABEL_SIZE = 70;
+
+        const TOP_INFO = 80;
+
+        const LEGEND_HEIGHT = 150;
+
+        const BORDER = 2;
 
 
-    const rugPixelHeight =
-        currentGrid.height *
-        EXPORT_CELL_SIZE;
+        const rugPixelWidth =
+            currentGrid.width *
+            EXPORT_CELL_SIZE;
 
 
-    const exportWidth =
-        LABEL_SIZE +
-        rugPixelWidth +
-        30;
+        const rugPixelHeight =
+            currentGrid.height *
+            EXPORT_CELL_SIZE;
 
 
-    const exportHeight =
-        TOP_INFO +
-        rugPixelHeight +
-        LEGEND_HEIGHT;
+        const exportWidth =
+            LABEL_SIZE +
+            rugPixelWidth +
+            30;
 
 
-    const exportCanvas =
-        document.createElement(
-            "canvas"
-        );
+        const exportHeight =
+            TOP_INFO +
+            rugPixelHeight +
+            LEGEND_HEIGHT;
 
 
-    exportCanvas.width =
-        exportWidth;
+        const exportCanvas =
+            document.createElement(
+                "canvas"
+            );
 
 
-    exportCanvas.height =
-        exportHeight;
+        exportCanvas.width =
+            exportWidth;
 
 
-    const exportCtx =
-        exportCanvas.getContext(
-            "2d"
-        );
+        exportCanvas.height =
+            exportHeight;
 
 
-    exportCtx.imageSmoothingEnabled =
-        false;
+        const exportCtx =
+            exportCanvas.getContext(
+                "2d"
+            );
 
 
-    /* -------------------------------------------------------
-       BACKGROUND
-       ------------------------------------------------------- */
-
-    exportCtx.fillStyle =
-        "#11110f";
+        exportCtx.imageSmoothingEnabled =
+            false;
 
 
-    exportCtx.fillRect(
-        0,
-        0,
-        exportWidth,
-        exportHeight
-    );
+        /* BACKGROUND */
+
+        exportCtx.fillStyle =
+            "#11110f";
 
 
-    /* -------------------------------------------------------
-       DATA
-       ------------------------------------------------------- */
-
-    const width =
-        Math.round(
-            Number(
-                widthInput.value
-            ) || 100
+        exportCtx.fillRect(
+            0,
+            0,
+            exportWidth,
+            exportHeight
         );
 
 
-    const height =
-        Math.round(
-            Number(
-                heightInput.value
-            ) || 75
+        /* DATA */
+
+        const width =
+            Math.round(
+                Number(
+                    widthInput.value
+                ) || 100
+            );
+
+
+        const height =
+            Math.round(
+                Number(
+                    heightInput.value
+                ) || 75
+            );
+
+
+        const colors =
+            customPalette.length ||
+            numberOfColors;
+
+
+        const palette =
+            customPalette.length
+                ? customPalette
+                : generatedPalette;
+
+
+        /* HEADER */
+
+        exportCtx.fillStyle =
+            "#f2f0ea";
+
+
+        exportCtx.font =
+            "bold 22px Arial";
+
+
+        exportCtx.fillText(
+            "DOCH / RUG GRID",
+            30,
+            35
         );
 
 
-    const colors =
-        customPalette.length ||
-        numberOfColors;
+        exportCtx.fillStyle =
+            "#77746d";
 
 
-    const palette =
-        customPalette.length
-            ? customPalette
-            : generatedPalette;
+        exportCtx.font =
+            "13px Arial";
 
 
-    /* -------------------------------------------------------
-       HEADER
-       ------------------------------------------------------- */
-
-    exportCtx.fillStyle =
-        "#f2f0ea";
-
-
-    exportCtx.font =
-        'bold 22px Arial';
+        exportCtx.fillText(
+            `${width} × ${height} CM  ·  ${currentGrid.width} × ${currentGrid.height} CELLS  ·  ${colors} COLORS`,
+            30,
+            60
+        );
 
 
-    exportCtx.fillText(
-        "DOCH / RUG GRID",
-        30,
-        35
-    );
+        /* GRID POSITION */
+
+        const gridX =
+            LABEL_SIZE;
 
 
-    exportCtx.fillStyle =
-        "#77746d";
+        const gridY =
+            TOP_INFO;
 
 
-    exportCtx.font =
-        "13px Arial";
+        /* CELLS */
+
+        for (
+            let y = 0;
+            y < currentGrid.height;
+            y++
+        ) {
+
+            for (
+                let x = 0;
+                x < currentGrid.width;
+                x++
+            ) {
+
+                const color =
+                    currentGridData[y][x];
 
 
-    exportCtx.fillText(
-        `${width} × ${height} CM  ·  ${currentGrid.width} × ${currentGrid.height} CELLS  ·  ${colors} COLORS`,
-        30,
-        60
-    );
+                exportCtx.fillStyle =
+                    color ||
+                    "#11110f";
 
 
-    /* -------------------------------------------------------
-       GRID POSITION
-       ------------------------------------------------------- */
+                exportCtx.fillRect(
+                    gridX +
+                        x *
+                        EXPORT_CELL_SIZE,
 
-    const gridX =
-        LABEL_SIZE;
+                    gridY +
+                        y *
+                        EXPORT_CELL_SIZE,
+
+                    EXPORT_CELL_SIZE,
+
+                    EXPORT_CELL_SIZE
+                );
+            }
+        }
 
 
-    const gridY =
-        TOP_INFO;
+        /* GRID LINES */
+
+        exportCtx.strokeStyle =
+            "rgba(255,255,255,.22)";
 
 
-    /* -------------------------------------------------------
-       DRAW RUG CELLS
-       ------------------------------------------------------- */
+        exportCtx.lineWidth =
+            1;
 
-    for (
-        let y = 0;
-        y < currentGrid.height;
-        y++
-    ) {
 
         for (
             let x = 0;
-            x < currentGrid.width;
+            x <= currentGrid.width;
             x++
         ) {
 
-            const color =
-                currentGridData[y][x];
-
-
-            exportCtx.fillStyle =
-                color ||
-                "#11110f";
-
-
-            exportCtx.fillRect(
+            const px =
                 gridX +
-                    x *
-                    EXPORT_CELL_SIZE,
+                x *
+                EXPORT_CELL_SIZE +
+                0.5;
 
-                gridY +
-                    y *
-                    EXPORT_CELL_SIZE,
 
-                EXPORT_CELL_SIZE,
+            exportCtx.beginPath();
 
-                EXPORT_CELL_SIZE
+            exportCtx.moveTo(
+                px,
+                gridY
             );
+
+            exportCtx.lineTo(
+                px,
+                gridY +
+                rugPixelHeight
+            );
+
+            exportCtx.stroke();
         }
-    }
 
 
-    /* -------------------------------------------------------
-       GRID LINES
-       ------------------------------------------------------- */
+        for (
+            let y = 0;
+            y <= currentGrid.height;
+            y++
+        ) {
 
-    exportCtx.strokeStyle =
-        "rgba(255,255,255,.22)";
-
-
-    exportCtx.lineWidth =
-        1;
-
-
-    for (
-        let x = 0;
-        x <= currentGrid.width;
-        x++
-    ) {
-
-        const px =
-            gridX +
-            x *
-            EXPORT_CELL_SIZE +
-            0.5;
+            const py =
+                gridY +
+                y *
+                EXPORT_CELL_SIZE +
+                0.5;
 
 
-        exportCtx.beginPath();
+            exportCtx.beginPath();
 
-        exportCtx.moveTo(
-            px,
-            gridY
-        );
+            exportCtx.moveTo(
+                gridX,
+                py
+            );
 
-        exportCtx.lineTo(
-            px,
-            gridY +
+            exportCtx.lineTo(
+                gridX +
+                rugPixelWidth,
+                py
+            );
+
+            exportCtx.stroke();
+        }
+
+
+        /* OUTER BORDER */
+
+        exportCtx.strokeStyle =
+            "#f2f0ea";
+
+
+        exportCtx.lineWidth =
+            BORDER;
+
+
+        exportCtx.strokeRect(
+            gridX,
+            gridY,
+            rugPixelWidth,
             rugPixelHeight
         );
 
-        exportCtx.stroke();
-    }
 
+        /* TOP COORDINATES */
 
-    for (
-        let y = 0;
-        y <= currentGrid.height;
-        y++
-    ) {
+        exportCtx.fillStyle =
+            "#aaa79f";
 
-        const py =
-            gridY +
-            y *
-            EXPORT_CELL_SIZE +
-            0.5;
 
+        exportCtx.font =
+            "11px Arial";
 
-        exportCtx.beginPath();
 
-        exportCtx.moveTo(
-            gridX,
-            py
-        );
+        exportCtx.textAlign =
+            "center";
 
-        exportCtx.lineTo(
-            gridX +
-            rugPixelWidth,
-            py
-        );
-
-        exportCtx.stroke();
-    }
-
-
-    /* -------------------------------------------------------
-       OUTER BORDER
-       ------------------------------------------------------- */
-
-    exportCtx.strokeStyle =
-        "#f2f0ea";
-
-
-    exportCtx.lineWidth =
-        BORDER;
-
-
-    exportCtx.strokeRect(
-        gridX,
-        gridY,
-        rugPixelWidth,
-        rugPixelHeight
-    );
-
-
-    /* -------------------------------------------------------
-       TOP COORDINATES
-       ------------------------------------------------------- */
-
-    exportCtx.fillStyle =
-        "#aaa79f";
-
-
-    exportCtx.font =
-        "11px Arial";
-
-
-    exportCtx.textAlign =
-        "center";
-
-
-    for (
-        let x = 0;
-        x < currentGrid.width;
-        x++
-    ) {
-
-        const centerX =
-            gridX +
-            x *
-            EXPORT_CELL_SIZE +
-            EXPORT_CELL_SIZE / 2;
-
-
-        exportCtx.fillText(
-            columnLabel(x),
-            centerX,
-            gridY - 10
-        );
-    }
-
-
-    /* -------------------------------------------------------
-       LEFT COORDINATES
-       ------------------------------------------------------- */
-
-    exportCtx.textAlign =
-        "right";
-
-
-    for (
-        let y = 0;
-        y < currentGrid.height;
-        y++
-    ) {
-
-        const centerY =
-            gridY +
-            y *
-            EXPORT_CELL_SIZE +
-            EXPORT_CELL_SIZE / 2;
-
-
-        exportCtx.fillText(
-            String(y + 1),
-            gridX - 10,
-            centerY + 4
-        );
-    }
-
-
-    /* -------------------------------------------------------
-       LEGEND
-       ------------------------------------------------------- */
-
-    const legendY =
-        gridY +
-        rugPixelHeight +
-        35;
-
-
-    exportCtx.textAlign =
-        "left";
-
-
-    exportCtx.fillStyle =
-        "#f2f0ea";
-
-
-    exportCtx.font =
-        "bold 12px Arial";
-
-
-    exportCtx.fillText(
-        "COLOR LEGEND",
-        30,
-        legendY
-    );
-
-
-    /* Count loops */
-
-    const counts =
-        new Map();
-
-
-    currentGridData.forEach(
-        row => {
-
-            row.forEach(
-                color => {
-
-                    if (!color) {
-                        return;
-                    }
-
-
-                    counts.set(
-                        color,
-                        (
-                            counts.get(color) ||
-                            0
-                        ) + 1
-                    );
-                }
-            );
-        }
-    );
-
-
-    palette.forEach(
-        (hex, index) => {
-
-            const normalized =
-                normalizeHex(hex);
-
-
-            const count =
-                counts.get(
-                    normalized
-                ) || 0;
-
-
-            const itemY =
-                legendY +
-                25 +
-                Math.floor(index / 4) * 28;
-
-
-            const itemX =
-                30 +
-                (index % 4) * 190;
-
-
-            /* Color square */
-
-            exportCtx.fillStyle =
-                normalized;
-
-
-            exportCtx.fillRect(
-                itemX,
-                itemY - 12,
-                18,
-                18
-            );
-
-
-            exportCtx.strokeStyle =
-                "#77746d";
-
-
-            exportCtx.strokeRect(
-                itemX,
-                itemY - 12,
-                18,
-                18
-            );
-
-
-            /* Text */
-
-            exportCtx.fillStyle =
-                "#f2f0ea";
-
-
-            exportCtx.font =
-                "11px Arial";
-
-
-            exportCtx.fillText(
-                `COLOR ${index + 1}`,
-                itemX + 27,
-                itemY
-            );
-
-
-            exportCtx.fillStyle =
-                "#77746d";
-
-
-            exportCtx.fillText(
-                `${normalized} · ${count.toLocaleString()} LOOPS`,
-                itemX + 27,
-                itemY + 14
-            );
-        }
-    );
-
-
-    /* -------------------------------------------------------
-       DOWNLOAD PNG
-       ------------------------------------------------------- */
-
-    const link =
-        document.createElement(
-            "a"
-        );
-
-
-    link.download =
-        `doch-rug-${width}x${height}cm-${colors}-colors-grid.png`;
-
-
-    link.href =
-        exportCanvas.toDataURL(
-            "image/png"
-        );
-
-
-    link.click();
-}
-
-
-   /* ---------------------------------------------------------
-   PROJECTOR MODE — RUG + GRID
-   --------------------------------------------------------- */
-
-function openProjectorMode() {
-
-    if (
-        !currentGridData ||
-        !currentGrid
-    ) {
-
-        alert(
-            "Generate the rug first."
-        );
-
-        return;
-    }
-
-
-    const overlay =
-        document.createElement(
-            "div"
-        );
-
-
-    overlay.id =
-        "projectorOverlay";
-
-
-    overlay.style.cssText = `
-        position: fixed;
-        inset: 0;
-        z-index: 99999;
-        background: #11110f;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
-        font-family: Arial, sans-serif;
-    `;
-
-
-    /* -------------------------------------------------------
-       DATA
-       ------------------------------------------------------- */
-
-    const width =
-        Math.round(
-            Number(
-                widthInput.value
-            ) || 100
-        );
-
-
-    const height =
-        Math.round(
-            Number(
-                heightInput.value
-            ) || 75
-        );
-
-
-    const colors =
-        customPalette.length ||
-        numberOfColors;
-
-
-    const ratio =
-        currentGrid.width /
-        currentGrid.height;
-
-
-    /* -------------------------------------------------------
-       WORKSPACE
-       ------------------------------------------------------- */
-
-    const workspace =
-        document.createElement(
-            "div"
-        );
-
-
-    workspace.style.cssText = `
-        position: relative;
-        width: min(92vw, 92vh * ${ratio});
-        height: min(82vh, 92vw / ${ratio});
-        max-width: 92vw;
-        max-height: 82vh;
-    `;
-
-
-    /* -------------------------------------------------------
-       RUG CANVAS
-       ------------------------------------------------------- */
-
-    const projectorCanvas =
-        document.createElement(
-            "canvas"
-        );
-
-
-    projectorCanvas.width =
-        currentGrid.width;
-
-
-    projectorCanvas.height =
-        currentGrid.height;
-
-
-    projectorCanvas.style.cssText = `
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        image-rendering: pixelated;
-        object-fit: contain;
-    `;
-
-
-    const projectorCtx =
-        projectorCanvas.getContext(
-            "2d"
-        );
-
-
-    projectorCtx.imageSmoothingEnabled =
-        false;
-
-
-    for (
-        let y = 0;
-        y < currentGrid.height;
-        y++
-    ) {
 
         for (
             let x = 0;
@@ -3212,399 +2940,707 @@ function openProjectorMode() {
             x++
         ) {
 
-            const color =
-                currentGridData[y][x];
+            const centerX =
+                gridX +
+                x *
+                EXPORT_CELL_SIZE +
+                EXPORT_CELL_SIZE / 2;
 
 
-            projectorCtx.fillStyle =
-                color ||
-                "#11110f";
-
-
-            projectorCtx.fillRect(
-                x,
-                y,
-                1,
-                1
+            exportCtx.fillText(
+                columnLabel(x),
+                centerX,
+                gridY - 10
             );
         }
-    }
 
 
-    workspace.appendChild(
-        projectorCanvas
-    );
+        /* LEFT COORDINATES */
+
+        exportCtx.textAlign =
+            "right";
 
 
-    /* -------------------------------------------------------
-       GRID OVERLAY
-       ------------------------------------------------------- */
+        for (
+            let y = 0;
+            y < currentGrid.height;
+            y++
+        ) {
 
-    const gridOverlay =
-        document.createElement(
-            "div"
+            const centerY =
+                gridY +
+                y *
+                EXPORT_CELL_SIZE +
+                EXPORT_CELL_SIZE / 2;
+
+
+            exportCtx.fillText(
+                String(y + 1),
+                gridX - 10,
+                centerY + 4
+            );
+        }
+
+
+        /* LEGEND */
+
+        const legendY =
+            gridY +
+            rugPixelHeight +
+            35;
+
+
+        exportCtx.textAlign =
+            "left";
+
+
+        exportCtx.fillStyle =
+            "#f2f0ea";
+
+
+        exportCtx.font =
+            "bold 12px Arial";
+
+
+        exportCtx.fillText(
+            "COLOR LEGEND",
+            30,
+            legendY
         );
 
 
-    gridOverlay.style.cssText = `
-        position: absolute;
-        inset: 0;
-        display: grid;
-        grid-template-columns: repeat(${currentGrid.width}, 1fr);
-        grid-template-rows: repeat(${currentGrid.height}, 1fr);
-        pointer-events: none;
-    `;
+        const counts =
+            new Map();
 
 
-    for (
-        let i = 0;
-        i <
-        currentGrid.width *
-        currentGrid.height;
-        i++
-    ) {
+        currentGridData.forEach(
+            row => {
 
-        const cell =
+                row.forEach(
+                    color => {
+
+                        if (!color) {
+                            return;
+                        }
+
+
+                        counts.set(
+                            color,
+                            (
+                                counts.get(color) ||
+                                0
+                            ) + 1
+                        );
+                    }
+                );
+            }
+        );
+
+
+        palette.forEach(
+            (hex, index) => {
+
+                const normalized =
+                    normalizeHex(hex);
+
+
+                const count =
+                    counts.get(
+                        normalized
+                    ) || 0;
+
+
+                const itemY =
+                    legendY +
+                    25 +
+                    Math.floor(index / 4) * 28;
+
+
+                const itemX =
+                    30 +
+                    (index % 4) * 190;
+
+
+                exportCtx.fillStyle =
+                    normalized;
+
+
+                exportCtx.fillRect(
+                    itemX,
+                    itemY - 12,
+                    18,
+                    18
+                );
+
+
+                exportCtx.strokeStyle =
+                    "#77746d";
+
+
+                exportCtx.strokeRect(
+                    itemX,
+                    itemY - 12,
+                    18,
+                    18
+                );
+
+
+                exportCtx.fillStyle =
+                    "#f2f0ea";
+
+
+                exportCtx.font =
+                    "11px Arial";
+
+
+                exportCtx.fillText(
+                    `COLOR ${index + 1}`,
+                    itemX + 27,
+                    itemY
+                );
+
+
+                exportCtx.fillStyle =
+                    "#77746d";
+
+
+                exportCtx.fillText(
+                    `${normalized} · ${count.toLocaleString()} LOOPS`,
+                    itemX + 27,
+                    itemY + 14
+                );
+            }
+        );
+
+
+        /* DOWNLOAD */
+
+        const link =
+            document.createElement(
+                "a"
+            );
+
+
+        link.download =
+            `doch-rug-${width}x${height}cm-${colors}-colors-grid.png`;
+
+
+        link.href =
+            exportCanvas.toDataURL(
+                "image/png"
+            );
+
+
+        link.click();
+    }
+
+
+    /* =========================================================
+       PROJECTOR MODE
+       ========================================================= */
+
+    function openProjectorMode() {
+
+        if (
+            !currentGridData ||
+            !currentGrid
+        ) {
+
+            alert(
+                "Generate the rug first."
+            );
+
+            return;
+        }
+
+
+        const overlay =
             document.createElement(
                 "div"
             );
 
 
-        cell.style.cssText = `
-            border-right: 1px solid rgba(255,255,255,.16);
-            border-bottom: 1px solid rgba(255,255,255,.16);
+        overlay.id =
+            "projectorOverlay";
+
+
+        overlay.style.cssText = `
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            background: #11110f;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
         `;
 
 
-        gridOverlay.appendChild(
-            cell
-        );
-    }
+        const width =
+            Math.round(
+                Number(
+                    widthInput.value
+                ) || 100
+            );
 
 
-    workspace.appendChild(
-        gridOverlay
-    );
+        const height =
+            Math.round(
+                Number(
+                    heightInput.value
+                ) || 75
+            );
 
 
-    /* -------------------------------------------------------
-       OUTER BORDER
-       ------------------------------------------------------- */
-
-    const border =
-        document.createElement(
-            "div"
-        );
+        const colors =
+            customPalette.length ||
+            numberOfColors;
 
 
-    border.style.cssText = `
-        position: absolute;
-        inset: 0;
-        border: 2px solid rgba(255,255,255,.75);
-        pointer-events: none;
-    `;
+        const ratio =
+            currentGrid.width /
+            currentGrid.height;
 
 
-    workspace.appendChild(
-        border
-    );
+        /* WORKSPACE */
 
-
-    /* -------------------------------------------------------
-       TOP COLUMN LABELS
-       ------------------------------------------------------- */
-
-    const topLabels =
-        document.createElement(
-            "div"
-        );
-
-
-    topLabels.style.cssText = `
-        position: absolute;
-        left: 0;
-        right: 0;
-        top: -22px;
-        height: 18px;
-        display: grid;
-        grid-template-columns: repeat(${currentGrid.width}, 1fr);
-        color: rgba(255,255,255,.65);
-        font-size: 8px;
-        line-height: 18px;
-        text-align: center;
-        pointer-events: none;
-    `;
-
-
-    for (
-        let x = 0;
-        x < currentGrid.width;
-        x++
-    ) {
-
-        const label =
+        const workspace =
             document.createElement(
-                "span"
+                "div"
             );
 
 
-        label.textContent =
-            columnLabel(x);
+        workspace.style.cssText = `
+            position: relative;
+            width: min(92vw, 82vh * ${ratio});
+            height: min(82vh, 92vw / ${ratio});
+            max-width: 92vw;
+            max-height: 82vh;
+        `;
 
 
-        topLabels.appendChild(
-            label
-        );
-    }
+        /* CANVAS */
 
-
-    workspace.appendChild(
-        topLabels
-    );
-
-
-    /* -------------------------------------------------------
-       LEFT ROW LABELS
-       ------------------------------------------------------- */
-
-    const leftLabels =
-        document.createElement(
-            "div"
-        );
-
-
-    leftLabels.style.cssText = `
-        position: absolute;
-        left: -32px;
-        top: 0;
-        bottom: 0;
-        width: 25px;
-        display: grid;
-        grid-template-rows: repeat(${currentGrid.height}, 1fr);
-        color: rgba(255,255,255,.65);
-        font-size: 8px;
-        line-height: 1;
-        text-align: right;
-        pointer-events: none;
-    `;
-
-
-    for (
-        let y = 0;
-        y < currentGrid.height;
-        y++
-    ) {
-
-        const label =
+        const projectorCanvas =
             document.createElement(
-                "span"
+                "canvas"
             );
 
 
-        label.textContent =
-            y + 1;
+        projectorCanvas.width =
+            currentGrid.width;
 
 
-        label.style.display =
-            "flex";
+        projectorCanvas.height =
+            currentGrid.height;
 
 
-        label.style.alignItems =
-            "center";
+        projectorCanvas.style.cssText = `
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            image-rendering: pixelated;
+            object-fit: fill;
+        `;
 
 
-        label.style.justifyContent =
-            "flex-end";
-
-
-        leftLabels.appendChild(
-            label
-        );
-    }
-
-
-    workspace.appendChild(
-        leftLabels
-    );
-
-
-    overlay.appendChild(
-        workspace
-    );
-
-
-    /* -------------------------------------------------------
-       TOP INFORMATION
-       ------------------------------------------------------- */
-
-    const info =
-        document.createElement(
-            "div"
-        );
-
-
-    info.style.cssText = `
-        position: absolute;
-        top: 18px;
-        left: 22px;
-        right: 22px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        pointer-events: none;
-        font: 10px Arial, sans-serif;
-        color: #77746d;
-        letter-spacing: .05em;
-    `;
-
-
-    info.innerHTML = `
-        <span>
-            DOCH / PROJECTOR MODE
-        </span>
-
-        <span>
-            ${width} × ${height} CM
-            · ${currentGrid.width} × ${currentGrid.height} CELLS
-            · ${colors} COLORS
-        </span>
-    `;
-
-
-    overlay.appendChild(
-        info
-    );
-
-
-    /* -------------------------------------------------------
-       BOTTOM INFO
-       ------------------------------------------------------- */
-
-    const bottomInfo =
-        document.createElement(
-            "div"
-        );
-
-
-    bottomInfo.style.cssText = `
-        position: absolute;
-        left: 22px;
-        bottom: 22px;
-        color: #77746d;
-        font: 10px Arial, sans-serif;
-        pointer-events: none;
-    `;
-
-
-    bottomInfo.textContent =
-        "GRID / A–Z / ROWS";
-
-
-    overlay.appendChild(
-        bottomInfo
-    );
-
-
-    /* -------------------------------------------------------
-       EXIT BUTTON
-       ------------------------------------------------------- */
-
-    const closeButton =
-        document.createElement(
-            "button"
-        );
-
-
-    closeButton.type =
-        "button";
-
-
-    closeButton.textContent =
-        "EXIT PROJECTOR";
-
-
-    closeButton.style.cssText = `
-        position: absolute;
-        right: 22px;
-        bottom: 20px;
-        min-height: 44px;
-        padding: 0 16px;
-        border: 1px solid #77746d;
-        background: #11110f;
-        color: #f2f0ea;
-        cursor: pointer;
-        font: 10px Arial, sans-serif;
-        letter-spacing: .04em;
-    `;
-
-
-    closeButton.addEventListener(
-        "click",
-        () => {
-
-            overlay.remove();
-
-            document.removeEventListener(
-                "keydown",
-                escapeHandler
+        const projectorCtx =
+            projectorCanvas.getContext(
+                "2d"
             );
-        }
-    );
 
 
-    overlay.appendChild(
-        closeButton
-    );
+        projectorCtx.imageSmoothingEnabled =
+            false;
 
 
-    /* -------------------------------------------------------
-       ESC
-       ------------------------------------------------------- */
-
-    function escapeHandler(
-        event
-    ) {
-
-        if (
-            event.key === "Escape"
+        for (
+            let y = 0;
+            y < currentGrid.height;
+            y++
         ) {
 
-            overlay.remove();
+            for (
+                let x = 0;
+                x < currentGrid.width;
+                x++
+            ) {
 
-            document.removeEventListener(
-                "keydown",
-                escapeHandler
+                const color =
+                    currentGridData[y][x];
+
+
+                projectorCtx.fillStyle =
+                    color ||
+                    "#11110f";
+
+
+                projectorCtx.fillRect(
+                    x,
+                    y,
+                    1,
+                    1
+                );
+            }
+        }
+
+
+        workspace.appendChild(
+            projectorCanvas
+        );
+
+
+        /* GRID */
+
+        const gridOverlay =
+            document.createElement(
+                "div"
+            );
+
+
+        gridOverlay.style.cssText = `
+            position: absolute;
+            inset: 0;
+            display: grid;
+            grid-template-columns: repeat(${currentGrid.width}, 1fr);
+            grid-template-rows: repeat(${currentGrid.height}, 1fr);
+            pointer-events: none;
+        `;
+
+
+        for (
+            let i = 0;
+            i <
+            currentGrid.width *
+            currentGrid.height;
+            i++
+        ) {
+
+            const cell =
+                document.createElement(
+                    "div"
+                );
+
+
+            cell.style.cssText = `
+                border-right: 1px solid rgba(255,255,255,.16);
+                border-bottom: 1px solid rgba(255,255,255,.16);
+            `;
+
+
+            gridOverlay.appendChild(
+                cell
             );
         }
-    }
 
 
-    document.addEventListener(
-        "keydown",
-        escapeHandler
-    );
+        workspace.appendChild(
+            gridOverlay
+        );
 
 
-    /* -------------------------------------------------------
-       FULLSCREEN
-       ------------------------------------------------------- */
+        /* BORDER */
 
-    document.body.appendChild(
-        overlay
-    );
-
-
-    if (
-        overlay.requestFullscreen
-    ) {
-
-        overlay
-            .requestFullscreen()
-            .catch(
-                () => {}
+        const border =
+            document.createElement(
+                "div"
             );
+
+
+        border.style.cssText = `
+            position: absolute;
+            inset: 0;
+            border: 2px solid rgba(255,255,255,.75);
+            pointer-events: none;
+        `;
+
+
+        workspace.appendChild(
+            border
+        );
+
+
+        /* TOP LABELS */
+
+        const topLabels =
+            document.createElement(
+                "div"
+            );
+
+
+        topLabels.style.cssText = `
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: -22px;
+            height: 18px;
+            display: grid;
+            grid-template-columns: repeat(${currentGrid.width}, 1fr);
+            color: rgba(255,255,255,.65);
+            font-size: 8px;
+            line-height: 18px;
+            text-align: center;
+            pointer-events: none;
+        `;
+
+
+        for (
+            let x = 0;
+            x < currentGrid.width;
+            x++
+        ) {
+
+            const label =
+                document.createElement(
+                    "span"
+                );
+
+
+            label.textContent =
+                columnLabel(x);
+
+
+            topLabels.appendChild(
+                label
+            );
+        }
+
+
+        workspace.appendChild(
+            topLabels
+        );
+
+
+        /* LEFT LABELS */
+
+        const leftLabels =
+            document.createElement(
+                "div"
+            );
+
+
+        leftLabels.style.cssText = `
+            position: absolute;
+            left: -32px;
+            top: 0;
+            bottom: 0;
+            width: 25px;
+            display: grid;
+            grid-template-rows: repeat(${currentGrid.height}, 1fr);
+            color: rgba(255,255,255,.65);
+            font-size: 8px;
+            line-height: 1;
+            text-align: right;
+            pointer-events: none;
+        `;
+
+
+        for (
+            let y = 0;
+            y < currentGrid.height;
+            y++
+        ) {
+
+            const label =
+                document.createElement(
+                    "span"
+                );
+
+
+            label.textContent =
+                y + 1;
+
+
+            label.style.display =
+                "flex";
+
+
+            label.style.alignItems =
+                "center";
+
+
+            label.style.justifyContent =
+                "flex-end";
+
+
+            leftLabels.appendChild(
+                label
+            );
+        }
+
+
+        workspace.appendChild(
+            leftLabels
+        );
+
+
+        overlay.appendChild(
+            workspace
+        );
+
+
+        /* TOP INFO */
+
+        const info =
+            document.createElement(
+                "div"
+            );
+
+
+        info.style.cssText = `
+            position: absolute;
+            top: 18px;
+            left: 22px;
+            right: 22px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            pointer-events: none;
+            font: 10px Arial, sans-serif;
+            color: #77746d;
+            letter-spacing: .05em;
+        `;
+
+
+        info.innerHTML = `
+            <span>
+                DOCH / PROJECTOR MODE
+            </span>
+
+            <span>
+                ${width} × ${height} CM
+                · ${currentGrid.width} × ${currentGrid.height} CELLS
+                · ${colors} COLORS
+            </span>
+        `;
+
+
+        overlay.appendChild(
+            info
+        );
+
+
+        /* BOTTOM INFO */
+
+        const bottomInfo =
+            document.createElement(
+                "div"
+            );
+
+
+        bottomInfo.style.cssText = `
+            position: absolute;
+            left: 22px;
+            bottom: 22px;
+            color: #77746d;
+            font: 10px Arial, sans-serif;
+            pointer-events: none;
+        `;
+
+
+        bottomInfo.textContent =
+            `GRID / ${GRID_CELL_CM} × ${GRID_CELL_CM} CM / A–Z / ROWS`;
+
+
+        overlay.appendChild(
+            bottomInfo
+        );
+
+
+        /* EXIT */
+
+        const closeButton =
+            document.createElement(
+                "button"
+            );
+
+
+        closeButton.type =
+            "button";
+
+
+        closeButton.textContent =
+            "EXIT PROJECTOR";
+
+
+        closeButton.style.cssText = `
+            position: absolute;
+            right: 22px;
+            bottom: 20px;
+            min-height: 44px;
+            padding: 0 16px;
+            border: 1px solid #77746d;
+            background: #11110f;
+            color: #f2f0ea;
+            cursor: pointer;
+            font: 10px Arial, sans-serif;
+            letter-spacing: .04em;
+        `;
+
+
+        closeButton.addEventListener(
+            "click",
+            () => {
+
+                overlay.remove();
+
+                document.removeEventListener(
+                    "keydown",
+                    escapeHandler
+                );
+            }
+        );
+
+
+        overlay.appendChild(
+            closeButton
+        );
+
+
+        /* ESC */
+
+        function escapeHandler(
+            event
+        ) {
+
+            if (
+                event.key === "Escape"
+            ) {
+
+                overlay.remove();
+
+                document.removeEventListener(
+                    "keydown",
+                    escapeHandler
+                );
+            }
+        }
+
+
+        document.addEventListener(
+            "keydown",
+            escapeHandler
+        );
+
+
+        document.body.appendChild(
+            overlay
+        );
+
+
+        if (
+            overlay.requestFullscreen
+        ) {
+
+            overlay
+                .requestFullscreen()
+                .catch(
+                    () => {}
+                );
+        }
     }
-}
 
 
     /* ---------------------------------------------------------
@@ -3662,6 +3698,8 @@ function openProjectorMode() {
             "100%";
     }
 
+
+    setupFixedWorkspace();
 
     createExportControls();
 
