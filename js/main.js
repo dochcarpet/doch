@@ -1,52 +1,32 @@
 /* =========================================================
-   PRODUCTS
+   SUPABASE
 ========================================================= */
 
-const products = {
+const SUPABASE_URL =
+    "https://kixsnkhmxyytecvvwnse.supabase.co";
 
-    witness: {
-        title: "Свидетель из Фрязино",
-        titleEn: "Witness from Fryazino",
-        price: 690,
-        size: "180 CM",
-        image: "rug-one"
-    },
-
-    cool: {
-        title: "Охлади траханье",
-        titleEn: "Kandibober",
-        price: 290,
-        size: "90 CM",
-        image: "rug-two"
-    },
-
-    npc: {
-        title: "NPC ENERGY",
-        titleEn: "NPC ENERGY",
-        price: 240,
-        size: "80 CM",
-        image: "rug-three"
-    },
-
-    cat: {
-        title: "CRYING CAT",
-        titleEn: "CRYING CAT",
-        price: 210,
-        size: "70 CM",
-        image: "rug-four"
-    }
-
-};
+const SUPABASE_KEY =
+    "sb_publishable_NeFuQSbmP2VLBEdDLnIi5Q_5iUyMHNF";
 
 
+/* =========================================================
+   STATE
+========================================================= */
+
+let products = [];
 let cart = [];
+let currentLanguage = "en";
 
 
 /* =========================================================
    DOM
 ========================================================= */
 
-const modal = document.getElementById("productModal");
+const productsContainer =
+    document.querySelector(".products");
+
+const modal =
+    document.getElementById("productModal");
 
 const modalTitle =
     document.getElementById("modalTitle");
@@ -59,6 +39,9 @@ const modalSize =
 
 const modalImage =
     document.getElementById("modalImage");
+
+const modalDescription =
+    modal.querySelector(".modal-content p");
 
 const cartDrawer =
     document.getElementById("cartDrawer");
@@ -112,15 +95,12 @@ const translations = {
         "drop.eyebrow": "02 / CURRENT DROP",
         "drop.title":
             "INTERNET<br><em>RELICS</em>",
-        "drop.objects": "04 OBJECTS",
+        "drop.objects": "OBJECTS",
 
         "product.one": "ONE OF ONE",
         "product.made": "MADE TO ORDER",
         "product.sold": "SOLD OUT",
         "product.handmade": "HANDMADE",
-
-        "product.witness": "Witness from Fryazino",
-        "product.kandibober": "Kandibober",
 
         "custom.eyebrow": "CUSTOM RUGS",
         "custom.title":
@@ -130,36 +110,16 @@ const translations = {
         "custom.button":
             "MAKE MY RUG",
 
-        "custom.side1": "YOUR IMAGE",
-        "custom.side2": "YARN",
-        "custom.side3": "YOUR RUG",
-
         "process.eyebrow": "04 / THE PROCESS",
         "process.title":
             "MADE BY<br><em>HAND.</em>",
         "process.subtitle":
             "Not printed.<br>Not AI generated.<br>Not mass produced.",
 
-        "process.design.title": "DESIGN",
-        "process.design.text":
-            "Meme → image → rug design. Every piece starts with an idea.",
-
-        "process.taft.title": "TAFT",
-        "process.taft.text":
-            "Hundreds of thousands of yarn loops, placed by hand.",
-
-        "process.carve.title": "CARVE",
-        "process.carve.text":
-            "Every surface is sculpted until the image comes alive.",
-
-        "process.ship.title": "SHIP",
-        "process.ship.text":
-            "Your rug leaves the studio and enters the wild.",
-
         "queue.eyebrow": "05 / PRODUCTION QUEUE",
         "queue.title":
             "CURRENTLY<br><em>IN PRODUCTION</em>",
-        "queue.live": "LIVE / 04",
+        "queue.live": "LIVE",
         "queue.note":
             "Every rug is made after the order is placed.",
 
@@ -183,7 +143,12 @@ const translations = {
         "modal.text":
             "Handmade to order. Production begins after payment.",
         "modal.add":
-            "ADD TO CART"
+            "ADD TO CART",
+
+        "status.available": "AVAILABLE",
+        "status.made": "MADE TO ORDER",
+        "status.sold": "SOLD OUT",
+        "status.handmade": "HANDMADE"
 
     },
 
@@ -218,15 +183,12 @@ const translations = {
         "drop.eyebrow": "02 / ТЕКУЩИЙ ДРОП",
         "drop.title":
             "ИНТЕРНЕТ<br><em>РЕЛИКВИИ</em>",
-        "drop.objects": "04 ОБЪЕКТА",
+        "drop.objects": "ОБЪЕКТА",
 
         "product.one": "ЕДИНСТВЕННЫЙ",
         "product.made": "ПОД ЗАКАЗ",
         "product.sold": "ПРОДАН",
         "product.handmade": "РУЧНАЯ РАБОТА",
-
-        "product.witness": "Свидетель из Фрязино",
-        "product.kandibober": "Кандибобер",
 
         "custom.eyebrow": "КОВЁР НА ЗАКАЗ",
         "custom.title":
@@ -236,36 +198,16 @@ const translations = {
         "custom.button":
             "СДЕЛАТЬ МОЙ КОВЁР",
 
-        "custom.side1": "ТВОЯ КАРТИНКА",
-        "custom.side2": "ПРЯЖА",
-        "custom.side3": "ТВОЙ КОВЁР",
-
         "process.eyebrow": "04 / ПРОЦЕСС",
         "process.title":
             "СДЕЛАНО<br><em>ВРУЧНУЮ.</em>",
         "process.subtitle":
             "Не напечатано.<br>Не сгенерировано ИИ.<br>Не массовое производство.",
 
-        "process.design.title": "ДИЗАЙН",
-        "process.design.text":
-            "Мем → изображение → дизайн ковра. Всё начинается с идеи.",
-
-        "process.taft.title": "ТАФТ",
-        "process.taft.text":
-            "Сотни тысяч петель пряжи, сделанных вручную.",
-
-        "process.carve.title": "КАРВИНГ",
-        "process.carve.text":
-            "Каждая поверхность выстригается вручную, пока изображение не оживает.",
-
-        "process.ship.title": "ДОСТАВКА",
-        "process.ship.text":
-            "Ковёр покидает студию и отправляется в новую жизнь.",
-
         "queue.eyebrow": "05 / ОЧЕРЕДЬ ПРОИЗВОДСТВА",
         "queue.title":
             "СЕЙЧАС<br><em>В ПРОИЗВОДСТВЕ</em>",
-        "queue.live": "LIVE / 04",
+        "queue.live": "LIVE",
         "queue.note":
             "Каждый ковёр начинает производиться после оформления заказа.",
 
@@ -289,158 +231,360 @@ const translations = {
         "modal.text":
             "Изготавливается вручную под заказ. Производство начинается после оплаты.",
         "modal.add":
-            "В КОРЗИНУ"
+            "В КОРЗИНУ",
+
+        "status.available": "В НАЛИЧИИ",
+        "status.made": "ПОД ЗАКАЗ",
+        "status.sold": "ПРОДАН",
+        "status.handmade": "РУЧНАЯ РАБОТА"
 
     }
 
 };
 
 
-let currentLanguage = "en";
-
-
 /* =========================================================
-   LANGUAGE
+   SUPABASE API
 ========================================================= */
 
-function setLanguage(language) {
+async function loadProducts() {
 
-    if (!translations[language]) return;
+    try {
 
-    currentLanguage = language;
-
-    document.documentElement.lang = language;
-
-    document
-        .querySelectorAll("[data-i18n]")
-        .forEach(element => {
-
-            const key = element.dataset.i18n;
-
-            if (!translations[language][key]) return;
-
-            element.innerHTML =
-                translations[language][key];
-
-        });
-
-
-    document
-        .querySelectorAll(".lang-button")
-        .forEach(button => {
-
-            button.classList.toggle(
-                "active",
-                button.dataset.lang === language
-            );
-
-        });
-
-
-    /*
-        Update modal if it is currently open.
-    */
-
-    const activeProduct =
-        modal.dataset.product;
-
-    if (activeProduct && products[activeProduct]) {
-
-        updateModalLanguage(
-            activeProduct
-        );
-
-    }
-
-}
-
-
-function updateModalLanguage(id) {
-
-    const item = products[id];
-
-    if (!item) return;
-
-    if (currentLanguage === "ru") {
-
-        modalTitle.textContent =
-            item.title;
-
-    } else {
-
-        modalTitle.textContent =
-            item.titleEn;
-
-    }
-
-}
-
-
-/* language buttons */
-
-document
-    .querySelectorAll(".lang-button")
-    .forEach(button => {
-
-        button.addEventListener(
-            "click",
-            () => {
-
-                setLanguage(
-                    button.dataset.lang
-                );
-
+        const response = await fetch(
+            `${SUPABASE_URL}/rest/v1/products?select=*&status=neq.hidden&order=sort_order.asc,created_at.desc`,
+            {
+                headers: {
+                    "apikey": SUPABASE_KEY,
+                    "Authorization": `Bearer ${SUPABASE_KEY}`
+                }
             }
         );
 
-    });
+        if (!response.ok) {
+            throw new Error(
+                `Supabase error: ${response.status}`
+            );
+        }
+
+        products = await response.json();
+
+        renderProducts();
+
+    } catch (error) {
+
+        console.error(
+            "Could not load products:",
+            error
+        );
+
+        productsContainer.innerHTML = `
+            <div style="
+                grid-column:1/-1;
+                padding:60px 0;
+                font:10px var(--mono);
+                color:var(--grey);
+            ">
+                PRODUCTS COULD NOT BE LOADED.
+            </div>
+        `;
+
+    }
+
+}
+
+
+/* =========================================================
+   PRODUCT STATUS
+========================================================= */
+
+function getStatusLabel(status) {
+
+    const key = {
+
+        available: "status.available",
+        made_to_order: "status.made",
+        sold: "status.sold",
+        handmade: "status.handmade"
+
+    }[status];
+
+    return (
+        translations[currentLanguage][key]
+        ||
+        translations[currentLanguage]["status.handmade"]
+    );
+
+}
+
+
+/* =========================================================
+   PRODUCT TITLE
+========================================================= */
+
+function getProductTitle(product) {
+
+    if (
+        currentLanguage === "ru" &&
+        product.title_ru
+    ) {
+        return product.title_ru;
+    }
+
+    return (
+        product.title_en ||
+        product.title_ru ||
+        "UNTITLED RUG"
+    );
+
+}
+
+
+/* =========================================================
+   PRODUCT DESCRIPTION
+========================================================= */
+
+function getProductDescription(product) {
+
+    if (
+        currentLanguage === "ru" &&
+        product.description_ru
+    ) {
+        return product.description_ru;
+    }
+
+    return (
+        product.description_en ||
+        product.description_ru ||
+        translations[currentLanguage]["modal.text"]
+    );
+
+}
+
+
+/* =========================================================
+   RENDER PRODUCTS
+========================================================= */
+
+function renderProducts() {
+
+    if (!productsContainer) return;
+
+    productsContainer.innerHTML = "";
+
+    if (!products.length) {
+
+        productsContainer.innerHTML = `
+            <div style="
+                grid-column:1/-1;
+                padding:80px 0;
+                font:10px var(--mono);
+                color:var(--grey);
+            ">
+                NO RUGS YET.
+            </div>
+        `;
+
+        return;
+    }
+
+
+    products.forEach(
+        (product, index) => {
+
+            const article =
+                document.createElement("article");
+
+            article.className =
+                "product" +
+                (
+                    index === 0
+                        ? " product-large"
+                        : ""
+                );
+
+            article.dataset.product =
+                product.id;
+
+
+            const title =
+                getProductTitle(product);
+
+
+            const status =
+                getStatusLabel(product.status);
+
+
+            const dimensions =
+                product.width_cm &&
+                product.height_cm
+
+                    ? `${formatNumber(product.width_cm)} × ${formatNumber(product.height_cm)} CM`
+
+                    : "";
+
+
+            article.innerHTML = `
+
+                <div class="product-image">
+
+                    <img
+                        src="${escapeHtml(product.cover_image || "")}"
+                        alt="${escapeHtml(title)}"
+                        loading="${index === 0 ? "eager" : "lazy"}"
+                    >
+
+                    <span class="image-note">
+                        ${escapeHtml(status)}
+                    </span>
+
+                </div>
+
+
+                <div class="product-info">
+
+                    <div>
+
+                        <span class="product-number">
+                            ${String(index + 1).padStart(3, "0")}
+                        </span>
+
+                        <h3>
+                            ${escapeHtml(title)}
+                        </h3>
+
+                    </div>
+
+
+                    <div class="product-price">
+
+                        <span>
+                            ${dimensions}
+                        </span>
+
+                        <strong>
+                            ${escapeHtml(product.currency || "EUR")}
+                            ${formatPrice(product.price)}
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            `;
+
+
+            article.addEventListener(
+                "click",
+                () => openProduct(product)
+            );
+
+
+            productsContainer.appendChild(
+                article
+            );
+
+        }
+    );
+
+
+    initScrollReveal();
+
+}
 
 
 /* =========================================================
    PRODUCT MODAL
 ========================================================= */
 
-document
-    .querySelectorAll(".product")
-    .forEach(product => {
+function openProduct(product) {
 
-        product.addEventListener(
-            "click",
-            () => {
+    if (!product) return;
 
-                const id =
-                    product.dataset.product;
 
-                const item =
-                    products[id];
+    modalTitle.textContent =
+        getProductTitle(product);
 
-                if (!item) return;
 
-                updateModalLanguage(id);
+    modalPrice.textContent =
+        `${product.currency || "EUR"} ${formatPrice(product.price)}`;
 
-                modalPrice.textContent =
-                    `€${item.price}`;
 
-                modalSize.textContent =
-                    item.size;
+    modalSize.textContent =
+        product.width_cm && product.height_cm
 
-                modalImage.className =
-                    `modal-image ${item.image}`;
+            ? `${formatNumber(product.width_cm)} × ${formatNumber(product.height_cm)} CM`
 
-                modal.dataset.product =
-                    id;
+            : "";
 
-                modal.classList.add("active");
 
-                document.body.classList.add(
-                    "no-scroll"
-                );
+    modalDescription.textContent =
+        getProductDescription(product);
 
-            }
-        );
 
-    });
+    modalImage.className =
+        "modal-image";
 
+
+    modalImage.style.backgroundImage =
+        `url("${product.cover_image}")`;
+
+
+    modalImage.style.backgroundSize =
+        "cover";
+
+
+    modalImage.style.backgroundPosition =
+        "center";
+
+
+    modal.dataset.product =
+        product.id;
+
+
+    const addButton =
+        document.getElementById("addCart");
+
+
+    if (product.status === "sold") {
+
+        addButton.disabled = true;
+
+        addButton.style.opacity = ".35";
+
+        addButton.style.pointerEvents =
+            "none";
+
+        addButton.querySelector("span")
+            .textContent = "×";
+
+    } else {
+
+        addButton.disabled = false;
+
+        addButton.style.opacity = "";
+
+        addButton.style.pointerEvents =
+            "";
+
+        addButton.querySelector("span")
+            .textContent = "+";
+
+    }
+
+
+    modal.classList.add("active");
+
+    document.body.classList.add(
+        "no-scroll"
+    );
+
+}
+
+
+/* =========================================================
+   CLOSE MODAL
+========================================================= */
 
 document
     .getElementById("modalClose")
@@ -476,12 +620,24 @@ document
             const id =
                 modal.dataset.product;
 
-            const item =
-                products[id];
 
-            if (!item) return;
+            const product =
+                products.find(
+                    item => item.id === id
+                );
 
-            cart.push(item);
+
+            if (!product) return;
+
+
+            if (
+                product.status === "sold"
+            ) {
+                return;
+            }
+
+
+            cart.push(product);
 
             updateCart();
 
@@ -554,7 +710,7 @@ function closeCart() {
 
 
 /* =========================================================
-   UPDATE CART
+   CART UPDATE
 ========================================================= */
 
 function updateCart() {
@@ -563,14 +719,11 @@ function updateCart() {
         cart.length;
 
 
-    if (cart.length === 0) {
+    if (!cart.length) {
 
         cartItems.innerHTML = `
             <p class="empty-cart">
-                ${
-                    translations[currentLanguage]
-                    ["cart.empty"]
-                }
+                ${translations[currentLanguage]["cart.empty"]}
             </p>
         `;
 
@@ -582,30 +735,26 @@ function updateCart() {
     }
 
 
-    cartItems.innerHTML =
-        "";
+    cartItems.innerHTML = "";
 
     let total = 0;
 
 
     cart.forEach(
-        (item, index) => {
+        (product, index) => {
 
-            total += item.price;
+            total +=
+                Number(product.price);
+
 
             const element =
                 document.createElement(
                     "div"
                 );
 
+
             element.className =
                 "cart-item";
-
-
-            const title =
-                currentLanguage === "ru"
-                    ? item.title
-                    : item.titleEn;
 
 
             element.innerHTML = `
@@ -613,13 +762,14 @@ function updateCart() {
                 <div>
 
                     <div class="cart-item-name">
-                        ${title}
+                        ${escapeHtml(
+                            getProductTitle(product)
+                        )}
                     </div>
 
                     <button
                         class="remove-item"
                         data-index="${index}"
-
                         style="
                             border:0;
                             background:none;
@@ -635,7 +785,8 @@ function updateCart() {
                 </div>
 
                 <div class="cart-item-price">
-                    €${item.price}
+                    ${escapeHtml(product.currency || "EUR")}
+                    ${formatPrice(product.price)}
                 </div>
 
             `;
@@ -650,37 +801,160 @@ function updateCart() {
 
 
     cartTotal.textContent =
-        `€${total}`;
+        `€${formatPrice(total)}`;
 
 
     document
         .querySelectorAll(
             ".remove-item"
         )
-        .forEach(button => {
+        .forEach(
+            button => {
+
+                button.addEventListener(
+                    "click",
+                    () => {
+
+                        const index =
+                            Number(
+                                button.dataset.index
+                            );
+
+                        cart.splice(
+                            index,
+                            1
+                        );
+
+                        updateCart();
+
+                    }
+                );
+
+            }
+        );
+
+}
+
+
+/* =========================================================
+   LANGUAGE
+========================================================= */
+
+function setLanguage(language) {
+
+    if (!translations[language]) {
+        return;
+    }
+
+
+    currentLanguage =
+        language;
+
+
+    document.documentElement.lang =
+        language;
+
+
+    document
+        .querySelectorAll(
+            "[data-i18n]"
+        )
+        .forEach(
+            element => {
+
+                const key =
+                    element.dataset.i18n;
+
+
+                if (
+                    translations[language][key]
+                ) {
+
+                    element.innerHTML =
+                        translations[language][key];
+
+                }
+
+            }
+        );
+
+
+    document
+        .querySelectorAll(
+            ".lang-button"
+        )
+        .forEach(
+            button => {
+
+                button.classList.toggle(
+                    "active",
+                    button.dataset.lang === language
+                );
+
+            }
+        );
+
+
+    /*
+        Re-render products so their
+        names/statuses change too.
+    */
+
+    renderProducts();
+
+
+    /*
+        Update modal if open.
+    */
+
+    const activeId =
+        modal.dataset.product;
+
+
+    if (activeId) {
+
+        const product =
+            products.find(
+                item => item.id === activeId
+            );
+
+
+        if (product) {
+            openProduct(product);
+        }
+
+    }
+
+
+    updateCart();
+
+}
+
+
+/* =========================================================
+   LANGUAGE BUTTONS
+========================================================= */
+
+document
+    .querySelectorAll(
+        ".lang-button"
+    )
+    .forEach(
+        button => {
 
             button.addEventListener(
                 "click",
                 () => {
 
-                    const index =
-                        Number(
-                            button.dataset.index
-                        );
-
-                    cart.splice(
-                        index,
-                        1
+                    setLanguage(
+                        button.dataset.lang
                     );
-
-                    updateCart();
 
                 }
             );
 
-        });
-
-}
+        }
+    );
 
 
 /* =========================================================
@@ -696,11 +970,10 @@ document
             const message =
                 currentLanguage === "ru"
 
-                    ? "КОВЁР НА ЗАКАЗ\n\n" +
-                      "Здесь появится форма заказа."
+                    ? "КОВЁР НА ЗАКАЗ\n\nЗдесь появится форма заказа."
 
-                    : "CUSTOM RUG REQUEST\n\n" +
-                      "This will become the custom order form.";
+                    : "CUSTOM RUG REQUEST\n\nThis will become the custom order form.";
+
 
             alert(message);
 
@@ -709,14 +982,16 @@ document
 
 
 /* =========================================================
-   ESC KEY
+   ESC
 ========================================================= */
 
 document.addEventListener(
     "keydown",
     event => {
 
-        if (event.key === "Escape") {
+        if (
+            event.key === "Escape"
+        ) {
 
             closeModal();
             closeCart();
@@ -740,7 +1015,9 @@ const heroTitle =
 setInterval(
     () => {
 
-        if (Math.random() > 0.65) {
+        if (
+            Math.random() > .65
+        ) {
 
             heroTitle.style.transform =
                 `translate(
@@ -770,181 +1047,128 @@ setInterval(
    SCROLL REVEALS
 ========================================================= */
 
-const observer =
-    new IntersectionObserver(
-        entries => {
+let observer;
 
-            entries.forEach(
-                entry => {
 
-                    if (
-                        entry.isIntersecting
-                    ) {
+function initScrollReveal() {
 
-                        entry.target.style.opacity =
-                            "1";
+    if (observer) {
+        observer.disconnect();
+    }
 
-                        entry.target.style.transform =
-                            "translateY(0)";
+
+    observer =
+        new IntersectionObserver(
+            entries => {
+
+                entries.forEach(
+                    entry => {
+
+                        if (
+                            entry.isIntersecting
+                        ) {
+
+                            entry.target.style.opacity =
+                                "1";
+
+                            entry.target.style.transform =
+                                "translateY(0)";
+
+                        }
 
                     }
+                );
 
-                }
-            );
-
-        },
-        {
-            threshold: 0.08
-        }
-    );
+            },
+            {
+                threshold: .08
+            }
+        );
 
 
-document
-    .querySelectorAll(
-        ".manifesto h2, .product, .process-card, .queue-item, .about-grid"
-    )
-    .forEach(
-        element => {
+    document
+        .querySelectorAll(
+            ".manifesto h2, .product, .process-card, .queue-item, .about-grid"
+        )
+        .forEach(
+            element => {
 
-            element.style.opacity =
-                "0";
+                element.style.opacity =
+                    "0";
 
-            element.style.transform =
-                "translateY(35px)";
+                element.style.transform =
+                    "translateY(35px)";
 
-            element.style.transition =
-                "opacity .8s ease, transform .8s cubic-bezier(.2,.7,.2,1)";
+                element.style.transition =
+                    "opacity .8s ease, transform .8s cubic-bezier(.2,.7,.2,1)";
 
-            observer.observe(
-                element
-            );
 
-        }
-    );
+                observer.observe(
+                    element
+                );
+
+            }
+        );
+
+}
 
 
 /* =========================================================
-   FISH-EYE / LENS EFFECT
+   HELPERS
 ========================================================= */
 
-const productImages =
-    document.querySelectorAll(
-        ".product-image"
-    );
+function formatPrice(value) {
 
-
-productImages.forEach(
-    image => {
-
-        image.addEventListener(
-            "mousemove",
-            event => {
-
-                /*
-                    Mobile doesn't have meaningful hover.
-                */
-
-                if (
-                    window.innerWidth <= 800
-                ) return;
-
-
-                const rect =
-                    image.getBoundingClientRect();
-
-
-                const x =
-                    event.clientX -
-                    rect.left;
-
-                const y =
-                    event.clientY -
-                    rect.top;
-
-
-                const percentX =
-                    (x / rect.width) * 100;
-
-                const percentY =
-                    (y / rect.height) * 100;
-
-
-                /*
-                    Small image movement makes
-                    the lens feel alive.
-                */
-
-                const moveX =
-                    (percentX - 50) * -0.035;
-
-                const moveY =
-                    (percentY - 50) * -0.035;
-
-
-                image.style.setProperty(
-                    "--lens-x",
-                    `${percentX}%`
-                );
-
-                image.style.setProperty(
-                    "--lens-y",
-                    `${percentY}%`
-                );
-
-                image.style.setProperty(
-                    "--image-x",
-                    `${moveX}px`
-                );
-
-                image.style.setProperty(
-                    "--image-y",
-                    `${moveY}px`
-                );
-
+    return Number(value || 0)
+        .toLocaleString(
+            "en-US",
+            {
+                maximumFractionDigits: 0
             }
         );
 
+}
 
-        image.addEventListener(
-            "mouseleave",
-            () => {
 
-                image.style.setProperty(
-                    "--lens-x",
-                    "50%"
-                );
+function formatNumber(value) {
 
-                image.style.setProperty(
-                    "--lens-y",
-                    "50%"
-                );
+    const number =
+        Number(value);
 
-                image.style.setProperty(
-                    "--image-x",
-                    "0px"
-                );
-
-                image.style.setProperty(
-                    "--image-y",
-                    "0px"
-                );
-
-            }
-        );
-
+    if (
+        Number.isInteger(number)
+    ) {
+        return number;
     }
-);
+
+    return number
+        .toFixed(1)
+        .replace(".0", "");
+
+}
+
+
+function escapeHtml(value) {
+
+    return String(value ?? "")
+        .replace(
+            /[&<>"']/g,
+            character => ({
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#039;"
+            }[character])
+        );
+
+}
 
 
 /* =========================================================
-   INITIAL LANGUAGE
+   INITIALIZATION
 ========================================================= */
 
 setLanguage("en");
 
-
-/* =========================================================
-   INITIAL CART
-========================================================= */
-
-updateCart();
+loadProducts();
