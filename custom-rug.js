@@ -84,7 +84,7 @@
 
 
     /* ---------------------------------------------------------
-       NEW GRID / ZOOM ELEMENTS
+       GRID / ZOOM ELEMENTS
        --------------------------------------------------------- */
 
     const rugWorkspace =
@@ -139,54 +139,41 @@
 
     let zoomLevel = 1;
 
-    let detailLevel = 40;
+    let detailLevel = 80;
 
 
     /* ---------------------------------------------------------
        GRID SETTINGS
        --------------------------------------------------------- */
 
-    /*
-       Physical grid size.
-
-       5 cm × 5 cm is intentional.
-
-       Example:
-       100 × 75 cm rug
-       → 20 × 15 cells
-
-       This gives a practical number of cells while
-       keeping the grid physically meaningful.
-    */
-
     const GRID_CELL_CM = 5;
 
-
     /*
-       Grid density limits.
-
-       DETAIL controls the number of cells across
-       the width of the rug.
+       DETAIL controls the number of cells across the rug.
 
        10  = very coarse
-       40  = medium
-       70  = detailed
-       100 = very detailed
+       40  = coarse
+       80  = medium
+       120 = detailed
+       180 = very detailed
+       240 = very detailed
+       300 = maximum
+
+       Physical rug size DOES NOT change.
     */
 
     const MIN_GRID_WIDTH = 10;
-    const MAX_GRID_WIDTH = 100;
+
+    const MAX_GRID_WIDTH = 300;
 
     const MIN_GRID_HEIGHT = 10;
-    const MAX_GRID_HEIGHT = 100;
+
+    const MAX_GRID_HEIGHT = 300;
 
 
-    /*
-       Preview zoom.
-
-       Zoom changes ONLY the rug inside the fixed
-       preview window. The window itself never changes.
-    */
+    /* ---------------------------------------------------------
+       ZOOM SETTINGS
+       --------------------------------------------------------- */
 
     const MIN_ZOOM = 0.5;
 
@@ -195,9 +182,9 @@
     const ZOOM_STEP = 0.25;
 
 
-    /*
-       Maximum source processing resolution.
-    */
+    /* ---------------------------------------------------------
+       SOURCE PROCESSING
+       --------------------------------------------------------- */
 
     const MAX_SOURCE_SIZE = 500;
 
@@ -465,38 +452,79 @@
 
 
         /*
+           The frame is the viewport.
+
            IMPORTANT:
-
-           The workspace itself is fixed.
-
-           Zoom must never change its width or height.
-           Only the inner rug changes size.
+           Do not let canvas dimensions determine
+           the dimensions of the workspace.
         */
 
         rugWorkspace.style.position =
             "relative";
 
-        rugWorkspace.style.overflow =
-            "auto";
-
         rugWorkspace.style.boxSizing =
             "border-box";
 
+        rugWorkspace.style.overflow =
+            "hidden";
+
+        rugWorkspace.style.minWidth =
+            "0";
+
+        rugWorkspace.style.minHeight =
+            "0";
+
 
         /*
-           Do not allow the workspace to grow with
-           the zoomed canvas.
+           The actual scrolling area is the canvas wrapper.
         */
 
-        rugWorkspace.style.setProperty(
-            "--zoom",
-            "1"
-        );
+        if (rugCanvasWrap) {
+
+            rugCanvasWrap.style.boxSizing =
+                "border-box";
+
+            rugCanvasWrap.style.position =
+                "relative";
+
+            rugCanvasWrap.style.overflow =
+                "auto";
+
+            rugCanvasWrap.style.minWidth =
+                "0";
+
+            rugCanvasWrap.style.minHeight =
+                "0";
+
+            rugCanvasWrap.style.width =
+                "100%";
+
+            rugCanvasWrap.style.height =
+                "100%";
+        }
+
+
+        /*
+           Make sure the canvas itself can never
+           force the parent frame to grow.
+        */
+
+        canvas.style.display =
+            "none";
+
+        canvas.style.maxWidth =
+            "none";
+
+        canvas.style.maxHeight =
+            "none";
+
+        canvas.style.flex =
+            "none";
     }
 
 
     /* ---------------------------------------------------------
-       DETAIL / GRID DENSITY
+       DETAIL / GRID DENSITY CONTROL
        --------------------------------------------------------- */
 
     let detailInput = null;
@@ -504,13 +532,85 @@
     let detailValue = null;
 
 
+    function findLeftPanel() {
+
+        const selectors = [
+            ".controls-panel",
+            ".settings-panel",
+            ".left-panel",
+            ".sidebar",
+            ".controls",
+            ".control-panel"
+        ];
+
+
+        for (
+            const selector
+            of selectors
+        ) {
+
+            const element =
+                document.querySelector(
+                    selector
+                );
+
+
+            if (element) {
+                return element;
+            }
+        }
+
+
+        /*
+           Fallback:
+           climb up from width input until
+           we find a reasonably large container.
+        */
+
+        let current =
+            widthInput?.parentElement;
+
+
+        while (
+            current &&
+            current !== document.body
+        ) {
+
+            const rect =
+                current.getBoundingClientRect();
+
+
+            if (
+                rect.width > 220 &&
+                rect.width < 700
+            ) {
+
+                return current;
+            }
+
+
+            current =
+                current.parentElement;
+        }
+
+
+        return (
+            widthInput?.closest(".panel") ||
+            widthInput?.parentElement?.parentElement ||
+            document.body
+        );
+    }
+
+
     function createDetailControl() {
 
-        if (
+        const existing =
             document.getElementById(
                 "rugDetailControl"
-            )
-        ) {
+            );
+
+
+        if (existing) {
 
             detailInput =
                 document.getElementById(
@@ -521,6 +621,23 @@
                 document.getElementById(
                     "rugDetailValue"
                 );
+
+
+            if (detailInput) {
+
+                detailInput.min =
+                    "10";
+
+                detailInput.max =
+                    "300";
+
+                detailInput.step =
+                    "10";
+
+                detailInput.value =
+                    String(detailLevel);
+            }
+
 
             return;
         }
@@ -534,19 +651,31 @@
             "rugDetailControl";
 
 
+        /*
+           IMPORTANT:
+           Full width of the left panel.
+           No width restriction from the size control.
+        */
+
         container.style.cssText = `
-            margin-top: 18px;
-            padding-top: 16px;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+            margin: 18px 0 0;
+            padding: 16px 0 0;
             border-top: 1px solid #292925;
+            align-self: stretch;
         `;
 
 
         container.innerHTML = `
             <div style="
+                width:100%;
                 display:flex;
                 justify-content:space-between;
                 align-items:center;
                 margin-bottom:10px;
+                box-sizing:border-box;
             ">
                 <span style="
                     font:10px 'DM Mono', monospace;
@@ -563,7 +692,7 @@
                         color:#77746d;
                     "
                 >
-                    40 ×
+                    ${detailLevel}
                 </span>
             </div>
 
@@ -571,16 +700,21 @@
                 id="rugDetailInput"
                 type="range"
                 min="10"
-                max="100"
-                step="5"
-                value="40"
+                max="300"
+                step="10"
+                value="${detailLevel}"
                 style="
+                    display:block;
                     width:100%;
+                    max-width:100%;
+                    box-sizing:border-box;
+                    margin:0;
                     cursor:pointer;
                 "
             >
 
             <div style="
+                width:100%;
                 display:flex;
                 justify-content:space-between;
                 margin-top:6px;
@@ -593,18 +727,15 @@
         `;
 
 
-        /*
-           Put the control near the size controls.
-           If the dedicated settings container exists,
-           use it. Otherwise fall back to the main panel.
-        */
-
         const target =
-            widthInput.closest(".control-group") ||
-            widthInput.closest(".panel") ||
-            widthInput.parentElement?.parentElement ||
-            document.body;
+            findLeftPanel();
 
+
+        /*
+           Append after the existing controls,
+           but don't let the width control itself
+           determine the width.
+        */
 
         target.appendChild(
             container
@@ -623,18 +754,27 @@
             );
 
 
+        if (!detailInput) {
+            return;
+        }
+
+
         detailInput.addEventListener(
             "input",
             () => {
 
                 detailLevel =
-                    Number(
-                        detailInput.value
+                    clamp(
+                        Number(
+                            detailInput.value
+                        ) || 80,
+                        10,
+                        300
                     );
 
 
                 detailValue.textContent =
-                    `${detailLevel} ×`;
+                    `${detailLevel}`;
 
 
                 if (sourceImage) {
@@ -661,10 +801,9 @@
 
 
         /*
-           Base visual cell size.
+           Screen representation only.
 
-           This is ONLY screen representation.
-           Physical grid remains 5 cm.
+           Physical grid stays exactly the same.
         */
 
         const baseCellSize = 24;
@@ -675,19 +814,27 @@
             zoomLevel;
 
 
+        const visualWidth =
+            currentGrid.width *
+            cellSize;
+
+
+        const visualHeight =
+            currentGrid.height *
+            cellSize;
+
+
         /*
-           IMPORTANT:
+           Canvas gets larger.
 
-           We do NOT resize rugWorkspace.
-
-           Only the canvas gets larger/smaller.
+           The frame DOES NOT.
         */
 
         canvas.style.width =
-            `${currentGrid.width * cellSize}px`;
+            `${visualWidth}px`;
 
         canvas.style.height =
-            `${currentGrid.height * cellSize}px`;
+            `${visualHeight}px`;
 
         canvas.style.maxWidth =
             "none";
@@ -695,32 +842,69 @@
         canvas.style.maxHeight =
             "none";
 
+        canvas.style.width =
+            `${visualWidth}px`;
+
+        canvas.style.height =
+            `${visualHeight}px`;
+
+        canvas.style.display =
+            "block";
+
         canvas.style.flex =
             "none";
 
 
         /*
-           Keep labels synchronized with
-           the actual cell size.
+           Put the canvas inside the actual scrolling
+           wrapper if one exists.
+        */
+
+        const scrollContainer =
+            rugCanvasWrap ||
+            rugWorkspace;
+
+
+        if (scrollContainer) {
+
+            scrollContainer.style.overflow =
+                "auto";
+
+            scrollContainer.style.minWidth =
+                "0";
+
+            scrollContainer.style.minHeight =
+                "0";
+        }
+
+
+        /*
+           Labels.
         */
 
         if (gridTopLabels) {
 
             gridTopLabels.style.width =
-                `${currentGrid.width * cellSize}px`;
+                `${visualWidth}px`;
 
             gridTopLabels.style.gridTemplateColumns =
                 `repeat(${currentGrid.width}, ${cellSize}px)`;
+
+            gridTopLabels.style.minWidth =
+                `${visualWidth}px`;
         }
 
 
         if (gridLeftLabels) {
 
             gridLeftLabels.style.height =
-                `${currentGrid.height * cellSize}px`;
+                `${visualHeight}px`;
 
             gridLeftLabels.style.gridTemplateRows =
                 `repeat(${currentGrid.height}, ${cellSize}px)`;
+
+            gridLeftLabels.style.minHeight =
+                `${visualHeight}px`;
         }
 
 
@@ -730,11 +914,6 @@
                 `${Math.round(zoomLevel * 100)}%`;
         }
 
-
-        /*
-           CSS variable is useful if the HTML/CSS
-           uses it elsewhere.
-        */
 
         rugWorkspace.style.setProperty(
             "--cell-size",
@@ -799,28 +978,25 @@
             "click",
             () => {
 
-                zoomLevel = 1;
+                zoomLevel =
+                    1;
+
 
                 updateZoom();
 
 
-                /*
-                   Reset scroll position without
-                   moving the whole page.
-                */
+                const scrollContainer =
+                    rugCanvasWrap ||
+                    rugWorkspace;
 
-                if (rugCanvasWrap) {
 
-                    rugCanvasWrap.scrollLeft = 0;
+                if (scrollContainer) {
 
-                    rugCanvasWrap.scrollTop = 0;
-                }
+                    scrollContainer.scrollLeft =
+                        0;
 
-                else {
-
-                    rugWorkspace.scrollLeft = 0;
-
-                    rugWorkspace.scrollTop = 0;
+                    scrollContainer.scrollTop =
+                        0;
                 }
             }
         );
@@ -841,7 +1017,8 @@
         }
 
 
-        colorLegend.innerHTML = "";
+        colorLegend.innerHTML =
+            "";
 
 
         const counts =
@@ -951,10 +1128,10 @@
 
 
         container.style.cssText = `
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            margin-top: 12px;
+            display:grid;
+            grid-template-columns:1fr 1fr;
+            gap:8px;
+            margin-top:12px;
         `;
 
 
@@ -971,13 +1148,13 @@
 
 
         downloadButton.style.cssText = `
-            min-height: 52px;
-            border: 1px solid #292925;
-            background: transparent;
-            color: #f2f0ea;
-            cursor: pointer;
-            font: 10px "DM Mono", monospace;
-            transition: .2s ease;
+            min-height:52px;
+            border:1px solid #292925;
+            background:transparent;
+            color:#f2f0ea;
+            cursor:pointer;
+            font:10px "DM Mono", monospace;
+            transition:.2s ease;
         `;
 
 
@@ -994,13 +1171,13 @@
 
 
         projectorButton.style.cssText = `
-            min-height: 52px;
-            border: 1px solid #292925;
-            background: #f2f0ea;
-            color: #0b0b0a;
-            cursor: pointer;
-            font: 10px "DM Mono", monospace;
-            transition: .2s ease;
+            min-height:52px;
+            border:1px solid #292925;
+            background:#f2f0ea;
+            color:#0b0b0a;
+            cursor:pointer;
+            font:10px "DM Mono", monospace;
+            transition:.2s ease;
         `;
 
 
@@ -1149,8 +1326,11 @@
                                 "IMAGE LOADED";
 
 
-                            emptyPreview.style.display =
-                                "none";
+                            if (emptyPreview) {
+
+                                emptyPreview.style.display =
+                                    "none";
+                            }
 
 
                             canvas.style.display =
@@ -1204,7 +1384,9 @@
             );
 
 
-            generateRug();
+            if (sourceImage) {
+                generateRug();
+            }
         }
     );
 
@@ -1227,7 +1409,9 @@
             );
 
 
-            generateRug();
+            if (sourceImage) {
+                generateRug();
+            }
         }
     );
 
@@ -1398,7 +1582,9 @@
                 }
 
 
-                generateRug();
+                if (sourceImage) {
+                    generateRug();
+                }
             }
         }
     );
@@ -1453,7 +1639,9 @@
                 }
 
 
-                generateRug();
+                if (sourceImage) {
+                    generateRug();
+                }
             }
         }
     );
@@ -1522,7 +1710,9 @@
             );
 
 
-            generateRug();
+            if (sourceImage) {
+                generateRug();
+            }
         }
     );
 
@@ -1655,7 +1845,9 @@
                 contrastInput.value;
 
 
-            generateRug();
+            if (sourceImage) {
+                generateRug();
+            }
         }
     );
 
@@ -1668,7 +1860,9 @@
                 brightnessInput.value;
 
 
-            generateRug();
+            if (sourceImage) {
+                generateRug();
+            }
         }
     );
 
@@ -2217,47 +2411,29 @@
 
 
         /*
-           detailLevel = количество ячеек
-           по ширине ковра.
+           DETAIL = number of cells across
+           the physical rug.
 
-           Например:
-           100 cm × 75 cm
+           Example:
 
-           DETAIL 20
-           → 20 × 15 cells
+           100 × 75 cm
 
            DETAIL 40
-           → 40 × 30 cells
+           → 40 × 30
 
-           DETAIL 80
-           → 80 × 60 cells
+           DETAIL 100
+           → 100 × 75
 
-           Таким образом масштаб физического ковра
-           не меняет количество деталей автоматически.
+           DETAIL 200
+           → 200 × 150
+
+           DETAIL 300
+           → 300 × 225
         */
 
         let gridWidth =
             Math.round(
                 detailLevel
-            );
-
-
-        /*
-           FIX:
-
-           Previously MAX_GRID_WIDTH and
-           MAX_GRID_HEIGHT were not defined.
-
-           That caused generateRug() to stop here
-           with a ReferenceError, so the palette
-           changed but the canvas stayed empty.
-        */
-
-        gridWidth =
-            clamp(
-                gridWidth,
-                MIN_GRID_WIDTH,
-                MAX_GRID_WIDTH
             );
 
 
@@ -2269,9 +2445,13 @@
             );
 
 
-        /*
-           Защита от слишком маленькой/большой сетки.
-        */
+        gridWidth =
+            clamp(
+                gridWidth,
+                MIN_GRID_WIDTH,
+                MAX_GRID_WIDTH
+            );
+
 
         gridHeight =
             clamp(
@@ -2328,6 +2508,16 @@
                     ? customPalette
                     : generatedPalette
             );
+
+
+        /*
+           Safety fallback.
+        */
+
+        if (!palette.length) {
+
+            return output;
+        }
 
 
         for (
@@ -2439,7 +2629,9 @@
                                 .data[index + 2];
 
 
-                        alpha += a;
+                        alpha +=
+                            a;
+
 
                         pixels++;
                     }
@@ -2508,7 +2700,9 @@
             }
 
 
-            output.push(row);
+            output.push(
+                row
+            );
         }
 
 
@@ -2544,22 +2738,23 @@
 
 
         /*
-           Reset inline dimensions first.
+           Internal canvas resolution is exactly
+           the grid resolution.
 
-           updateZoom() will then apply the actual
-           visual size.
+           Visual dimensions are controlled separately
+           by updateZoom().
         */
 
         canvas.style.imageRendering =
             "pixelated";
 
 
-        canvas.style.display =
-            "block";
-
-
         canvas.style.objectFit =
             "fill";
+
+
+        canvas.style.display =
+            "block";
 
 
         ctx.clearRect(
@@ -2568,6 +2763,10 @@
             canvas.width,
             canvas.height
         );
+
+
+        ctx.imageSmoothingEnabled =
+            false;
 
 
         for (
@@ -2618,10 +2817,6 @@
         }
 
 
-        ctx.imageSmoothingEnabled =
-            false;
-
-
         renderGridLabels(
             grid
         );
@@ -2634,6 +2829,12 @@
                 : generatedPalette
         );
 
+
+        /*
+           IMPORTANT:
+           updateZoom changes only the canvas.
+           It does NOT change the workspace.
+        */
 
         updateZoom();
     }
@@ -2698,7 +2899,8 @@
         }
 
 
-        isGenerating = true;
+        isGenerating =
+            true;
 
 
         previewStatus.textContent =
@@ -2726,7 +2928,12 @@
 
                     const tempCtx =
                         processed.canvas
-                            .getContext("2d");
+                            .getContext(
+                                "2d",
+                                {
+                                    willReadFrequently: true
+                                }
+                            );
 
 
                     tempCtx.putImageData(
@@ -2788,8 +2995,11 @@
                     );
 
 
-                    emptyPreview.style.display =
-                        "none";
+                    if (emptyPreview) {
+
+                        emptyPreview.style.display =
+                            "none";
+                    }
 
 
                     canvas.style.display =
@@ -2850,7 +3060,8 @@
 
         const TOP_INFO = 80;
 
-        const LEGEND_HEIGHT = 150;
+        const LEGEND_HEIGHT =
+            150;
 
         const BORDER = 2;
 
@@ -3051,16 +3262,19 @@
 
             exportCtx.beginPath();
 
+
             exportCtx.moveTo(
                 px,
                 gridY
             );
+
 
             exportCtx.lineTo(
                 px,
                 gridY +
                 rugPixelHeight
             );
+
 
             exportCtx.stroke();
         }
@@ -3081,16 +3295,19 @@
 
             exportCtx.beginPath();
 
+
             exportCtx.moveTo(
                 gridX,
                 py
             );
+
 
             exportCtx.lineTo(
                 gridX +
                 rugPixelWidth,
                 py
             );
+
 
             exportCtx.stroke();
         }
@@ -3247,12 +3464,14 @@
                 const itemY =
                     legendY +
                     25 +
-                    Math.floor(index / 4) * 28;
+                    Math.floor(index / 4) *
+                    28;
 
 
                 const itemX =
                     30 +
-                    (index % 4) * 190;
+                    (index % 4) *
+                    190;
 
 
                 exportCtx.fillStyle =
@@ -3359,15 +3578,15 @@
 
 
         overlay.style.cssText = `
-            position: fixed;
-            inset: 0;
-            z-index: 99999;
-            background: #11110f;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            font-family: Arial, sans-serif;
+            position:fixed;
+            inset:0;
+            z-index:99999;
+            background:#11110f;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            overflow:hidden;
+            font-family:Arial,sans-serif;
         `;
 
 
@@ -3406,11 +3625,11 @@
 
 
         workspace.style.cssText = `
-            position: relative;
-            width: min(92vw, 82vh * ${ratio});
-            height: min(82vh, 92vw / ${ratio});
-            max-width: 92vw;
-            max-height: 82vh;
+            position:relative;
+            width:min(92vw,82vh * ${ratio});
+            height:min(82vh,92vw / ${ratio});
+            max-width:92vw;
+            max-height:82vh;
         `;
 
 
@@ -3431,12 +3650,12 @@
 
 
         projectorCanvas.style.cssText = `
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            image-rendering: pixelated;
-            object-fit: fill;
+            position:absolute;
+            inset:0;
+            width:100%;
+            height:100%;
+            image-rendering:pixelated;
+            object-fit:fill;
         `;
 
 
@@ -3495,12 +3714,12 @@
 
 
         gridOverlay.style.cssText = `
-            position: absolute;
-            inset: 0;
-            display: grid;
-            grid-template-columns: repeat(${currentGrid.width}, 1fr);
-            grid-template-rows: repeat(${currentGrid.height}, 1fr);
-            pointer-events: none;
+            position:absolute;
+            inset:0;
+            display:grid;
+            grid-template-columns:repeat(${currentGrid.width},1fr);
+            grid-template-rows:repeat(${currentGrid.height},1fr);
+            pointer-events:none;
         `;
 
 
@@ -3519,8 +3738,8 @@
 
 
             cell.style.cssText = `
-                border-right: 1px solid rgba(255,255,255,.16);
-                border-bottom: 1px solid rgba(255,255,255,.16);
+                border-right:1px solid rgba(255,255,255,.16);
+                border-bottom:1px solid rgba(255,255,255,.16);
             `;
 
 
@@ -3544,10 +3763,10 @@
 
 
         border.style.cssText = `
-            position: absolute;
-            inset: 0;
-            border: 2px solid rgba(255,255,255,.75);
-            pointer-events: none;
+            position:absolute;
+            inset:0;
+            border:2px solid rgba(255,255,255,.75);
+            pointer-events:none;
         `;
 
 
@@ -3565,18 +3784,18 @@
 
 
         topLabels.style.cssText = `
-            position: absolute;
-            left: 0;
-            right: 0;
-            top: -22px;
-            height: 18px;
-            display: grid;
-            grid-template-columns: repeat(${currentGrid.width}, 1fr);
-            color: rgba(255,255,255,.65);
-            font-size: 8px;
-            line-height: 18px;
-            text-align: center;
-            pointer-events: none;
+            position:absolute;
+            left:0;
+            right:0;
+            top:-22px;
+            height:18px;
+            display:grid;
+            grid-template-columns:repeat(${currentGrid.width},1fr);
+            color:rgba(255,255,255,.65);
+            font-size:8px;
+            line-height:18px;
+            text-align:center;
+            pointer-events:none;
         `;
 
 
@@ -3616,18 +3835,18 @@
 
 
         leftLabels.style.cssText = `
-            position: absolute;
-            left: -32px;
-            top: 0;
-            bottom: 0;
-            width: 25px;
-            display: grid;
-            grid-template-rows: repeat(${currentGrid.height}, 1fr);
-            color: rgba(255,255,255,.65);
-            font-size: 8px;
-            line-height: 1;
-            text-align: right;
-            pointer-events: none;
+            position:absolute;
+            left:-32px;
+            top:0;
+            bottom:0;
+            width:25px;
+            display:grid;
+            grid-template-rows:repeat(${currentGrid.height},1fr);
+            color:rgba(255,255,255,.65);
+            font-size:8px;
+            line-height:1;
+            text-align:right;
+            pointer-events:none;
         `;
 
 
@@ -3684,17 +3903,17 @@
 
 
         info.style.cssText = `
-            position: absolute;
-            top: 18px;
-            left: 22px;
-            right: 22px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            pointer-events: none;
-            font: 10px Arial, sans-serif;
-            color: #77746d;
-            letter-spacing: .05em;
+            position:absolute;
+            top:18px;
+            left:22px;
+            right:22px;
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            pointer-events:none;
+            font:10px Arial,sans-serif;
+            color:#77746d;
+            letter-spacing:.05em;
         `;
 
 
@@ -3725,12 +3944,12 @@
 
 
         bottomInfo.style.cssText = `
-            position: absolute;
-            left: 22px;
-            bottom: 22px;
-            color: #77746d;
-            font: 10px Arial, sans-serif;
-            pointer-events: none;
+            position:absolute;
+            left:22px;
+            bottom:22px;
+            color:#77746d;
+            font:10px Arial,sans-serif;
+            pointer-events:none;
         `;
 
 
@@ -3760,17 +3979,17 @@
 
 
         closeButton.style.cssText = `
-            position: absolute;
-            right: 22px;
-            bottom: 20px;
-            min-height: 44px;
-            padding: 0 16px;
-            border: 1px solid #77746d;
-            background: #11110f;
-            color: #f2f0ea;
-            cursor: pointer;
-            font: 10px Arial, sans-serif;
-            letter-spacing: .04em;
+            position:absolute;
+            right:22px;
+            bottom:20px;
+            min-height:44px;
+            padding:0 16px;
+            border:1px solid #77746d;
+            background:#11110f;
+            color:#f2f0ea;
+            cursor:pointer;
+            font:10px Arial,sans-serif;
+            letter-spacing:.04em;
         `;
 
 
@@ -3780,10 +3999,22 @@
 
                 overlay.remove();
 
+
                 document.removeEventListener(
                     "keydown",
                     escapeHandler
                 );
+
+
+                if (
+                    document.fullscreenElement
+                ) {
+
+                    document.exitFullscreen()
+                        .catch(
+                            () => {}
+                        );
+                }
             }
         );
 
@@ -3804,6 +4035,7 @@
             ) {
 
                 overlay.remove();
+
 
                 document.removeEventListener(
                     "keydown",
@@ -3897,7 +4129,5 @@
 
 
     setupFixedWorkspace();
-
-    createExportControls();
 
 })();
