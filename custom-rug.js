@@ -2,24 +2,27 @@
    DOCH — CUSTOM RUG
    IMAGE → YARN → RUG
 
+   IMPORTANT:
+   ---------------------------------------------------------
    PHYSICAL GRID
    - ALWAYS 5 × 5 CM
-   - depends ONLY on physical rug dimensions
+   - 100 × 100 CM = 20 × 20 cells
+   - 100 × 75 CM  = 20 × 15 cells
+   - DOES NOT CHANGE WITH DETAIL
 
    DETAIL
-   - controls visual resolution
-   - DOES NOT change physical grid
-   - DOES NOT change rug size
-   - DOES NOT change workspace size
+   - controls number of visual pixels INSIDE the rug
+   - does NOT change physical grid
+   - does NOT enlarge the frame
 
    PIXEL SHAPE
    - 0   = square
    - 100 = rounded
 
    PREVIEW
-   - always fits completely inside workspace
-   - no scrolling
-   - physical grid stays fixed
+   - entire rug fits inside preview automatically
+   - no mandatory scrolling
+   - zoom buttons can enlarge it manually
    ========================================================= */
 
 (() => {
@@ -78,13 +81,6 @@
     const canvas =
         document.getElementById("rugCanvas");
 
-    const ctx =
-        canvas
-            ? canvas.getContext("2d", {
-                willReadFrequently: true
-            })
-            : null;
-
     const emptyPreview =
         document.getElementById("emptyPreview");
 
@@ -132,76 +128,19 @@
 
 
     /* =========================================================
-       STATE
-       ========================================================= */
-
-    let sourceImage = null;
-
-    let originalRatio = 100 / 75;
-
-    let numberOfColors = 4;
-
-    let customPalette = [];
-
-    let generatedPalette = [];
-
-    let backgroundMode = "keep";
-
-    let currentDetailData = null;
-
-    let currentGrid = null;
-
-    let currentGridData = null;
-
-    let pixelRoundness = 0;
-
-    let detailLevel = 80;
-
-    let isGenerating = false;
-
-    let previewResizeObserver = null;
-
-
-    /* =========================================================
        CONSTANTS
        ========================================================= */
 
-    /*
-       THIS IS THE PHYSICAL GRID.
-
-       NEVER changes when DETAIL changes.
-    */
-
     const GRID_CELL_CM = 5;
-
-
-    /*
-       DETAIL is visual resolution only.
-    */
 
     const MIN_DETAIL = 20;
     const MAX_DETAIL = 500;
 
-
-    /*
-       Source image is capped only for processing speed.
-       Original image is still used for display.
-    */
-
-    const MAX_SOURCE_SIZE = 700;
-
-
-    /*
-       Zoom is optional.
-       At 100% the rug is FIT TO FRAME.
-       Zooming can enlarge it but it never creates
-       a scrollable workspace.
-    */
+    const DEFAULT_DETAIL = 80;
 
     const MIN_ZOOM = 0.5;
-    const MAX_ZOOM = 1.5;
-    const ZOOM_STEP = 0.1;
-
+    const MAX_ZOOM = 4;
+    const ZOOM_STEP = 0.25;
 
     const DEFAULT_PALETTE = [
         "#111111",
@@ -216,14 +155,36 @@
 
 
     /* =========================================================
-       DYNAMIC CONTROLS
+       STATE
        ========================================================= */
 
-    let shapeInput = null;
-    let shapeValue = null;
+    let sourceImage = null;
 
-    let detailInput = null;
-    let detailValue = null;
+    let originalRatio = 4 / 3;
+
+    let numberOfColors = 4;
+
+    let generatedPalette = [];
+
+    let customPalette = [];
+
+    let backgroundMode = "keep";
+
+    let detailLevel = DEFAULT_DETAIL;
+
+    let pixelRoundness = 0;
+
+    let currentDetailData = null;
+
+    let currentGrid = null;
+
+    let zoomLevel = 1;
+
+    let isGenerating = false;
+
+    let renderQueued = false;
+
+    let resizeTimer = null;
 
 
     /* =========================================================
@@ -231,7 +192,6 @@
        ========================================================= */
 
     function clamp(value, min, max) {
-
         return Math.max(
             min,
             Math.min(max, value)
@@ -241,30 +201,23 @@
 
     function hexToRgb(hex) {
 
-        hex =
-            String(hex || "")
-                .replace("#", "")
-                .trim();
-
+        hex = String(hex || "")
+            .replace("#", "")
+            .trim();
 
         if (hex.length === 3) {
-
-            hex =
-                hex
-                    .split("")
-                    .map(c => c + c)
-                    .join("");
+            hex = hex
+                .split("")
+                .map(x => x + x)
+                .join("");
         }
 
-
-        const value =
-            parseInt(hex, 16);
-
+        const n = parseInt(hex, 16);
 
         return {
-            r: (value >> 16) & 255,
-            g: (value >> 8) & 255,
-            b: value & 255
+            r: (n >> 16) & 255,
+            g: (n >> 8) & 255,
+            b: n & 255
         };
     }
 
@@ -280,26 +233,22 @@
                         0,
                         255
                     )
-                        .toString(16)
-                        .padStart(2, "0")
-                        .toUpperCase()
+                    .toString(16)
+                    .padStart(2, "0")
                 )
                 .join("")
+                .toUpperCase()
         );
     }
 
 
     function normalizeHex(value) {
 
-        value =
-            String(value || "")
-                .trim();
-
+        value = String(value || "").trim();
 
         if (!value.startsWith("#")) {
             value = "#" + value;
         }
-
 
         if (/^#[0-9a-fA-F]{3}$/.test(value)) {
 
@@ -311,11 +260,9 @@
             ).toUpperCase();
         }
 
-
         if (/^#[0-9a-fA-F]{6}$/.test(value)) {
             return value.toUpperCase();
         }
-
 
         return "#000000";
     }
@@ -323,15 +270,9 @@
 
     function colorDistance(a, b) {
 
-        const dr =
-            a.r - b.r;
-
-        const dg =
-            a.g - b.g;
-
-        const db =
-            a.b - b.b;
-
+        const dr = a.r - b.r;
+        const dg = a.g - b.g;
+        const db = a.b - b.b;
 
         return Math.sqrt(
             dr * dr * 0.299 +
@@ -341,29 +282,20 @@
     }
 
 
-    function hexToRgbArray(palette) {
+    function columnLabel(index) {
 
-        return palette.map(hexToRgb);
-    }
-
-
-    function columnLabel(number) {
-
-        let label = "";
-        let n = number + 1;
-
+        let result = "";
+        let n = index + 1;
 
         while (n > 0) {
 
             const remainder =
                 (n - 1) % 26;
 
-
-            label =
+            result =
                 String.fromCharCode(
                     65 + remainder
-                ) + label;
-
+                ) + result;
 
             n =
                 Math.floor(
@@ -371,8 +303,7 @@
                 );
         }
 
-
-        return label;
+        return result;
     }
 
 
@@ -383,54 +314,61 @@
     function calculatePhysicalGrid() {
 
         const width =
-            Number(widthInput?.value) || 100;
+            Math.max(
+                1,
+                Number(widthInput?.value) || 100
+            );
 
         const height =
-            Number(heightInput?.value) || 75;
-
+            Math.max(
+                1,
+                Number(heightInput?.value) || 75
+            );
 
         return {
-
-            width:
-                Math.max(
-                    1,
-                    Math.round(
-                        width /
-                        GRID_CELL_CM
-                    )
-                ),
-
-            height:
-                Math.max(
-                    1,
-                    Math.round(
-                        height /
-                        GRID_CELL_CM
-                    )
+            width: Math.max(
+                1,
+                Math.round(
+                    width / GRID_CELL_CM
                 )
+            ),
+
+            height: Math.max(
+                1,
+                Math.round(
+                    height / GRID_CELL_CM
+                )
+            )
         };
     }
 
 
     /* =========================================================
        DETAIL GRID
+       =========================================================
+       
+       DETAIL is NOT physical grid.
+
+       We use a sensible amount of visual cells and preserve
+       the rug aspect ratio.
+
+       The resulting detail image is then rendered INTO the
+       fixed physical frame.
        ========================================================= */
 
     function calculateDetailGrid() {
 
         const width =
-            Number(widthInput?.value) || 100;
+            Math.max(
+                1,
+                Number(widthInput?.value) || 100
+            );
 
         const height =
-            Number(heightInput?.value) || 75;
-
-
-        /*
-           DETAIL = number of visual cells
-           horizontally.
-
-           Physical rug remains the same.
-        */
+            Math.max(
+                1,
+                Number(heightInput?.value) || 75
+            );
 
         const detailWidth =
             clamp(
@@ -438,7 +376,6 @@
                 MIN_DETAIL,
                 MAX_DETAIL
             );
-
 
         const detailHeight =
             Math.max(
@@ -450,7 +387,6 @@
                 )
             );
 
-
         return {
             width: detailWidth,
             height: detailHeight
@@ -459,146 +395,98 @@
 
 
     /* =========================================================
-       CONTROL TARGET
+       CONTROLS
        ========================================================= */
 
-    function findControlsTarget() {
-
-        if (paletteElement) {
-
-            return (
-                paletteElement.parentElement ||
-                document.body
-            );
-        }
-
-
-        if (colorCounts) {
-
-            return (
-                colorCounts.parentElement ||
-                document.body
-            );
-        }
-
-
-        return document.body;
-    }
-
-
-    /* =========================================================
-       RANGE STYLE
-       ========================================================= */
-
-    function styleRangeInput(input) {
+    function styleSlider(input) {
 
         if (!input) {
             return;
         }
 
-
-        input.style.cssText = `
-            display:block;
-            width:100%;
-            max-width:100%;
-            box-sizing:border-box;
-            margin:0;
-            padding:0;
-            cursor:pointer;
-            accent-color:#f2f0ea;
-        `;
+        input.style.width = "100%";
+        input.style.boxSizing = "border-box";
+        input.style.cursor = "pointer";
     }
 
 
-    /* =========================================================
-       PIXEL SHAPE CONTROL
-       ========================================================= */
+    function createExtraControls() {
 
-    function createShapeControl() {
+        /*
+           Remove controls from previous version if they exist.
+        */
 
-        const old =
-            document.getElementById(
-                "rugShapeControl"
-            );
+        document
+            .getElementById("rugShapeControl")
+            ?.remove();
+
+        document
+            .getElementById("rugDetailControl")
+            ?.remove();
 
 
-        if (old) {
-
-            shapeInput =
-                document.getElementById(
-                    "rugShapeInput"
-                );
-
-            shapeValue =
-                document.getElementById(
-                    "rugShapeValue"
-                );
-
+        if (!paletteElement) {
             return;
         }
 
 
-        const container =
+        /*
+           -----------------------------------------------------
+           PIXEL SHAPE
+           -----------------------------------------------------
+        */
+
+        const shapeBlock =
             document.createElement("div");
 
-
-        container.id =
+        shapeBlock.id =
             "rugShapeControl";
 
+        shapeBlock.className =
+            "control-section";
 
-        container.style.cssText = `
-            width:100%;
-            max-width:100%;
-            box-sizing:border-box;
-            margin:16px 0 0;
-            padding:14px 0 0;
-            border-top:1px solid #292925;
-        `;
+        shapeBlock.innerHTML = `
+            <div class="section-label">
+                <span>04A</span>
+                PIXEL SHAPE
+            </div>
 
-
-        container.innerHTML = `
             <div style="
-                width:100%;
-                display:flex;
-                justify-content:space-between;
+                display:grid;
+                grid-template-columns:1fr auto;
+                gap:10px;
                 align-items:center;
-                margin-bottom:9px;
             ">
-                <span style="
-                    font:10px 'DM Mono',monospace;
-                    color:#f2f0ea;
-                    letter-spacing:.04em;
-                ">
-                    PIXEL SHAPE
-                </span>
 
-                <span
+                <input
+                    id="rugShapeInput"
+                    type="range"
+                    min="0"
+                    max="100"
+                    value="${pixelRoundness}"
+                    step="1"
+                >
+
+                <output
                     id="rugShapeValue"
                     style="
-                        font:10px 'DM Mono',monospace;
-                        color:#77746d;
+                        min-width:90px;
+                        text-align:right;
+                        font-family:'DM Mono',monospace;
+                        font-size:10px;
                     "
                 >
                     SQUARE
-                </span>
+                </output>
             </div>
 
-            <input
-                id="rugShapeInput"
-                type="range"
-                min="0"
-                max="100"
-                step="1"
-                value="${pixelRoundness}"
-            >
-
             <div style="
-                width:100%;
                 display:flex;
                 justify-content:space-between;
                 margin-top:6px;
-                font:8px 'DM Mono',monospace;
-                color:#55534e;
+                font-family:'DM Mono',monospace;
+                font-size:8px;
+                opacity:.5;
             ">
                 <span>SQUARE</span>
                 <span>ROUNDED</span>
@@ -608,39 +496,41 @@
 
         /*
            IMPORTANT:
-
-           Shape goes immediately after colors/palette.
+           Put immediately after palette block.
         */
 
-        if (paletteElement) {
+        const paletteSection =
+            paletteElement.closest(
+                ".control-section"
+            );
 
-            paletteElement.insertAdjacentElement(
-                "afterend",
-                container
+
+        if (paletteSection) {
+
+            paletteSection.after(
+                shapeBlock
             );
 
         } else {
 
-            findControlsTarget().appendChild(
-                container
+            paletteElement.after(
+                shapeBlock
             );
         }
 
 
-        shapeInput =
+        const shapeInput =
             document.getElementById(
                 "rugShapeInput"
             );
 
-        shapeValue =
+        const shapeValue =
             document.getElementById(
                 "rugShapeValue"
             );
 
 
-        styleRangeInput(
-            shapeInput
-        );
+        styleSlider(shapeInput);
 
 
         shapeInput.addEventListener(
@@ -648,208 +538,105 @@
             () => {
 
                 pixelRoundness =
-                    clamp(
-                        Number(
-                            shapeInput.value
-                        ) || 0,
-                        0,
-                        100
-                    );
+                    Number(
+                        shapeInput.value
+                    ) || 0;
 
+                updateShapeLabel(
+                    shapeValue
+                );
 
-                updateShapeValue();
-
-
-                /*
-                   NO image re-processing.
-
-                   Only redraw visual cells.
-                */
-
-                if (
-                    currentGridData &&
-                    currentDetailData
-                ) {
-
-                    drawCurrentPreview();
-                }
+                renderPreview();
             }
         );
-    }
 
 
-    function updateShapeValue() {
+        /*
+           -----------------------------------------------------
+           DETAIL
+           -----------------------------------------------------
+        */
 
-        if (!shapeValue) {
-            return;
-        }
-
-
-        if (pixelRoundness <= 5) {
-
-            shapeValue.textContent =
-                "SQUARE";
-
-        } else if (pixelRoundness < 30) {
-
-            shapeValue.textContent =
-                "SLIGHTLY ROUNDED";
-
-        } else if (pixelRoundness < 60) {
-
-            shapeValue.textContent =
-                "ROUNDED";
-
-        } else if (pixelRoundness < 90) {
-
-            shapeValue.textContent =
-                "VERY ROUNDED";
-
-        } else {
-
-            shapeValue.textContent =
-                "MAXIMUM";
-        }
-    }
-
-
-    /* =========================================================
-       DETAIL CONTROL
-       ========================================================= */
-
-    function createDetailControl() {
-
-        const old =
-            document.getElementById(
-                "rugDetailControl"
-            );
-
-
-        if (old) {
-
-            detailInput =
-                document.getElementById(
-                    "rugDetailInput"
-                );
-
-            detailValue =
-                document.getElementById(
-                    "rugDetailValue"
-                );
-
-            return;
-        }
-
-
-        const container =
+        const detailBlock =
             document.createElement("div");
 
-
-        container.id =
+        detailBlock.id =
             "rugDetailControl";
 
+        detailBlock.className =
+            "control-section";
 
-        container.style.cssText = `
-            width:100%;
-            max-width:100%;
-            box-sizing:border-box;
-            margin:14px 0 0;
-            padding:14px 0 0;
-            border-top:1px solid #292925;
-        `;
+        detailBlock.innerHTML = `
+            <div class="section-label">
+                <span>04B</span>
+                DETAIL
+            </div>
 
-
-        container.innerHTML = `
             <div style="
-                width:100%;
-                display:flex;
-                justify-content:space-between;
+                display:grid;
+                grid-template-columns:1fr auto;
+                gap:10px;
                 align-items:center;
-                margin-bottom:9px;
             ">
-                <span style="
-                    font:10px 'DM Mono',monospace;
-                    color:#f2f0ea;
-                    letter-spacing:.04em;
-                ">
-                    DETAIL
-                </span>
 
-                <span
+                <input
+                    id="rugDetailInput"
+                    type="range"
+                    min="${MIN_DETAIL}"
+                    max="${MAX_DETAIL}"
+                    value="${detailLevel}"
+                    step="10"
+                >
+
+                <output
                     id="rugDetailValue"
                     style="
-                        font:10px 'DM Mono',monospace;
-                        color:#77746d;
+                        min-width:90px;
+                        text-align:right;
+                        font-family:'DM Mono',monospace;
+                        font-size:10px;
                     "
                 >
                     ${detailLevel}
-                </span>
+                </output>
             </div>
 
-            <input
-                id="rugDetailInput"
-                type="range"
-                min="${MIN_DETAIL}"
-                max="${MAX_DETAIL}"
-                step="10"
-                value="${detailLevel}"
-            >
-
             <div style="
-                width:100%;
                 display:flex;
                 justify-content:space-between;
                 margin-top:6px;
-                font:8px 'DM Mono',monospace;
-                color:#55534e;
+                font-family:'DM Mono',monospace;
+                font-size:8px;
+                opacity:.5;
             ">
                 <span>COARSE</span>
                 <span>FINE</span>
             </div>
+
+            <p class="control-note">
+                Changes image detail only. The physical
+                5 × 5 CM grid never changes.
+            </p>
         `;
 
 
-        /*
-           IMPORTANT:
-
-           DETAIL goes AFTER PIXEL SHAPE.
-        */
-
-        const shapeControl =
-            document.getElementById(
-                "rugShapeControl"
-            );
+        shapeBlock.after(
+            detailBlock
+        );
 
 
-        if (shapeControl) {
-
-            shapeControl.insertAdjacentElement(
-                "afterend",
-                container
-            );
-
-        } else {
-
-            findControlsTarget().appendChild(
-                container
-            );
-        }
-
-
-        detailInput =
+        const detailInput =
             document.getElementById(
                 "rugDetailInput"
             );
 
-        detailValue =
+        const detailValue =
             document.getElementById(
                 "rugDetailValue"
             );
 
 
-        styleRangeInput(
-            detailInput
-        );
+        styleSlider(detailInput);
 
 
         detailInput.addEventListener(
@@ -860,29 +647,42 @@
                     clamp(
                         Number(
                             detailInput.value
-                        ) || 80,
+                        ) || DEFAULT_DETAIL,
                         MIN_DETAIL,
                         MAX_DETAIL
                     );
 
+                detailValue.textContent =
+                    detailLevel;
 
-                if (detailValue) {
-
-                    detailValue.textContent =
-                        String(detailLevel);
-                }
-
-
-                if (sourceImage) {
-                    generateRug();
-                }
+                queueGenerate();
             }
         );
     }
 
 
+    function updateShapeLabel(element) {
+
+        if (!element) {
+            return;
+        }
+
+        if (pixelRoundness <= 5) {
+            element.textContent = "SQUARE";
+        } else if (pixelRoundness < 30) {
+            element.textContent = "SLIGHT";
+        } else if (pixelRoundness < 60) {
+            element.textContent = "ROUNDED";
+        } else if (pixelRoundness < 85) {
+            element.textContent = "VERY ROUNDED";
+        } else {
+            element.textContent = "MAXIMUM";
+        }
+    }
+
+
     /* =========================================================
-       WORKSPACE FIX
+       WORKSPACE
        ========================================================= */
 
     function setupWorkspace() {
@@ -893,10 +693,8 @@
 
 
         /*
-           THIS IS THE IMPORTANT PART.
-
-           The workspace itself NEVER grows with
-           detail resolution.
+           The workspace itself is the physical rug frame.
+           It must not grow because DETAIL grows.
         */
 
         rugWorkspace.style.position =
@@ -905,7 +703,7 @@
         rugWorkspace.style.width =
             "100%";
 
-        rugWorkspace.style.maxWidth =
+        rugWorkspace.style.height =
             "100%";
 
         rugWorkspace.style.minWidth =
@@ -917,13 +715,19 @@
         rugWorkspace.style.overflow =
             "hidden";
 
+        rugWorkspace.style.boxSizing =
+            "border-box";
+
 
         if (rugCanvasWrap) {
 
             rugCanvasWrap.style.position =
                 "absolute";
 
-            rugCanvasWrap.style.inset =
+            rugCanvasWrap.style.left =
+                "0";
+
+            rugCanvasWrap.style.top =
                 "0";
 
             rugCanvasWrap.style.width =
@@ -932,127 +736,164 @@
             rugCanvasWrap.style.height =
                 "100%";
 
+            rugCanvasWrap.style.overflow =
+                "hidden";
+
             rugCanvasWrap.style.minWidth =
                 "0";
 
             rugCanvasWrap.style.minHeight =
                 "0";
 
-            /*
-               NO SCROLLING.
-            */
-
-            rugCanvasWrap.style.overflow =
-                "hidden";
-
             rugCanvasWrap.style.boxSizing =
                 "border-box";
+        }
+
+
+        if (canvas) {
+
+            canvas.style.position =
+                "absolute";
+
+            canvas.style.left =
+                "0";
+
+            canvas.style.top =
+                "0";
+
+            canvas.style.display =
+                "none";
+
+            canvas.style.maxWidth =
+                "none";
+
+            canvas.style.maxHeight =
+                "none";
         }
     }
 
 
     /* =========================================================
-       SOURCE IMAGE PREVIEW
+       IMAGE LOAD
        ========================================================= */
 
-    function showSourceImage() {
+    function showLoadedImage() {
 
         if (
             !sourceImage ||
             !canvas ||
-            !ctx
+            !rugCanvasWrap
         ) {
             return;
         }
 
 
         /*
-           Display the uploaded image immediately.
-
-           This is deliberately independent from
-           rug generation.
+           Before generation we show the original image.
         */
 
-        const maxWidth = 1200;
-        const maxHeight = 900;
+        const rect =
+            getAvailableFrame();
 
 
-        let width =
-            sourceImage.naturalWidth;
+        if (
+            rect.width <= 0 ||
+            rect.height <= 0
+        ) {
+            return;
+        }
 
-        let height =
+
+        const imageRatio =
+            sourceImage.naturalWidth /
             sourceImage.naturalHeight;
 
 
-        const ratio =
+        let drawWidth =
+            rect.width;
+
+        let drawHeight =
+            drawWidth /
+            imageRatio;
+
+
+        if (drawHeight > rect.height) {
+
+            drawHeight =
+                rect.height;
+
+            drawWidth =
+                drawHeight *
+                imageRatio;
+        }
+
+
+        const x =
+            (rect.width - drawWidth) / 2;
+
+        const y =
+            (rect.height - drawHeight) / 2;
+
+
+        const dpr =
             Math.min(
-                maxWidth / width,
-                maxHeight / height,
-                1
-            );
-
-
-        width =
-            Math.max(
-                1,
-                Math.round(
-                    width * ratio
-                )
-            );
-
-
-        height =
-            Math.max(
-                1,
-                Math.round(
-                    height * ratio
-                )
+                window.devicePixelRatio || 1,
+                2
             );
 
 
         canvas.width =
-            width;
+            Math.max(
+                1,
+                Math.round(
+                    drawWidth * dpr
+                )
+            );
 
         canvas.height =
-            height;
+            Math.max(
+                1,
+                Math.round(
+                    drawHeight * dpr
+                )
+            );
 
-
-        canvas.style.position =
-            "absolute";
-
-        canvas.style.left =
-            "50%";
-
-        canvas.style.top =
-            "50%";
-
-        canvas.style.transform =
-            "translate(-50%, -50%)";
 
         canvas.style.width =
-            "auto";
+            `${drawWidth}px`;
 
         canvas.style.height =
-            "auto";
+            `${drawHeight}px`;
 
-        canvas.style.maxWidth =
-            "90%";
+        canvas.style.left =
+            `${x}px`;
 
-        canvas.style.maxHeight =
-            "90%";
+        canvas.style.top =
+            `${y}px`;
 
-        canvas.style.objectFit =
-            "contain";
+        canvas.style.display =
+            "block";
 
-        canvas.style.imageRendering =
-            "auto";
+
+        const ctx =
+            canvas.getContext("2d");
+
+
+        ctx.setTransform(
+            dpr,
+            0,
+            0,
+            dpr,
+            0,
+            0
+        );
 
 
         ctx.clearRect(
             0,
             0,
-            width,
-            height
+            drawWidth,
+            drawHeight
         );
 
 
@@ -1060,20 +901,18 @@
             sourceImage,
             0,
             0,
-            width,
-            height
+            drawWidth,
+            drawHeight
         );
 
 
         if (emptyPreview) {
-
             emptyPreview.style.display =
                 "none";
         }
 
 
         if (previewStatus) {
-
             previewStatus.textContent =
                 "IMAGE LOADED";
         }
@@ -1081,181 +920,51 @@
 
 
     /* =========================================================
-       FIT PREVIEW TO FRAME
+       AVAILABLE FRAME
        ========================================================= */
 
-    function fitCanvasToWorkspace() {
+    function getAvailableFrame() {
 
-        if (
-            !canvas ||
-            !rugCanvasWrap ||
-            !currentDetailData
-        ) {
-            return;
+        if (!rugWorkspace) {
+
+            return {
+                width: 600,
+                height: 450
+            };
         }
 
 
-        const frameWidth =
-            rugCanvasWrap.clientWidth;
-
-        const frameHeight =
-            rugCanvasWrap.clientHeight;
+        const rect =
+            rugWorkspace.getBoundingClientRect();
 
 
-        if (
-            frameWidth <= 0 ||
-            frameHeight <= 0
-        ) {
-            return;
-        }
+        return {
+            width: Math.max(
+                1,
+                rect.width
+            ),
 
-
-        const rugWidthCm =
-            Number(
-                widthInput?.value
-            ) || 100;
-
-        const rugHeightCm =
-            Number(
-                heightInput?.value
-            ) || 75;
-
-
-        const rugRatio =
-            rugWidthCm /
-            rugHeightCm;
-
-
-        /*
-           Calculate the largest rectangle
-           that fits INSIDE the frame.
-        */
-
-        let displayWidth =
-            frameWidth * 0.94;
-
-        let displayHeight =
-            displayWidth /
-            rugRatio;
-
-
-        if (
-            displayHeight >
-            frameHeight * 0.94
-        ) {
-
-            displayHeight =
-                frameHeight * 0.94;
-
-            displayWidth =
-                displayHeight *
-                rugRatio;
-        }
-
-
-        /*
-           Optional zoom.
-
-           Zoom NEVER changes the frame.
-        */
-
-        displayWidth *= zoomLevel;
-        displayHeight *= zoomLevel;
-
-
-        /*
-           Keep it inside the frame even if
-           browser rounding would otherwise
-           create overflow.
-        */
-
-        const maxWidth =
-            frameWidth * 0.98;
-
-        const maxHeight =
-            frameHeight * 0.98;
-
-
-        if (displayWidth > maxWidth) {
-
-            displayWidth =
-                maxWidth;
-
-            displayHeight =
-                displayWidth /
-                rugRatio;
-        }
-
-
-        if (displayHeight > maxHeight) {
-
-            displayHeight =
-                maxHeight;
-
-            displayWidth =
-                displayHeight *
-                rugRatio;
-        }
-
-
-        canvas.style.position =
-            "absolute";
-
-        canvas.style.left =
-            "50%";
-
-        canvas.style.top =
-            "50%";
-
-        canvas.style.transform =
-            "translate(-50%, -50%)";
-
-        canvas.style.width =
-            `${displayWidth}px`;
-
-        canvas.style.height =
-            `${displayHeight}px`;
-
-        canvas.style.maxWidth =
-            "none";
-
-        canvas.style.maxHeight =
-            "none";
-
-        canvas.style.display =
-            "block";
-
-
-        /*
-           Physical grid overlay gets
-           exactly the same dimensions.
-        */
-
-        updatePhysicalGridOverlay(
-            displayWidth,
-            displayHeight
-        );
-
-
-        if (zoomValue) {
-
-            zoomValue.textContent =
-                `${Math.round(
-                    zoomLevel * 100
-                )}%`;
-        }
+            height: Math.max(
+                1,
+                rect.height
+            )
+        };
     }
 
 
     /* =========================================================
-       PROCESS IMAGE
+       IMAGE PROCESSING
        ========================================================= */
 
-    function processImage() {
+    function processSourceImage() {
 
         if (!sourceImage) {
             return null;
         }
+
+
+        const maxSize =
+            900;
 
 
         let width =
@@ -1267,8 +976,8 @@
 
         const scale =
             Math.min(
-                MAX_SOURCE_SIZE / width,
-                MAX_SOURCE_SIZE / height,
+                maxSize / width,
+                maxSize / height,
                 1
             );
 
@@ -1281,7 +990,6 @@
                 )
             );
 
-
         height =
             Math.max(
                 1,
@@ -1291,21 +999,21 @@
             );
 
 
-        const tempCanvas =
+        const temp =
             document.createElement(
                 "canvas"
             );
 
 
-        tempCanvas.width =
+        temp.width =
             width;
 
-        tempCanvas.height =
+        temp.height =
             height;
 
 
         const tempCtx =
-            tempCanvas.getContext(
+            temp.getContext(
                 "2d",
                 {
                     willReadFrequently: true
@@ -1331,6 +1039,49 @@
             );
 
 
+        applyImageAdjustments(
+            imageData
+        );
+
+
+        tempCtx.putImageData(
+            imageData,
+            0,
+            0
+        );
+
+
+        if (
+            backgroundMode === "remove"
+        ) {
+
+            removeBackgroundPixels(
+                imageData
+            );
+
+            tempCtx.putImageData(
+                imageData,
+                0,
+                0
+            );
+        }
+
+
+        return {
+            canvas: temp,
+            imageData
+        };
+    }
+
+
+    /* =========================================================
+       IMAGE ADJUSTMENTS
+       ========================================================= */
+
+    function applyImageAdjustments(
+        imageData
+    ) {
+
         const data =
             imageData.data;
 
@@ -1347,6 +1098,10 @@
             ) || 0;
 
 
+        const brightnessAmount =
+            brightness * 2.55;
+
+
         const factor =
             (
                 259 *
@@ -1358,10 +1113,6 @@
             );
 
 
-        const brightnessOffset =
-            brightness * 2.55;
-
-
         for (
             let i = 0;
             i < data.length;
@@ -1370,15 +1121,15 @@
 
             let r =
                 data[i] +
-                brightnessOffset;
+                brightnessAmount;
 
             let g =
                 data[i + 1] +
-                brightnessOffset;
+                brightnessAmount;
 
             let b =
                 data[i + 2] +
-                brightnessOffset;
+                brightnessAmount;
 
 
             r =
@@ -1406,19 +1157,6 @@
             data[i + 2] =
                 clamp(b, 0, 255);
         }
-
-
-        tempCtx.putImageData(
-            imageData,
-            0,
-            0
-        );
-
-
-        return {
-            canvas: tempCanvas,
-            imageData
-        };
     }
 
 
@@ -1426,17 +1164,9 @@
        BACKGROUND REMOVAL
        ========================================================= */
 
-    function applyBackgroundRemoval(
+    function removeBackgroundPixels(
         imageData
     ) {
-
-        if (
-            backgroundMode !==
-            "remove"
-        ) {
-            return;
-        }
-
 
         const data =
             imageData.data;
@@ -1448,48 +1178,45 @@
             imageData.height;
 
 
-        const positions = [
-
+        const points = [
             0,
 
             (width - 1) * 4,
 
-            (height - 1) *
-            width *
-            4,
-
             (
                 (height - 1) *
-                width +
+                width
+            ) * 4,
+
+            (
+                (
+                    (height - 1) *
+                    width
+                ) +
                 width -
                 1
             ) * 4
         ];
 
 
-        const background = {
+        const bg = {
             r: 0,
             g: 0,
             b: 0
         };
 
 
-        positions.forEach(position => {
+        points.forEach(index => {
 
-            background.r +=
-                data[position];
-
-            background.g +=
-                data[position + 1];
-
-            background.b +=
-                data[position + 2];
+            bg.r += data[index];
+            bg.g += data[index + 1];
+            bg.b += data[index + 2];
         });
 
 
-        background.r /= 4;
-        background.g /= 4;
-        background.b /= 4;
+        bg.r /= 4;
+        bg.g /= 4;
+        bg.b /= 4;
 
 
         const threshold = 55;
@@ -1501,20 +1228,17 @@
             i += 4
         ) {
 
-            const color = {
-
+            const current = {
                 r: data[i],
-
                 g: data[i + 1],
-
                 b: data[i + 2]
             };
 
 
             if (
                 colorDistance(
-                    color,
-                    background
+                    current,
+                    bg
                 ) < threshold
             ) {
 
@@ -1541,10 +1265,15 @@
             new Map();
 
 
+        /*
+           Sample every ~20th pixel.
+           This is enough for palette extraction and much faster.
+        */
+
         for (
             let i = 0;
             i < data.length;
-            i += 48
+            i += 80
         ) {
 
             if (
@@ -1577,8 +1306,7 @@
             buckets.set(
                 key,
                 (
-                    buckets.get(key) ||
-                    0
+                    buckets.get(key) || 0
                 ) + 1
             );
         }
@@ -1590,26 +1318,27 @@
                     (a, b) =>
                         b[1] - a[1]
                 )
-                .slice(0, 60)
-                .map(([key, weight]) => {
+                .slice(0, 80)
+                .map(
+                    ([key, weight]) => {
 
-                    const [
-                        r,
-                        g,
-                        b
-                    ] =
-                        key
-                            .split(",")
-                            .map(Number);
+                        const [
+                            r,
+                            g,
+                            b
+                        ] =
+                            key
+                                .split(",")
+                                .map(Number);
 
-
-                    return {
-                        r,
-                        g,
-                        b,
-                        weight
-                    };
-                });
+                        return {
+                            r,
+                            g,
+                            b,
+                            weight
+                        };
+                    }
+                );
 
 
         if (!sorted.length) {
@@ -1631,11 +1360,16 @@
             result.length < sorted.length
         ) {
 
-            let best = null;
-            let bestScore = -Infinity;
+            let best =
+                null;
+
+            let bestScore =
+                -Infinity;
 
 
-            sorted.forEach(candidate => {
+            for (
+                const candidate of sorted
+            ) {
 
                 const duplicate =
                     result.some(
@@ -1648,7 +1382,7 @@
 
 
                 if (duplicate) {
-                    return;
+                    continue;
                 }
 
 
@@ -1656,17 +1390,19 @@
                     Infinity;
 
 
-                result.forEach(selected => {
+                result.forEach(
+                    selected => {
 
-                    minimum =
-                        Math.min(
-                            minimum,
-                            colorDistance(
-                                selected,
-                                candidate
-                            )
-                        );
-                });
+                        minimum =
+                            Math.min(
+                                minimum,
+                                colorDistance(
+                                    selected,
+                                    candidate
+                                )
+                            );
+                    }
+                );
 
 
                 const score =
@@ -1687,7 +1423,7 @@
                     best =
                         candidate;
                 }
-            });
+            }
 
 
             if (!best) {
@@ -1699,23 +1435,25 @@
         }
 
 
-        return result.map(color =>
-            rgbToHex(
-                color.r,
-                color.g,
-                color.b
-            )
+        return result.map(
+            color =>
+                rgbToHex(
+                    color.r,
+                    color.g,
+                    color.b
+                )
         );
     }
 
 
     /* =========================================================
-       CREATE DETAIL IMAGE
+       CREATE DETAIL MAP
        ========================================================= */
 
-    function createDetailImage(
+    function createDetailMap(
         processed,
-        detailGrid
+        detailGrid,
+        palette
     ) {
 
         const sourceCanvas =
@@ -1740,20 +1478,14 @@
             );
 
 
-        const palette =
-            hexToRgbArray(
-                customPalette.length
-                    ? customPalette
-                    : generatedPalette
+        const rgbPalette =
+            palette.map(hexToRgb);
+
+
+        const output =
+            new Array(
+                detailGrid.height
             );
-
-
-        const output = [];
-
-
-        if (!palette.length) {
-            return output;
-        }
 
 
         for (
@@ -1762,7 +1494,10 @@
             y++
         ) {
 
-            const row = [];
+            const row =
+                new Array(
+                    detailGrid.width
+                );
 
 
             const sy =
@@ -1805,14 +1540,14 @@
                             (x + 1) /
                             detailGrid.width *
                             sourceCanvas.width
-                        )
-                    );
+                    )
+                );
 
 
                 let r = 0;
                 let g = 0;
                 let b = 0;
-                let pixels = 0;
+                let count = 0;
 
 
                 for (
@@ -1835,10 +1570,14 @@
                             ) * 4;
 
 
-                        if (
+                        const alpha =
                             sourceData.data[
                                 index + 3
-                            ] < 20
+                            ];
+
+
+                        if (
+                            alpha < 30
                         ) {
                             continue;
                         }
@@ -1859,37 +1598,36 @@
                                 index + 2
                             ];
 
-                        pixels++;
+                        count++;
                     }
                 }
 
 
-                if (!pixels) {
+                if (!count) {
 
-                    row.push(null);
+                    row[x] = null;
 
                     continue;
                 }
 
 
                 const average = {
-
-                    r: r / pixels,
-
-                    g: g / pixels,
-
-                    b: b / pixels
+                    r: r / count,
+                    g: g / count,
+                    b: b / count
                 };
 
 
-                let closest =
-                    palette[0];
+                let nearest =
+                    rgbPalette[0];
 
-                let closestDistance =
+                let nearestDistance =
                     Infinity;
 
 
-                palette.forEach(color => {
+                for (
+                    const color of rgbPalette
+                ) {
 
                     const distance =
                         colorDistance(
@@ -1900,29 +1638,29 @@
 
                     if (
                         distance <
-                        closestDistance
+                        nearestDistance
                     ) {
 
-                        closestDistance =
+                        nearestDistance =
                             distance;
 
-                        closest =
+                        nearest =
                             color;
                     }
-                });
+                }
 
 
-                row.push(
+                row[x] =
                     rgbToHex(
-                        closest.r,
-                        closest.g,
-                        closest.b
-                    )
-                );
+                        nearest.r,
+                        nearest.g,
+                        nearest.b
+                    );
             }
 
 
-            output.push(row);
+            output[y] =
+                row;
         }
 
 
@@ -1931,11 +1669,11 @@
 
 
     /* =========================================================
-       DRAW ONE PIXEL
+       ROUNDED CELL
        ========================================================= */
 
-    function drawRoundedCell(
-        context,
+    function drawCell(
+        ctx,
         x,
         y,
         width,
@@ -1949,11 +1687,11 @@
         }
 
 
-        context.fillStyle =
+        ctx.fillStyle =
             color;
 
 
-        const normalized =
+        const t =
             clamp(
                 roundness / 100,
                 0,
@@ -1962,253 +1700,408 @@
 
 
         /*
-           At 0:
-           absolutely square and touching.
-
-           As roundness grows:
-           cells get slightly separated and
-           corners become rounder.
-
-           This gives the "paint by numbers /
-           rug tufting" appearance.
+           The gap is subtle.
+           At 0 cells touch.
+           At 100 they look like rounded
+           tuft/punch-needle pixels.
         */
 
-        const maxGap =
+        const gap =
             Math.min(
                 width,
                 height
-            ) * 0.24;
+            ) *
+            0.22 *
+            t;
 
 
-        const gap =
-            maxGap *
-            normalized;
+        const x1 =
+            x + gap / 2;
 
+        const y1 =
+            y + gap / 2;
 
-        const cellX =
-            x +
-            gap / 2;
-
-
-        const cellY =
-            y +
-            gap / 2;
-
-
-        const cellWidth =
+        const w =
             Math.max(
                 0.1,
                 width - gap
             );
 
-
-        const cellHeight =
+        const h =
             Math.max(
                 0.1,
                 height - gap
             );
 
 
-        const maxRadius =
-            Math.min(
-                cellWidth,
-                cellHeight
-            ) / 2;
-
-
         const radius =
-            maxRadius *
-            Math.pow(
-                normalized,
-                0.72
-            );
+            Math.min(
+                w,
+                h
+            ) *
+            0.5 *
+            Math.pow(t, 0.72);
+
+
+        ctx.beginPath();
 
 
         if (
-            typeof context.roundRect ===
+            typeof ctx.roundRect ===
             "function"
         ) {
 
-            context.beginPath();
-
-
-            context.roundRect(
-                cellX,
-                cellY,
-                cellWidth,
-                cellHeight,
+            ctx.roundRect(
+                x1,
+                y1,
+                w,
+                h,
                 radius
             );
 
-
-            context.fill();
-
+            ctx.fill();
 
             return;
         }
 
 
         /*
-           Fallback.
+           Fallback for older browsers.
         */
 
-        context.beginPath();
-
-
-        context.moveTo(
-            cellX + radius,
-            cellY
+        ctx.moveTo(
+            x1 + radius,
+            y1
         );
 
-
-        context.lineTo(
-            cellX +
-            cellWidth -
-            radius,
-            cellY
+        ctx.lineTo(
+            x1 + w - radius,
+            y1
         );
 
-
-        context.quadraticCurveTo(
-            cellX + cellWidth,
-            cellY,
-            cellX + cellWidth,
-            cellY + radius
+        ctx.quadraticCurveTo(
+            x1 + w,
+            y1,
+            x1 + w,
+            y1 + radius
         );
 
-
-        context.lineTo(
-            cellX + cellWidth,
-            cellY +
-            cellHeight -
-            radius
+        ctx.lineTo(
+            x1 + w,
+            y1 + h - radius
         );
 
-
-        context.quadraticCurveTo(
-            cellX + cellWidth,
-            cellY + cellHeight,
-            cellX +
-            cellWidth -
-            radius,
-            cellY + cellHeight
+        ctx.quadraticCurveTo(
+            x1 + w,
+            y1 + h,
+            x1 + w - radius,
+            y1 + h
         );
 
-
-        context.lineTo(
-            cellX + radius,
-            cellY + cellHeight
+        ctx.lineTo(
+            x1 + radius,
+            y1 + h
         );
 
-
-        context.quadraticCurveTo(
-            cellX,
-            cellY + cellHeight,
-            cellX,
-            cellY +
-            cellHeight -
-            radius
+        ctx.quadraticCurveTo(
+            x1,
+            y1 + h,
+            x1,
+            y1 + h - radius
         );
 
-
-        context.lineTo(
-            cellX,
-            cellY + radius
+        ctx.lineTo(
+            x1,
+            y1 + radius
         );
 
-
-        context.quadraticCurveTo(
-            cellX,
-            cellY,
-            cellX + radius,
-            cellY
+        ctx.quadraticCurveTo(
+            x1,
+            y1,
+            x1 + radius,
+            y1
         );
 
+        ctx.closePath();
 
-        context.closePath();
-
-        context.fill();
+        ctx.fill();
     }
 
 
     /* =========================================================
-       DRAW RUG
+       RENDER RUG
        ========================================================= */
 
-    function drawCurrentPreview() {
+    function renderPreview() {
 
         if (
             !canvas ||
-            !ctx ||
-            !currentGridData ||
-            !currentDetailData
+            !currentDetailData ||
+            !currentGrid
         ) {
             return;
         }
 
 
-        const detail =
-            currentDetailData;
+        const frame =
+            getAvailableFrame();
+
+
+        if (
+            frame.width <= 5 ||
+            frame.height <= 5
+        ) {
+            return;
+        }
 
 
         /*
-           Internal canvas resolution.
-
-           This is NOT the physical grid.
-
-           Higher detail = more internal cells.
+           -----------------------------------------------------
+           IMPORTANT:
+           The physical frame is based ONLY on the rug ratio.
+           DETAIL never changes it.
+           -----------------------------------------------------
         */
 
-        const INTERNAL_CELL = 12;
+        const physicalRatio =
+            currentGrid.width /
+            currentGrid.height;
+
+
+        let frameWidth =
+            frame.width;
+
+        let frameHeight =
+            frameWidth /
+            physicalRatio;
+
+
+        if (
+            frameHeight >
+            frame.height
+        ) {
+
+            frameHeight =
+                frame.height;
+
+            frameWidth =
+                frameHeight *
+                physicalRatio;
+        }
+
+
+        /*
+           Small safety margin so the border is not clipped.
+        */
+
+        frameWidth =
+            Math.max(
+                10,
+                frameWidth - 4
+            );
+
+        frameHeight =
+            Math.max(
+                10,
+                frameHeight - 4
+            );
+
+
+        /*
+           Manual zoom.
+           At 100% = FIT.
+        */
+
+        const visualWidth =
+            frameWidth *
+            zoomLevel;
+
+        const visualHeight =
+            frameHeight *
+            zoomLevel;
+
+
+        /*
+           Center when fit.
+           When zoomed, keep the image inside
+           the scroll-free workspace as much as possible.
+        */
+
+        let left =
+            (frame.width -
+                visualWidth) / 2;
+
+        let top =
+            (frame.height -
+                visualHeight) / 2;
+
+
+        if (zoomLevel > 1) {
+
+            left =
+                Math.max(
+                    0,
+                    (frame.width -
+                        visualWidth) / 2
+                );
+
+            top =
+                Math.max(
+                    0,
+                    (frame.height -
+                        visualHeight) / 2
+                );
+        }
+
+
+        /*
+           High-resolution backing canvas,
+           but dimensions are based on PHYSICAL
+           frame size, NOT DETAIL size.
+        */
+
+        const dpr =
+            Math.min(
+                window.devicePixelRatio || 1,
+                2
+            );
 
 
         canvas.width =
-            detail.width *
-            INTERNAL_CELL;
-
+            Math.max(
+                1,
+                Math.round(
+                    visualWidth * dpr
+                )
+            );
 
         canvas.height =
-            detail.height *
-            INTERNAL_CELL;
+            Math.max(
+                1,
+                Math.round(
+                    visualHeight * dpr
+                )
+            );
+
+
+        canvas.style.width =
+            `${visualWidth}px`;
+
+        canvas.style.height =
+            `${visualHeight}px`;
+
+        canvas.style.left =
+            `${left}px`;
+
+        canvas.style.top =
+            `${top}px`;
+
+        canvas.style.display =
+            "block";
+
+
+        const ctx =
+            canvas.getContext(
+                "2d"
+            );
+
+
+        ctx.setTransform(
+            dpr,
+            0,
+            0,
+            dpr,
+            0,
+            0
+        );
 
 
         ctx.clearRect(
             0,
             0,
-            canvas.width,
-            canvas.height
+            visualWidth,
+            visualHeight
         );
 
 
-        ctx.imageSmoothingEnabled =
-            true;
+        /*
+           -----------------------------------------------------
+           BACKGROUND
+           -----------------------------------------------------
+        */
+
+        ctx.fillStyle =
+            "#11110f";
+
+        ctx.fillRect(
+            0,
+            0,
+            visualWidth,
+            visualHeight
+        );
+
+
+        /*
+           -----------------------------------------------------
+           DETAIL CELLS
+           -----------------------------------------------------
+
+           We map the detail grid INTO the fixed physical
+           rectangle.
+
+           Therefore:
+             20×20 physical grid stays 20×20.
+             DETAIL 20 / 100 / 500 only changes the
+             visual subdivisions.
+        */
+
+        const data =
+            currentDetailData.data;
+
+
+        const detailWidth =
+            currentDetailData.width;
+
+        const detailHeight =
+            currentDetailData.height;
+
+
+        const cellWidth =
+            visualWidth /
+            detailWidth;
+
+        const cellHeight =
+            visualHeight /
+            detailHeight;
 
 
         for (
             let y = 0;
-            y < detail.height;
+            y < detailHeight;
             y++
         ) {
 
+            const row =
+                data[y];
+
+
             for (
                 let x = 0;
-                x < detail.width;
+                x < detailWidth;
                 x++
             ) {
 
-                drawRoundedCell(
+                const color =
+                    row[x];
+
+
+                drawCell(
                     ctx,
-
-                    x *
-                    INTERNAL_CELL,
-
-                    y *
-                    INTERNAL_CELL,
-
-                    INTERNAL_CELL,
-
-                    INTERNAL_CELL,
-
+                    x * cellWidth,
+                    y * cellHeight,
+                    cellWidth,
+                    cellHeight,
+                    color,
                     pixelRoundness
                 );
             }
@@ -2216,118 +2109,154 @@
 
 
         /*
-           FIT THE WHOLE RUG INTO THE FRAME.
+           -----------------------------------------------------
+           PHYSICAL GRID
+           -----------------------------------------------------
+
+           This is ALWAYS based on currentGrid.
+           currentGrid is ALWAYS width / 5 and height / 5.
         */
 
-        requestAnimationFrame(
-            fitCanvasToWorkspace
+        drawPhysicalGrid(
+            ctx,
+            visualWidth,
+            visualHeight
         );
+
+
+        /*
+           Border.
+        */
+
+        ctx.strokeStyle =
+            "rgba(255,255,255,.8)";
+
+        ctx.lineWidth =
+            1.5;
+
+        ctx.strokeRect(
+            0.75,
+            0.75,
+            visualWidth - 1.5,
+            visualHeight - 1.5
+        );
+
+
+        if (zoomValue) {
+
+            zoomValue.textContent =
+                `${Math.round(
+                    zoomLevel * 100
+                )}%`;
+        }
+
+
+        renderGridLabels();
+
+
+        updateStats();
     }
 
 
     /* =========================================================
-       PHYSICAL GRID OVERLAY
+       PHYSICAL GRID
        ========================================================= */
 
-    function updatePhysicalGridOverlay(
-        displayWidth,
-        displayHeight
+    function drawPhysicalGrid(
+        ctx,
+        width,
+        height
     ) {
 
-        if (
-            !rugCanvasWrap ||
-            !currentGrid
-        ) {
+        if (!currentGrid) {
             return;
         }
 
 
-        let overlay =
-            document.getElementById(
-                "physicalGridOverlay"
-            );
-
-
-        if (!overlay) {
-
-            overlay =
-                document.createElement(
-                    "div"
-                );
-
-
-            overlay.id =
-                "physicalGridOverlay";
-
-
-            overlay.style.cssText = `
-                position:absolute;
-                pointer-events:none;
-                z-index:20;
-                box-sizing:border-box;
-                left:50%;
-                top:50%;
-                transform:translate(-50%,-50%);
-            `;
-
-
-            rugCanvasWrap.appendChild(
-                overlay
-            );
-        }
-
-
-        overlay.style.width =
-            `${displayWidth}px`;
-
-
-        overlay.style.height =
-            `${displayHeight}px`;
-
-
-        /*
-           THIS GRID IS BASED ONLY ON
-           PHYSICAL CELLS.
-
-           DETAIL HAS ZERO EFFECT ON IT.
-        */
-
         const cellWidth =
-            100 /
+            width /
             currentGrid.width;
 
-
         const cellHeight =
-            100 /
+            height /
             currentGrid.height;
 
 
-        overlay.style.backgroundImage = `
-            linear-gradient(
-                to right,
-                rgba(255,255,255,.32) 1px,
-                transparent 1px
-            ),
-            linear-gradient(
-                to bottom,
-                rgba(255,255,255,.32) 1px,
-                transparent 1px
-            )
-        `;
+        ctx.save();
 
 
-        overlay.style.backgroundSize =
-            `${cellWidth}% ${cellHeight}%`;
+        ctx.strokeStyle =
+            "rgba(255,255,255,.32)";
+
+        ctx.lineWidth =
+            1;
 
 
-        overlay.style.border =
-            "1px solid rgba(255,255,255,.7)";
-    }
+        /*
+           Vertical.
+        */
+
+        for (
+            let x = 1;
+            x < currentGrid.width;
+            x++
+        ) {
+
+            const px =
+                Math.round(
+                    x * cellWidth
+                ) + 0.5;
 
 
-    function drawPhysicalGridOverlay() {
+            ctx.beginPath();
 
-        fitCanvasToWorkspace();
+            ctx.moveTo(
+                px,
+                0
+            );
+
+            ctx.lineTo(
+                px,
+                height
+            );
+
+            ctx.stroke();
+        }
+
+
+        /*
+           Horizontal.
+        */
+
+        for (
+            let y = 1;
+            y < currentGrid.height;
+            y++
+        ) {
+
+            const py =
+                Math.round(
+                    y * cellHeight
+                ) + 0.5;
+
+
+            ctx.beginPath();
+
+            ctx.moveTo(
+                0,
+                py
+            );
+
+            ctx.lineTo(
+                width,
+                py
+            );
+
+            ctx.stroke();
+        }
+
+
+        ctx.restore();
     }
 
 
@@ -2335,11 +2264,12 @@
        GRID LABELS
        ========================================================= */
 
-    function renderGridLabels(grid) {
+    function renderGridLabels() {
 
         if (
             !gridTopLabels ||
-            !gridLeftLabels
+            !gridLeftLabels ||
+            !currentGrid
         ) {
             return;
         }
@@ -2352,9 +2282,129 @@
             "";
 
 
+        /*
+           The labels are positioned relative to the
+           physical frame.
+        */
+
+        const frame =
+            getAvailableFrame();
+
+
+        const ratio =
+            currentGrid.width /
+            currentGrid.height;
+
+
+        let width =
+            frame.width;
+
+        let height =
+            width / ratio;
+
+
+        if (
+            height >
+            frame.height
+        ) {
+
+            height =
+                frame.height;
+
+            width =
+                height * ratio;
+        }
+
+
+        width =
+            Math.max(
+                1,
+                width - 4
+            );
+
+        height =
+            Math.max(
+                1,
+                height - 4
+            );
+
+
+        const left =
+            (frame.width -
+                width) / 2;
+
+        const top =
+            (frame.height -
+                height) / 2;
+
+
+        /*
+           Labels are only useful when they fit.
+           The CSS remains responsible for their appearance.
+        */
+
+        gridTopLabels.style.position =
+            "absolute";
+
+        gridTopLabels.style.left =
+            `${left}px`;
+
+        gridTopLabels.style.top =
+            `${Math.max(
+                0,
+                top - 18
+            )}px`;
+
+        gridTopLabels.style.width =
+            `${width}px`;
+
+        gridTopLabels.style.height =
+            "16px";
+
+        gridTopLabels.style.display =
+            "flex";
+
+        gridTopLabels.style.justifyContent =
+            "space-around";
+
+        gridTopLabels.style.pointerEvents =
+            "none";
+
+
+        gridLeftLabels.style.position =
+            "absolute";
+
+        gridLeftLabels.style.left =
+            `${Math.max(
+                0,
+                left - 22
+            )}px`;
+
+        gridLeftLabels.style.top =
+            `${top}px`;
+
+        gridLeftLabels.style.width =
+            "20px";
+
+        gridLeftLabels.style.height =
+            `${height}px`;
+
+        gridLeftLabels.style.display =
+            "flex";
+
+        gridLeftLabels.style.flexDirection =
+            "column";
+
+        gridLeftLabels.style.justifyContent =
+            "space-around";
+
+        gridLeftLabels.style.pointerEvents =
+            "none";
+
+
         for (
             let x = 0;
-            x < grid.width;
+            x < currentGrid.width;
             x++
         ) {
 
@@ -2363,10 +2413,11 @@
                     "span"
                 );
 
-
             span.textContent =
                 columnLabel(x);
 
+            span.style.textAlign =
+                "center";
 
             gridTopLabels.appendChild(
                 span
@@ -2376,7 +2427,7 @@
 
         for (
             let y = 0;
-            y < grid.height;
+            y < currentGrid.height;
             y++
         ) {
 
@@ -2385,10 +2436,11 @@
                     "span"
                 );
 
-
             span.textContent =
-                y + 1;
+                String(y + 1);
 
+            span.style.textAlign =
+                "center";
 
             gridLeftLabels.appendChild(
                 span
@@ -2398,102 +2450,7 @@
 
 
     /* =========================================================
-       COLOR LEGEND
-       ========================================================= */
-
-    function renderColorLegend(
-        data,
-        palette
-    ) {
-
-        if (!colorLegend) {
-            return;
-        }
-
-
-        colorLegend.innerHTML =
-            "";
-
-
-        const counts =
-            new Map();
-
-
-        data.forEach(row => {
-
-            row.forEach(color => {
-
-                if (!color) {
-                    return;
-                }
-
-
-                counts.set(
-                    color,
-                    (
-                        counts.get(color) ||
-                        0
-                    ) + 1
-                );
-            });
-        });
-
-
-        palette.forEach(
-            (hex, index) => {
-
-                const normalized =
-                    normalizeHex(hex);
-
-
-                const item =
-                    document.createElement(
-                        "div"
-                    );
-
-
-                item.className =
-                    "legend-item";
-
-
-                item.innerHTML = `
-                    <div
-                        class="legend-color"
-                        style="background:${normalized}"
-                    ></div>
-
-                    <div class="legend-main">
-                        <span class="legend-label">
-                            COLOR ${index + 1}
-                        </span>
-
-                        <span class="legend-hex">
-                            ${normalized}
-                        </span>
-                    </div>
-
-                    <div class="legend-count">
-                        ${
-                            (
-                                counts.get(
-                                    normalized
-                                ) || 0
-                            ).toLocaleString()
-                        } CELLS
-                    </div>
-                `;
-
-
-                colorLegend.appendChild(
-                    item
-                );
-            }
-        );
-    }
-
-
-    /* =========================================================
-       PALETTE
+       PALETTE UI
        ========================================================= */
 
     function renderPalette(
@@ -2557,6 +2514,10 @@
     }
 
 
+    /* =========================================================
+       PALETTE EVENTS
+       ========================================================= */
+
     if (paletteElement) {
 
         paletteElement.addEventListener(
@@ -2580,9 +2541,12 @@
                     "color"
                 ) {
 
-                    customPalette[index] =
-                        event.target.value
-                            .toUpperCase();
+                    customPalette[
+                        Number(index)
+                    ] =
+                        normalizeHex(
+                            event.target.value
+                        );
 
 
                     const text =
@@ -2594,14 +2558,13 @@
                     if (text) {
 
                         text.value =
-                            event.target.value
-                                .toUpperCase();
+                            customPalette[
+                                Number(index)
+                            ];
                     }
 
 
-                    if (sourceImage) {
-                        generateRug();
-                    }
+                    queueGenerate();
                 }
             }
         );
@@ -2629,18 +2592,20 @@
                     )
                 ) {
 
-                    const value =
+                    const normalized =
                         normalizeHex(
                             event.target.value
                         );
 
 
-                    customPalette[index] =
-                        value;
+                    customPalette[
+                        Number(index)
+                    ] =
+                        normalized;
 
 
                     event.target.value =
-                        value;
+                        normalized;
 
 
                     const color =
@@ -2651,13 +2616,11 @@
 
                     if (color) {
                         color.value =
-                            value;
+                            normalized;
                     }
 
 
-                    if (sourceImage) {
-                        generateRug();
-                    }
+                    queueGenerate();
                 }
             }
         );
@@ -2685,12 +2648,12 @@
                     );
 
 
-                if (!customPalette.length) {
+                if (
+                    !customPalette.length
+                ) {
 
                     customPalette =
-                        [
-                            ...generatedPalette
-                        ];
+                        [...generatedPalette];
                 }
 
 
@@ -2709,14 +2672,8 @@
                 }
 
 
-                numberOfColors =
-                    customPalette.length;
-
-
                 generatedPalette =
-                    [
-                        ...customPalette
-                    ];
+                    [...customPalette];
 
 
                 renderPalette(
@@ -2724,13 +2681,15 @@
                 );
 
 
-                if (sourceImage) {
-                    generateRug();
-                }
+                queueGenerate();
             }
         );
     }
 
+
+    /* =========================================================
+       RESET PALETTE
+       ========================================================= */
 
     if (resetPalette) {
 
@@ -2738,7 +2697,8 @@
             "click",
             () => {
 
-                customPalette = [];
+                customPalette =
+                    [];
 
 
                 if (sourceImage) {
@@ -2803,13 +2763,7 @@
                 }
 
 
-                /*
-                   URL.createObjectURL is much faster
-                   than converting the image into a
-                   giant base64 string first.
-                */
-
-                const objectURL =
+                const objectUrl =
                     URL.createObjectURL(
                         file
                     );
@@ -2840,31 +2794,35 @@
 
 
                         /*
-                           IMAGE APPEARS IMMEDIATELY.
+                           THIS FIXES the "image doesn't load"
+                           feeling: show it immediately.
                         */
 
-                        showSourceImage();
+                        showLoadedImage();
+
+
+                        if (previewStatus) {
+
+                            previewStatus.textContent =
+                                "IMAGE LOADED";
+                        }
 
 
                         /*
-                           Generate after the browser
-                           has had a chance to paint
+                           Generate after browser paints
                            the uploaded image.
                         */
 
                         requestAnimationFrame(
                             () => {
 
-                                setTimeout(
-                                    generateRug,
-                                    20
-                                );
+                                generateRug();
                             }
                         );
 
 
                         URL.revokeObjectURL(
-                            objectURL
+                            objectUrl
                         );
                     };
 
@@ -2873,7 +2831,7 @@
                     () => {
 
                         URL.revokeObjectURL(
-                            objectURL
+                            objectUrl
                         );
 
 
@@ -2884,7 +2842,7 @@
 
 
                 img.src =
-                    objectURL;
+                    objectUrl;
             }
         );
     }
@@ -2909,14 +2867,13 @@
                 );
 
 
-                removeBackground?.classList.remove(
-                    "active"
-                );
+                removeBackground
+                    ?.classList.remove(
+                        "active"
+                    );
 
 
-                if (sourceImage) {
-                    generateRug();
-                }
+                queueGenerate();
             }
         );
     }
@@ -2937,14 +2894,13 @@
                 );
 
 
-                keepBackground?.classList.remove(
-                    "active"
-                );
+                keepBackground
+                    ?.classList.remove(
+                        "active"
+                    );
 
 
-                if (sourceImage) {
-                    generateRug();
-                }
+                queueGenerate();
             }
         );
     }
@@ -2981,10 +2937,11 @@
                     .querySelectorAll(
                         "button"
                     )
-                    .forEach(item =>
-                        item.classList.remove(
-                            "active"
-                        )
+                    .forEach(
+                        item =>
+                            item.classList.remove(
+                                "active"
+                            )
                     );
 
 
@@ -2993,7 +2950,8 @@
                 );
 
 
-                customPalette = [];
+                customPalette =
+                    [];
 
 
                 if (sourceImage) {
@@ -3045,17 +3003,14 @@
         }
 
 
-        if (heightInput) {
-
-            heightInput.value =
-                Math.max(
-                    1,
-                    Math.round(
-                        width /
-                        originalRatio
-                    )
-                );
-        }
+        heightInput.value =
+            Math.max(
+                1,
+                Math.round(
+                    width /
+                    originalRatio
+                )
+            );
     }
 
 
@@ -3067,10 +3022,7 @@
 
                 updateHeightFromWidth();
 
-
-                if (sourceImage) {
-                    generateRug();
-                }
+                queueGenerate();
             }
         );
     }
@@ -3082,13 +3034,7 @@
             "input",
             () => {
 
-                if (
-                    sourceImage &&
-                    !lockRatio?.checked
-                ) {
-
-                    generateRug();
-                }
+                queueGenerate();
             }
         );
     }
@@ -3108,16 +3054,14 @@
                 }
 
 
-                if (sourceImage) {
-                    generateRug();
-                }
+                queueGenerate();
             }
         );
     }
 
 
     /* =========================================================
-       BRIGHTNESS / CONTRAST
+       CONTRAST / BRIGHTNESS
        ========================================================= */
 
     if (contrastInput) {
@@ -3133,9 +3077,7 @@
                 }
 
 
-                if (sourceImage) {
-                    generateRug();
-                }
+                queueGenerate();
             }
         );
     }
@@ -3154,77 +3096,46 @@
                 }
 
 
-                if (sourceImage) {
-                    generateRug();
-                }
+                queueGenerate();
             }
         );
     }
 
 
     /* =========================================================
-       STATS
+       GENERATION QUEUE
        ========================================================= */
 
-    function updateStats() {
+    function queueGenerate() {
 
-        const width =
-            Number(
-                widthInput?.value
-            ) || 100;
-
-
-        const height =
-            Number(
-                heightInput?.value
-            ) || 75;
-
-
-        const grid =
-            calculatePhysicalGrid();
-
-
-        const colors =
-            customPalette.length ||
-            numberOfColors;
-
-
-        if (statColors) {
-
-            statColors.textContent =
-                colors;
+        if (!sourceImage) {
+            return;
         }
 
 
-        if (statSize) {
-
-            statSize.textContent =
-                `${Math.round(width)} × ${Math.round(height)} CM`;
+        if (renderQueued) {
+            return;
         }
 
 
-        if (statGrid) {
-
-            statGrid.textContent =
-                `${grid.width} × ${grid.height}`;
-        }
+        renderQueued =
+            true;
 
 
-        if (statLoops) {
+        requestAnimationFrame(
+            () => {
 
-            statLoops.textContent =
-                currentDetailData
-                    ? (
-                        currentDetailData.width *
-                        currentDetailData.height
-                    ).toLocaleString()
-                    : "0";
-        }
+                renderQueued =
+                    false;
+
+                generateRug();
+            }
+        );
     }
 
 
     /* =========================================================
-       GENERATE RUG
+       GENERATE
        ========================================================= */
 
     function generateRug() {
@@ -3249,18 +3160,16 @@
 
 
         /*
-           Yield to browser before heavy processing.
-           This prevents uploaded image from appearing
-           frozen/unpainted.
+           Use timeout so UI can paint PROCESSING first.
         */
 
-        requestAnimationFrame(
+        setTimeout(
             () => {
 
                 try {
 
                     const processed =
-                        processImage();
+                        processSourceImage();
 
 
                     if (!processed) {
@@ -3268,30 +3177,8 @@
                     }
 
 
-                    applyBackgroundRemoval(
-                        processed.imageData
-                    );
-
-
-                    const tempCtx =
-                        processed.canvas.getContext(
-                            "2d",
-                            {
-                                willReadFrequently: true
-                            }
-                        );
-
-
-                    tempCtx.putImageData(
-                        processed.imageData,
-                        0,
-                        0
-                    );
-
-
                     /*
-                       Generate palette only when
-                       user hasn't manually edited it.
+                       Palette.
                     */
 
                     if (
@@ -3311,10 +3198,23 @@
                     }
 
 
+                    const palette =
+                        customPalette.length
+                            ? customPalette
+                            : generatedPalette;
+
+
                     /*
                        DETAIL GRID.
 
-                       This is purely visual.
+                       Example:
+                       DETAIL = 80
+                       SIZE = 100 × 100
+
+                       => detail image roughly 80 × 80
+
+                       But physical grid remains:
+                       20 × 20
                     */
 
                     const detailGrid =
@@ -3322,47 +3222,51 @@
 
 
                     const detailData =
-                        createDetailImage(
+                        createDetailMap(
                             processed,
-                            detailGrid
+                            detailGrid,
+                            palette
                         );
+
+
+                    currentDetailData = {
+                        width:
+                            detailGrid.width,
+
+                        height:
+                            detailGrid.height,
+
+                        data:
+                            detailData
+                    };
 
 
                     /*
                        PHYSICAL GRID.
 
-                       Completely independent.
+                       100 × 100:
+                       20 × 20
+
+                       100 × 75:
+                       20 × 15
+
+                       ALWAYS 5 CM.
                     */
 
                     currentGrid =
                         calculatePhysicalGrid();
 
 
-                    currentDetailData =
-                        detailGrid;
-
-
-                    currentGridData =
-                        detailData;
-
-
                     /*
                        Render.
                     */
 
-                    drawCurrentPreview();
-
-
-                    renderGridLabels(
-                        currentGrid
-                    );
+                    renderPreview();
 
 
                     renderColorLegend(
                         detailData,
-                        customPalette.length
-                            ? customPalette
-                            : generatedPalette
+                        palette
                     );
 
 
@@ -3388,7 +3292,7 @@
                 } catch (error) {
 
                     console.error(
-                        "Rug generation error:",
+                        "DOCH rug generation error:",
                         error
                     );
 
@@ -3404,13 +3308,311 @@
                     isGenerating =
                         false;
                 }
+
+            },
+            10
+        );
+    }
+
+
+    /* =========================================================
+       STATS
+       ========================================================= */
+
+    function updateStats() {
+
+        const width =
+            Number(
+                widthInput?.value
+            ) || 100;
+
+
+        const height =
+            Number(
+                heightInput?.value
+            ) || 75;
+
+
+        if (statColors) {
+
+            statColors.textContent =
+                customPalette.length ||
+                numberOfColors;
+        }
+
+
+        if (statSize) {
+
+            statSize.textContent =
+                `${width} × ${height} CM`;
+        }
+
+
+        if (
+            statGrid &&
+            currentGrid
+        ) {
+
+            statGrid.textContent =
+                `${currentGrid.width} × ${currentGrid.height}`;
+        }
+
+
+        if (
+            statLoops &&
+            currentDetailData
+        ) {
+
+            statLoops.textContent =
+                (
+                    currentDetailData.width *
+                    currentDetailData.height
+                ).toLocaleString();
+        }
+    }
+
+
+    /* =========================================================
+       COLOR LEGEND
+       ========================================================= */
+
+    function renderColorLegend(
+        data,
+        palette
+    ) {
+
+        if (!colorLegend) {
+            return;
+        }
+
+
+        colorLegend.innerHTML =
+            "";
+
+
+        const counts =
+            new Map();
+
+
+        data.forEach(
+            row => {
+
+                row.forEach(
+                    color => {
+
+                        if (!color) {
+                            return;
+                        }
+
+
+                        counts.set(
+                            color,
+                            (
+                                counts.get(
+                                    color
+                                ) || 0
+                            ) + 1
+                        );
+                    }
+                );
+            }
+        );
+
+
+        palette.forEach(
+            (hex, index) => {
+
+                const normalized =
+                    normalizeHex(hex);
+
+
+                const item =
+                    document.createElement(
+                        "div"
+                    );
+
+
+                item.className =
+                    "legend-item";
+
+
+                item.innerHTML = `
+                    <div
+                        class="legend-color"
+                        style="background:${normalized}"
+                    ></div>
+
+                    <div class="legend-main">
+
+                        <span class="legend-label">
+                            COLOR ${index + 1}
+                        </span>
+
+                        <span class="legend-hex">
+                            ${normalized}
+                        </span>
+
+                    </div>
+
+                    <div class="legend-count">
+                        ${
+                            (
+                                counts.get(
+                                    normalized
+                                ) || 0
+                            ).toLocaleString()
+                        } CELLS
+                    </div>
+                `;
+
+
+                colorLegend.appendChild(
+                    item
+                );
             }
         );
     }
 
 
     /* =========================================================
-       EXPORT CONTROLS
+       ZOOM
+       ========================================================= */
+
+    function applyZoom() {
+
+        if (!currentDetailData) {
+            return;
+        }
+
+
+        renderPreview();
+    }
+
+
+    if (zoomIn) {
+
+        zoomIn.addEventListener(
+            "click",
+            () => {
+
+                zoomLevel =
+                    clamp(
+                        zoomLevel +
+                        ZOOM_STEP,
+                        MIN_ZOOM,
+                        MAX_ZOOM
+                    );
+
+
+                applyZoom();
+            }
+        );
+    }
+
+
+    if (zoomOut) {
+
+        zoomOut.addEventListener(
+            "click",
+            () => {
+
+                zoomLevel =
+                    clamp(
+                        zoomLevel -
+                        ZOOM_STEP,
+                        MIN_ZOOM,
+                        MAX_ZOOM
+                    );
+
+
+                applyZoom();
+            }
+        );
+    }
+
+
+    if (zoomReset) {
+
+        zoomReset.addEventListener(
+            "click",
+            () => {
+
+                /*
+                   100% means FIT TO FRAME.
+                */
+
+                zoomLevel =
+                    1;
+
+                applyZoom();
+            }
+        );
+    }
+
+
+    /* =========================================================
+       GENERATE BUTTON
+       ========================================================= */
+
+    if (generateButton) {
+
+        generateButton.addEventListener(
+            "click",
+            () => {
+
+                if (!sourceImage) {
+
+                    imageInput?.click();
+
+                    return;
+                }
+
+
+                generateRug();
+            }
+        );
+    }
+
+
+    /* =========================================================
+       RESIZE
+       ========================================================= */
+
+    window.addEventListener(
+        "resize",
+        () => {
+
+            clearTimeout(
+                resizeTimer
+            );
+
+
+            resizeTimer =
+                setTimeout(
+                    () => {
+
+                        if (
+                            currentDetailData
+                        ) {
+
+                            renderPreview();
+
+                        } else if (
+                            sourceImage
+                        ) {
+
+                            showLoadedImage();
+                        }
+
+                    },
+                    100
+                );
+        }
+    );
+
+
+    /* =========================================================
+       EXPORT
        ========================================================= */
 
     function createExportControls() {
@@ -3504,7 +3706,6 @@
             downloadButton
         );
 
-
         container.appendChild(
             projectorButton
         );
@@ -3533,7 +3734,6 @@
 
         if (
             !currentDetailData ||
-            !currentGridData ||
             !currentGrid
         ) {
 
@@ -3543,22 +3743,6 @@
 
             return;
         }
-
-
-        const CELL =
-            40;
-
-
-        const LABEL =
-            55;
-
-
-        const HEADER =
-            90;
-
-
-        const LEGEND =
-            150;
 
 
         const width =
@@ -3577,9 +3761,22 @@
             );
 
 
-        const colors =
-            customPalette.length ||
-            numberOfColors;
+        /*
+           Export detail resolution is intentionally
+           independent from physical grid resolution.
+        */
+
+        const CELL =
+            20;
+
+        const LABEL =
+            55;
+
+        const HEADER =
+            90;
+
+        const LEGEND =
+            150;
 
 
         const imageWidth =
@@ -3604,34 +3801,29 @@
             LEGEND;
 
 
-        const exportCanvas =
+        const out =
             document.createElement(
                 "canvas"
             );
 
 
-        exportCanvas.width =
+        out.width =
             exportWidth;
 
-        exportCanvas.height =
+        out.height =
             exportHeight;
 
 
-        const exportCtx =
-            exportCanvas.getContext(
+        const ctx =
+            out.getContext(
                 "2d"
             );
 
 
-        exportCtx.imageSmoothingEnabled =
-            true;
-
-
-        exportCtx.fillStyle =
+        ctx.fillStyle =
             "#11110f";
 
-
-        exportCtx.fillRect(
+        ctx.fillRect(
             0,
             0,
             exportWidth,
@@ -3640,48 +3832,49 @@
 
 
         /*
-           HEADER
+           Header.
         */
 
-        exportCtx.fillStyle =
+        ctx.fillStyle =
             "#f2f0ea";
 
-        exportCtx.font =
+        ctx.font =
             "bold 22px Arial";
 
-
-        exportCtx.fillText(
+        ctx.fillText(
             "DOCH / RUG GRID",
             25,
             32
         );
 
 
-        exportCtx.fillStyle =
+        ctx.fillStyle =
             "#77746d";
 
-        exportCtx.font =
+        ctx.font =
             "12px Arial";
 
-
-        exportCtx.fillText(
-            `${width} × ${height} CM · ${currentGrid.width} × ${currentGrid.height} GRID · ${GRID_CELL_CM} CM CELL · ${colors} COLORS · DETAIL ${detailLevel} · SHAPE ${pixelRoundness}`,
+        ctx.fillText(
+            `${width} × ${height} CM · ${currentGrid.width} × ${currentGrid.height} GRID · ${GRID_CELL_CM} CM CELL · ${numberOfColors} COLORS · DETAIL ${detailLevel} · SHAPE ${pixelRoundness}`,
             25,
             58
         );
 
 
-        const gridX =
+        const imageX =
             LABEL;
 
-
-        const gridY =
+        const imageY =
             HEADER;
 
 
         /*
-           DETAIL IMAGE
+           Draw detail cells.
         */
+
+        const data =
+            currentDetailData.data;
+
 
         for (
             let y = 0;
@@ -3695,20 +3888,15 @@
                 x++
             ) {
 
-                drawRoundedCell(
-                    exportCtx,
-
-                    gridX +
-                    x *
-                    CELL,
-
-                    gridY +
-                    y *
-                    CELL,
-
+                drawCell(
+                    ctx,
+                    imageX +
+                        x * CELL,
+                    imageY +
+                        y * CELL,
                     CELL,
                     CELL,
-
+                    data[y][x],
                     pixelRoundness
                 );
             }
@@ -3716,24 +3904,22 @@
 
 
         /*
-           PHYSICAL 5 × 5 CM GRID
+           Physical grid.
         */
 
         const physicalCellWidth =
             imageWidth /
             currentGrid.width;
 
-
         const physicalCellHeight =
             imageHeight /
             currentGrid.height;
 
 
-        exportCtx.strokeStyle =
-            "rgba(255,255,255,.32)";
+        ctx.strokeStyle =
+            "rgba(255,255,255,.35)";
 
-
-        exportCtx.lineWidth =
+        ctx.lineWidth =
             1;
 
 
@@ -3744,29 +3930,26 @@
         ) {
 
             const px =
-                gridX +
+                imageX +
                 x *
                 physicalCellWidth +
                 0.5;
 
 
-            exportCtx.beginPath();
+            ctx.beginPath();
 
-
-            exportCtx.moveTo(
+            ctx.moveTo(
                 px,
-                gridY
+                imageY
             );
 
-
-            exportCtx.lineTo(
+            ctx.lineTo(
                 px,
-                gridY +
+                imageY +
                 imageHeight
             );
 
-
-            exportCtx.stroke();
+            ctx.stroke();
         }
 
 
@@ -3777,65 +3960,58 @@
         ) {
 
             const py =
-                gridY +
+                imageY +
                 y *
                 physicalCellHeight +
                 0.5;
 
 
-            exportCtx.beginPath();
+            ctx.beginPath();
 
-
-            exportCtx.moveTo(
-                gridX,
+            ctx.moveTo(
+                imageX,
                 py
             );
 
-
-            exportCtx.lineTo(
-                gridX +
+            ctx.lineTo(
+                imageX +
                 imageWidth,
                 py
             );
 
-
-            exportCtx.stroke();
+            ctx.stroke();
         }
 
 
         /*
-           BORDER
+           Border.
         */
 
-        exportCtx.strokeStyle =
+        ctx.strokeStyle =
             "#f2f0ea";
 
-
-        exportCtx.lineWidth =
+        ctx.lineWidth =
             2;
 
-
-        exportCtx.strokeRect(
-            gridX,
-            gridY,
+        ctx.strokeRect(
+            imageX,
+            imageY,
             imageWidth,
             imageHeight
         );
 
 
         /*
-           TOP LABELS
+           Top letters.
         */
 
-        exportCtx.fillStyle =
+        ctx.fillStyle =
             "#aaa79f";
 
-
-        exportCtx.font =
+        ctx.font =
             "10px Arial";
 
-
-        exportCtx.textAlign =
+        ctx.textAlign =
             "center";
 
 
@@ -3846,25 +4022,25 @@
         ) {
 
             const center =
-                gridX +
+                imageX +
                 x *
                 physicalCellWidth +
                 physicalCellWidth / 2;
 
 
-            exportCtx.fillText(
+            ctx.fillText(
                 columnLabel(x),
                 center,
-                gridY - 10
+                imageY - 10
             );
         }
 
 
         /*
-           LEFT LABELS
+           Left numbers.
         */
 
-        exportCtx.textAlign =
+        ctx.textAlign =
             "right";
 
 
@@ -3875,43 +4051,40 @@
         ) {
 
             const center =
-                gridY +
+                imageY +
                 y *
                 physicalCellHeight +
                 physicalCellHeight / 2;
 
 
-            exportCtx.fillText(
+            ctx.fillText(
                 String(y + 1),
-                gridX - 8,
+                imageX - 8,
                 center + 3
             );
         }
 
 
         /*
-           LEGEND
+           Legend.
         */
 
         const legendY =
-            gridY +
+            imageY +
             imageHeight +
             30;
 
 
-        exportCtx.textAlign =
+        ctx.textAlign =
             "left";
 
-
-        exportCtx.fillStyle =
+        ctx.fillStyle =
             "#f2f0ea";
 
-
-        exportCtx.font =
+        ctx.font =
             "bold 12px Arial";
 
-
-        exportCtx.fillText(
+        ctx.fillText(
             "COLOR LEGEND",
             25,
             legendY
@@ -3922,24 +4095,29 @@
             new Map();
 
 
-        currentGridData.forEach(row => {
+        data.forEach(
+            row => {
 
-            row.forEach(color => {
+                row.forEach(
+                    color => {
 
-                if (!color) {
-                    return;
-                }
+                        if (!color) {
+                            return;
+                        }
 
 
-                counts.set(
-                    color,
-                    (
-                        counts.get(color) ||
-                        0
-                    ) + 1
+                        counts.set(
+                            color,
+                            (
+                                counts.get(
+                                    color
+                                ) || 0
+                            ) + 1
+                        );
+                    }
                 );
-            });
-        });
+            }
+        );
 
 
         const palette =
@@ -3970,11 +4148,11 @@
                     30;
 
 
-                exportCtx.fillStyle =
+                ctx.fillStyle =
                     normalized;
 
 
-                exportCtx.fillRect(
+                ctx.fillRect(
                     itemX,
                     itemY - 11,
                     18,
@@ -3982,11 +4160,10 @@
                 );
 
 
-                exportCtx.strokeStyle =
+                ctx.strokeStyle =
                     "#77746d";
 
-
-                exportCtx.strokeRect(
+                ctx.strokeRect(
                     itemX,
                     itemY - 11,
                     18,
@@ -3994,26 +4171,25 @@
                 );
 
 
-                exportCtx.fillStyle =
+                ctx.fillStyle =
                     "#f2f0ea";
 
-
-                exportCtx.font =
+                ctx.font =
                     "11px Arial";
 
 
-                exportCtx.fillText(
+                ctx.fillText(
                     `COLOR ${index + 1}`,
                     itemX + 27,
                     itemY
                 );
 
 
-                exportCtx.fillStyle =
+                ctx.fillStyle =
                     "#77746d";
 
 
-                exportCtx.fillText(
+                ctx.fillText(
                     `${normalized} · ${(counts.get(normalized) || 0).toLocaleString()}`,
                     itemX + 27,
                     itemY + 14
@@ -4029,11 +4205,11 @@
 
 
         link.download =
-            `doch-rug-${width}x${height}cm-${currentGrid.width}x${currentGrid.height}-grid-detail-${detailLevel}-shape-${pixelRoundness}.png`;
+            `doch-rug-${width}x${height}cm-${currentGrid.width}x${currentGrid.height}-detail-${detailLevel}-shape-${pixelRoundness}.png`;
 
 
         link.href =
-            exportCanvas.toDataURL(
+            out.toDataURL(
                 "image/png"
             );
 
@@ -4049,7 +4225,7 @@
     function openProjectorMode() {
 
         if (
-            !currentGridData ||
+            !currentDetailData ||
             !currentGrid
         ) {
 
@@ -4081,19 +4257,15 @@
 
 
         const width =
-            Math.round(
-                Number(
-                    widthInput?.value
-                ) || 100
-            );
+            Number(
+                widthInput?.value
+            ) || 100;
 
 
         const height =
-            Math.round(
-                Number(
-                    heightInput?.value
-                ) || 75
-            );
+            Number(
+                heightInput?.value
+            ) || 75;
 
 
         const ratio =
@@ -4108,8 +4280,8 @@
 
         workspace.style.cssText = `
             position:relative;
-            width:min(90vw,80vh * ${ratio});
-            height:min(80vh,90vw / ${ratio});
+            width:min(90vw, 82vh * ${ratio});
+            aspect-ratio:${ratio};
         `;
 
 
@@ -4119,18 +4291,21 @@
             );
 
 
-        const INTERNAL_CELL =
-            12;
+        const renderWidth =
+            1200;
+
+        const renderHeight =
+            Math.round(
+                renderWidth /
+                ratio
+            );
 
 
         projectorCanvas.width =
-            currentDetailData.width *
-            INTERNAL_CELL;
-
+            renderWidth;
 
         projectorCanvas.height =
-            currentDetailData.height *
-            INTERNAL_CELL;
+            renderHeight;
 
 
         projectorCanvas.style.cssText = `
@@ -4141,44 +4316,157 @@
         `;
 
 
-        const projectorCtx =
+        const ctx =
             projectorCanvas.getContext(
                 "2d"
             );
 
 
-        projectorCtx.imageSmoothingEnabled =
-            true;
+        ctx.fillStyle =
+            "#11110f";
+
+        ctx.fillRect(
+            0,
+            0,
+            renderWidth,
+            renderHeight
+        );
+
+
+        /*
+           Detail map into physical rug rectangle.
+        */
+
+        const detailWidth =
+            currentDetailData.width;
+
+        const detailHeight =
+            currentDetailData.height;
+
+
+        const cellWidth =
+            renderWidth /
+            detailWidth;
+
+        const cellHeight =
+            renderHeight /
+            detailHeight;
 
 
         for (
             let y = 0;
-            y < currentDetailData.height;
+            y < detailHeight;
             y++
         ) {
 
             for (
                 let x = 0;
-                x < currentDetailData.width;
+                x < detailWidth;
                 x++
             ) {
 
-                drawRoundedCell(
-                    projectorCtx,
-
-                    x *
-                    INTERNAL_CELL,
-
-                    y *
-                    INTERNAL_CELL,
-
-                    INTERNAL_CELL,
-                    INTERNAL_CELL,
-
+                drawCell(
+                    ctx,
+                    x * cellWidth,
+                    y * cellHeight,
+                    cellWidth,
+                    cellHeight,
+                    currentDetailData.data[y][x],
                     pixelRoundness
                 );
             }
         }
+
+
+        /*
+           Physical 5 cm grid.
+        */
+
+        const gridCellWidth =
+            renderWidth /
+            currentGrid.width;
+
+        const gridCellHeight =
+            renderHeight /
+            currentGrid.height;
+
+
+        ctx.strokeStyle =
+            "rgba(255,255,255,.35)";
+
+        ctx.lineWidth =
+            1;
+
+
+        for (
+            let x = 1;
+            x < currentGrid.width;
+            x++
+        ) {
+
+            const px =
+                x *
+                gridCellWidth +
+                0.5;
+
+
+            ctx.beginPath();
+
+            ctx.moveTo(
+                px,
+                0
+            );
+
+            ctx.lineTo(
+                px,
+                renderHeight
+            );
+
+            ctx.stroke();
+        }
+
+
+        for (
+            let y = 1;
+            y < currentGrid.height;
+            y++
+        ) {
+
+            const py =
+                y *
+                gridCellHeight +
+                0.5;
+
+
+            ctx.beginPath();
+
+            ctx.moveTo(
+                0,
+                py
+            );
+
+            ctx.lineTo(
+                renderWidth,
+                py
+            );
+
+            ctx.stroke();
+        }
+
+
+        ctx.strokeStyle =
+            "rgba(255,255,255,.8)";
+
+        ctx.lineWidth =
+            2;
+
+
+        ctx.strokeRect(
+            1,
+            1,
+            renderWidth - 2,
+            renderHeight - 2
+        );
 
 
         workspace.appendChild(
@@ -4186,43 +4474,14 @@
         );
 
 
-        /*
-           Physical grid.
-        */
-
-        const gridOverlay =
-            document.createElement(
-                "div"
-            );
-
-
-        gridOverlay.style.cssText = `
-            position:absolute;
-            inset:0;
-            pointer-events:none;
-            background-image:
-                linear-gradient(
-                    to right,
-                    rgba(255,255,255,.28) 1px,
-                    transparent 1px
-                ),
-                linear-gradient(
-                    to bottom,
-                    rgba(255,255,255,.28) 1px,
-                    transparent 1px
-                );
-            background-size:
-                ${100 / currentGrid.width}%
-                ${100 / currentGrid.height}%;
-            border:2px solid rgba(255,255,255,.8);
-            box-sizing:border-box;
-        `;
-
-
-        workspace.appendChild(
-            gridOverlay
+        overlay.appendChild(
+            workspace
         );
 
+
+        /*
+           Info.
+        */
 
         const info =
             document.createElement(
@@ -4256,20 +4515,22 @@
 
 
         overlay.appendChild(
-            workspace
-        );
-
-
-        overlay.appendChild(
             info
         );
 
+
+        /*
+           Close.
+        */
 
         const close =
             document.createElement(
                 "button"
             );
 
+
+        close.type =
+            "button";
 
         close.textContent =
             "EXIT PROJECTOR";
@@ -4298,7 +4559,9 @@
 
                     document
                         .exitFullscreen()
-                        .catch(() => {});
+                        .catch(
+                            () => {}
+                        );
                 }
 
 
@@ -4322,171 +4585,21 @@
 
             overlay
                 .requestFullscreen()
-                .catch(() => {});
+                .catch(
+                    () => {}
+                );
         }
     }
 
 
     /* =========================================================
-       ZOOM
-       ========================================================= */
-
-    function applyZoom() {
-
-        /*
-           Zoom never changes workspace dimensions.
-           It only changes the visual size while
-           staying inside the frame.
-        */
-
-        fitCanvasToWorkspace();
-    }
-
-
-    if (zoomIn) {
-
-        zoomIn.addEventListener(
-            "click",
-            () => {
-
-                zoomLevel =
-                    clamp(
-                        zoomLevel +
-                        ZOOM_STEP,
-                        MIN_ZOOM,
-                        MAX_ZOOM
-                    );
-
-
-                applyZoom();
-            }
-        );
-    }
-
-
-    if (zoomOut) {
-
-        zoomOut.addEventListener(
-            "click",
-            () => {
-
-                zoomLevel =
-                    clamp(
-                        zoomLevel -
-                        ZOOM_STEP,
-                        MIN_ZOOM,
-                        MAX_ZOOM
-                    );
-
-
-                applyZoom();
-            }
-        );
-    }
-
-
-    if (zoomReset) {
-
-        zoomReset.addEventListener(
-            "click",
-            () => {
-
-                zoomLevel = 1;
-
-                applyZoom();
-            }
-        );
-    }
-
-
-    /* =========================================================
-       GENERATE BUTTON
-       ========================================================= */
-
-    if (generateButton) {
-
-        generateButton.addEventListener(
-            "click",
-            () => {
-
-                if (!sourceImage) {
-
-                    imageInput?.click();
-
-                    return;
-                }
-
-
-                generateRug();
-            }
-        );
-    }
-
-
-    /* =========================================================
-       RESIZE OBSERVER
-       ========================================================= */
-
-    if (
-        typeof ResizeObserver !==
-        "undefined" &&
-        rugCanvasWrap
-    ) {
-
-        previewResizeObserver =
-            new ResizeObserver(
-                () => {
-
-                    if (
-                        currentDetailData
-                    ) {
-
-                        fitCanvasToWorkspace();
-                    }
-                }
-            );
-
-
-        previewResizeObserver.observe(
-            rugCanvasWrap
-        );
-    }
-
-
-    window.addEventListener(
-        "resize",
-        () => {
-
-            if (
-                currentDetailData
-            ) {
-
-                fitCanvasToWorkspace();
-            }
-        }
-    );
-
-
-    /* =========================================================
-       INITIAL STATE
+       INITIALIZATION
        ========================================================= */
 
     setupWorkspace();
 
 
-    /*
-       ORDER:
-
-       COLORS / PALETTE
-              ↓
-       PIXEL SHAPE
-              ↓
-       DETAIL
-    */
-
-    createShapeControl();
-
-    createDetailControl();
+    createExtraControls();
 
 
     generatedPalette =
@@ -4499,18 +4612,6 @@
     renderPalette(
         generatedPalette
     );
-
-
-    updateShapeValue();
-
-
-    if (
-        detailValue
-    ) {
-
-        detailValue.textContent =
-            String(detailLevel);
-    }
 
 
     if (
@@ -4533,6 +4634,47 @@
     }
 
 
+    /*
+       Initial physical grid.
+    */
+
+    currentGrid =
+        calculatePhysicalGrid();
+
+
     updateStats();
+
+
+    /*
+       Make sure labels don't accidentally create
+       a scrollable workspace.
+    */
+
+    if (rugCanvasWrap) {
+
+        rugCanvasWrap.scrollLeft =
+            0;
+
+        rugCanvasWrap.scrollTop =
+            0;
+    }
+
+
+    /*
+       First resize pass.
+    */
+
+    requestAnimationFrame(
+        () => {
+
+            if (
+                sourceImage
+            ) {
+
+                showLoadedImage();
+
+            }
+        }
+    );
 
 })();
