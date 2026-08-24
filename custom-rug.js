@@ -15,10 +15,6 @@
    - does NOT change physical grid
    - does NOT enlarge the frame
 
-   PIXEL SHAPE
-   - 0   = square
-   - 100 = rounded
-
    PREVIEW
    - entire rug fits inside preview automatically
    - no mandatory scrolling
