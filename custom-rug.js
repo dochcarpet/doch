@@ -936,25 +936,20 @@ function getAvailableFrame() {
         if (frame.width <= 5 || frame.height <= 5) return;
 
         const visualWidth = width * zoomLevel;
-        const visualHeight = height * zoomLevel;
-
-        const left = Math.max(
+         const visualHeight = height * zoomLevel;
+         
+         const left = Math.max(
              0,
              (frame.width - visualWidth) / 2
          );
          
          const top = Math.max(
              0,
-             (frame.height - visualHeight) / 2
+             (frame.height === visualHeight
+                 ? 0
+                 : (frame.height - visualHeight) / 2) +
+             (frame.frameOffsetY || 0)
          );
-
-        const top = Math.max(
-            0,
-            (frame.height === visualHeight
-                ? 0
-                : (frame.height - visualHeight) / 2) +
-            (frame.frameOffsetY || 0)
-        );
 
         const dpr = Math.min(
             window.devicePixelRatio || 1,
