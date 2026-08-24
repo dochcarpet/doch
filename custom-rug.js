@@ -172,7 +172,7 @@
 
     let detailLevel = DEFAULT_DETAIL;
 
-    let pixelRoundness = 0;
+    let colorSmoothing = 0;
 
     let currentDetailData = null;
 
@@ -417,8 +417,8 @@
         */
 
         document
-            .getElementById("rugShapeControl")
-            ?.remove();
+             .getElementById("rugSmoothingControl")
+             ?.remove();
 
         document
             .getElementById("rugDetailControl")
@@ -430,25 +430,25 @@
         }
 
 
-        /*
+              /*
            -----------------------------------------------------
-           PIXEL SHAPE
+           COLOR SMOOTHING
            -----------------------------------------------------
         */
 
-        const shapeBlock =
+        const smoothingBlock =
             document.createElement("div");
 
-        shapeBlock.id =
-            "rugShapeControl";
+        smoothingBlock.id =
+            "rugSmoothingControl";
 
-        shapeBlock.className =
+        smoothingBlock.className =
             "control-section";
 
-        shapeBlock.innerHTML = `
+        smoothingBlock.innerHTML = `
             <div class="section-label">
                 <span>04A</span>
-                PIXEL SHAPE
+                COLOR SMOOTHING
             </div>
 
             <div style="
@@ -459,16 +459,16 @@
             ">
 
                 <input
-                    id="rugShapeInput"
+                    id="rugSmoothingInput"
                     type="range"
                     min="0"
                     max="100"
-                    value="${pixelRoundness}"
+                    value="${colorSmoothing}"
                     step="1"
                 >
 
                 <output
-                    id="rugShapeValue"
+                    id="rugSmoothingValue"
                     style="
                         min-width:90px;
                         text-align:right;
@@ -476,7 +476,7 @@
                         font-size:10px;
                     "
                 >
-                    SQUARE
+                    NONE
                 </output>
             </div>
 
@@ -488,9 +488,14 @@
                 font-size:8px;
                 opacity:.5;
             ">
-                <span>SQUARE</span>
-                <span>ROUNDED</span>
+                <span>NONE</span>
+                <span>STRONG</span>
             </div>
+
+            <p class="control-note">
+                Merges nearby colors and removes small
+                color noise. Pixel shape stays square.
+            </p>
         `;
 
 
@@ -508,48 +513,101 @@
         if (paletteSection) {
 
             paletteSection.after(
-                shapeBlock
+                smoothingBlock
             );
 
         } else {
 
             paletteElement.after(
-                shapeBlock
+                smoothingBlock
             );
         }
 
 
-        const shapeInput =
+        const smoothingInput =
             document.getElementById(
-                "rugShapeInput"
+                "rugSmoothingInput"
             );
 
-        const shapeValue =
+        const smoothingValue =
             document.getElementById(
-                "rugShapeValue"
+                "rugSmoothingValue"
             );
 
 
-        styleSlider(shapeInput);
+        styleSlider(
+            smoothingInput
+        );
 
 
-        shapeInput.addEventListener(
+        function updateSmoothingLabel() {
+
+            if (colorSmoothing <= 5) {
+
+                smoothingValue.textContent =
+                    "NONE";
+
+            } else if (
+                colorSmoothing < 30
+            ) {
+
+                smoothingValue.textContent =
+                    "LIGHT";
+
+            } else if (
+                colorSmoothing < 60
+            ) {
+
+                smoothingValue.textContent =
+                    "MEDIUM";
+
+            } else if (
+                colorSmoothing < 85
+            ) {
+
+                smoothingValue.textContent =
+                    "STRONG";
+
+            } else {
+
+                smoothingValue.textContent =
+                    "MAXIMUM";
+            }
+        }
+
+
+        updateSmoothingLabel();
+
+
+        smoothingInput.addEventListener(
             "input",
             () => {
 
-                pixelRoundness =
-                    Number(
-                        shapeInput.value
-                    ) || 0;
+                colorSmoothing =
+                    clamp(
+                        Number(
+                            smoothingInput.value
+                        ) || 0,
+                        0,
+                        100
+                    );
 
-                updateShapeLabel(
-                    shapeValue
-                );
+                updateSmoothingLabel();
 
-                renderPreview();
+                if (
+                    currentDetailData
+                ) {
+
+                    currentDetailData.data =
+                        smoothColorMap(
+                            currentDetailData.data,
+                            colorSmoothing
+                        );
+
+                    renderPreview();
+                }
             }
         );
-
 
         /*
            -----------------------------------------------------
@@ -620,9 +678,9 @@
         `;
 
 
-        shapeBlock.after(
-            detailBlock
-        );
+        smoothingBlock.after(
+                detailBlock
+            );
 
 
         const detailInput =
@@ -1665,6 +1723,648 @@
 
 
         return output;
+    }
+
+       /* =========================================================
+       COLOR SMOOTHING
+       =========================================================
+
+       Merges small areas of visually similar colors.
+
+       IMPORTANT:
+       - Does NOT blur the image.
+       - Does NOT change pixel shape.
+       - Does NOT change physical grid.
+       - Works only on the generated color map.
+       ========================================================= */
+
+    function smoothColorMap(
+        map,
+        amount
+    ) {
+
+        if (
+            !map ||
+            !map.length ||
+            amount <= 0
+        ) {
+            return map;
+        }
+
+
+        const height =
+            map.length;
+
+        const width =
+            map[0]?.length || 0;
+
+
+        if (
+            width === 0 ||
+            height === 0
+        ) {
+            return map;
+        }
+
+
+        /*
+           Convert 0–100 slider into
+           a useful color-distance threshold.
+
+           Maximum distance is roughly 255.
+           We intentionally keep this conservative
+           so strong color boundaries survive.
+        */
+
+        const colorThreshold =
+            8 +
+            (amount / 100) * 52;
+
+
+        /*
+           Number of smoothing passes.
+
+           Low amount:
+             one pass
+
+           High amount:
+             several passes
+
+           This lets larger regions gradually
+           absorb tiny neighboring regions.
+        */
+
+        const passes =
+            Math.max(
+                1,
+                Math.round(
+                    1 +
+                    amount / 25
+                )
+            );
+
+
+        let result =
+            map.map(row =>
+                row.slice()
+            );
+
+
+        for (
+            let pass = 0;
+            pass < passes;
+            pass++
+        ) {
+
+            const next =
+                result.map(row =>
+                    row.slice()
+                );
+
+
+            for (
+                let y = 0;
+                y < height;
+                y++
+            ) {
+
+                for (
+                    let x = 0;
+                    x < width;
+                    x++
+                ) {
+
+                    const current =
+                        result[y][x];
+
+
+                    if (!current) {
+                        continue;
+                    }
+
+
+                    const currentRgb =
+                        hexToRgb(
+                            current
+                        );
+
+
+                    /*
+                       Count neighboring colors.
+
+                       We use 4-way neighbors first.
+                       This avoids diagonal bleeding
+                       across sharp corners.
+                    */
+
+                    const neighbors = [];
+
+
+                    if (x > 0) {
+
+                        neighbors.push(
+                            result[y][x - 1]
+                        );
+                    }
+
+
+                    if (x < width - 1) {
+
+                        neighbors.push(
+                            result[y][x + 1]
+                        );
+                    }
+
+
+                    if (y > 0) {
+
+                        neighbors.push(
+                            result[y - 1][x]
+                        );
+                    }
+
+
+                    if (y < height - 1) {
+
+                        neighbors.push(
+                            result[y + 1][x]
+                        );
+                    }
+
+
+                    /*
+                       Count how often each neighboring
+                       color occurs.
+                    */
+
+                    const counts =
+                        new Map();
+
+
+                    for (
+                        const color
+                        of neighbors
+                    ) {
+
+                        if (!color) {
+                            continue;
+                        }
+
+                        counts.set(
+                            color,
+                            (
+                                counts.get(
+                                    color
+                                ) || 0
+                            ) + 1
+                        );
+                    }
+
+
+                    /*
+                       Find the dominant neighboring
+                       color that is sufficiently close.
+                    */
+
+                    let bestColor =
+                        null;
+
+                    let bestCount =
+                        0;
+
+
+                    for (
+                        const [
+                            color,
+                            count
+                        ]
+                        of counts
+                    ) {
+
+                        if (
+                            color === current
+                        ) {
+                            continue;
+                        }
+
+
+                        const distance =
+                            colorDistance(
+                                currentRgb,
+                                hexToRgb(
+                                    color
+                                )
+                            );
+
+
+                        if (
+                            distance >
+                            colorThreshold
+                        ) {
+                            continue;
+                        }
+
+
+                        if (
+                            count >
+                            bestCount
+                        ) {
+
+                            bestCount =
+                                count;
+
+                            bestColor =
+                                color;
+                        }
+                    }
+
+
+                    /*
+                       Do not allow a single neighbor
+                       to immediately destroy a region.
+
+                       At stronger smoothing levels,
+                       one neighbor can be enough.
+                    */
+
+                    const requiredNeighbors =
+                        amount < 25
+                            ? 3
+                            : amount < 60
+                                ? 2
+                                : 1;
+
+
+                    if (
+                        bestColor &&
+                        bestCount >=
+                        requiredNeighbors
+                    ) {
+
+                        next[y][x] =
+                            bestColor;
+                    }
+                }
+            }
+
+
+            result =
+                next;
+        }
+
+
+        /*
+           Second stage:
+           remove tiny isolated islands.
+
+           Example:
+
+           A A A A
+           A B A A
+           A A A A
+
+           If B is close enough to A,
+           it disappears.
+        */
+
+        if (
+            amount >= 20
+        ) {
+
+            result =
+                removeSmallColorIslands(
+                    result,
+                    colorThreshold,
+                    amount
+                );
+        }
+
+
+        return result;
+    }
+
+
+    /* =========================================================
+       REMOVE SMALL COLOR ISLANDS
+       ========================================================= */
+
+    function removeSmallColorIslands(
+        map,
+        colorThreshold,
+        amount
+    ) {
+
+        const height =
+            map.length;
+
+        const width =
+            map[0]?.length || 0;
+
+
+        if (
+            width === 0 ||
+            height === 0
+        ) {
+            return map;
+        }
+
+
+        const result =
+            map.map(row =>
+                row.slice()
+            );
+
+
+        /*
+           Maximum island size that can be
+           swallowed by smoothing.
+
+           Stronger smoothing removes larger
+           little fragments.
+        */
+
+        const maxIslandSize =
+            Math.round(
+                1 +
+                (amount / 100) * 14
+            );
+
+
+        const visited =
+            Array.from(
+                {
+                    length: height
+                },
+                () =>
+                    Array(
+                        width
+                    ).fill(false)
+            );
+
+
+        function getNeighbors(
+            x,
+            y
+        ) {
+
+            const list = [];
+
+
+            if (x > 0) {
+
+                list.push([
+                    x - 1,
+                    y
+                ]);
+            }
+
+
+            if (x < width - 1) {
+
+                list.push([
+                    x + 1,
+                    y
+                ]);
+            }
+
+
+            if (y > 0) {
+
+                list.push([
+                    x,
+                    y - 1
+                ]);
+            }
+
+
+            if (y < height - 1) {
+
+                list.push([
+                    x,
+                    y + 1
+                ]);
+            }
+
+
+            return list;
+        }
+
+
+        for (
+            let startY = 0;
+            startY < height;
+            startY++
+        ) {
+
+            for (
+                let startX = 0;
+                startX < width;
+                startX++
+            ) {
+
+                if (
+                    visited[startY][startX]
+                ) {
+                    continue;
+                }
+
+
+                const color =
+                    result[startY][startX];
+
+
+                if (!color) {
+
+                    visited[startY][startX] =
+                        true;
+
+                    continue;
+                }
+
+
+                const component = [];
+
+                const queue = [
+                    [
+                        startX,
+                        startY
+                    ]
+                ];
+
+
+                visited[startY][startX] =
+                    true;
+
+
+                while (
+                    queue.length
+                ) {
+
+                    const [
+                        x,
+                        y
+                    ] =
+                        queue.shift();
+
+
+                    component.push([
+                        x,
+                        y
+                    ]);
+
+
+                    if (
+                        component.length >
+                        maxIslandSize
+                    ) {
+                        break;
+                    }
+
+
+                    for (
+                        const [
+                            nx,
+                            ny
+                        ]
+                        of getNeighbors(
+                            x,
+                            y
+                        )
+                    ) {
+
+                        if (
+                            visited[ny][nx]
+                        ) {
+                            continue;
+                        }
+
+
+                        if (
+                            result[ny][nx] !==
+                            color
+                        ) {
+                            continue;
+                        }
+
+
+                        visited[ny][nx] =
+                            true;
+
+
+                        queue.push([
+                            nx,
+                            ny
+                        ]);
+                    }
+                }
+
+
+                /*
+                   Only process genuinely small
+                   isolated components.
+                */
+
+                if (
+                    component.length >
+                    maxIslandSize
+                ) {
+                    continue;
+                }
+
+
+                let replacement =
+                    null;
+
+                let replacementScore =
+                    Infinity;
+
+
+                for (
+                    const [
+                        x,
+                        y
+                    ]
+                    of component
+                ) {
+
+                    for (
+                        const [
+                            nx,
+                            ny
+                        ]
+                        of getNeighbors(
+                            x,
+                            y
+                        )
+                    ) {
+
+                        const neighborColor =
+                            result[ny][nx];
+
+
+                        if (
+                            !neighborColor ||
+                            neighborColor === color
+                        ) {
+                            continue;
+                        }
+
+
+                        const distance =
+                            colorDistance(
+                                hexToRgb(
+                                    color
+                                ),
+                                hexToRgb(
+                                    neighborColor
+                                )
+                            );
+
+
+                        if (
+                            distance >
+                            colorThreshold
+                        ) {
+                            continue;
+                        }
+
+
+                        if (
+                            distance <
+                            replacementScore
+                        ) {
+
+                            replacementScore =
+                                distance;
+
+                            replacement =
+                                neighborColor;
+                        }
+                    }
+                }
+
+
+                if (
+                    replacement
+                ) {
+
+                    for (
+                        const [
+                            x,
+                            y
+                        ]
+                        of component
+                    ) {
+
+                        result[y][x] =
+                            replacement;
+                    }
+                }
+            }
+        }
+
+
+        return result;
     }
 
 
