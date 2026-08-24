@@ -1,9 +1,9 @@
-
 const SUPABASE_URL = "https://kixsnkhmxyytecvvwnse.supabase.co";
 const SUPABASE_KEY = "sb_publishable_NeFuQSbmP2VLBEdDLnIi5Q_5iUyMHNF";
 
 const { createClient } = supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
 
 
 // =====================================================
@@ -38,6 +38,7 @@ const galleryPreview = document.getElementById("gallery-preview");
 const interiorPreview = document.getElementById("interior-preview");
 
 
+
 // =====================================================
 // STATE
 // =====================================================
@@ -48,6 +49,10 @@ let editingProduct = null;
 let coverFile = null;
 let galleryFiles = [];
 let interiorFile = null;
+
+// Existing images that user removes while editing
+let removedImages = [];
+
 
 
 // =====================================================
@@ -70,6 +75,7 @@ async function init() {
 }
 
 
+
 db.auth.onAuthStateChange((_event, session) => {
 
   if (session) {
@@ -83,6 +89,7 @@ db.auth.onAuthStateChange((_event, session) => {
 });
 
 
+
 loginForm.addEventListener("submit", async (event) => {
 
   event.preventDefault();
@@ -93,7 +100,7 @@ loginForm.addEventListener("submit", async (event) => {
   const password =
     document.getElementById("login-password").value;
 
-  showLoginMessage("Logging in...");
+  showLoginMessage("Входим...");
 
   const { error } =
     await db.auth.signInWithPassword({
@@ -111,11 +118,13 @@ loginForm.addEventListener("submit", async (event) => {
 });
 
 
+
 logoutButton.addEventListener("click", async () => {
 
   await db.auth.signOut();
 
 });
+
 
 
 function showLogin() {
@@ -124,6 +133,7 @@ function showLogin() {
   adminScreen.classList.add("hidden");
 
 }
+
 
 
 function showAdmin() {
@@ -140,12 +150,14 @@ function showAdmin() {
 }
 
 
+
 function showLoginMessage(text) {
 
   loginMessage.textContent = text;
   loginMessage.classList.remove("hidden");
 
 }
+
 
 
 function hideLoginMessage() {
@@ -155,6 +167,7 @@ function hideLoginMessage() {
 }
 
 
+
 // =====================================================
 // PRODUCTS
 // =====================================================
@@ -162,7 +175,7 @@ function hideLoginMessage() {
 async function loadProducts() {
 
   productsContainer.innerHTML =
-    `<div class="message">Loading products...</div>`;
+    `<div class="message">Загрузка товаров...</div>`;
 
   const {
     data,
@@ -185,7 +198,7 @@ async function loadProducts() {
 
     productsContainer.innerHTML =
       `<div class="message">
-        No rugs yet. Add your first one.
+        Пока нет ковров. Добавьте первый.
       </div>`;
 
     return;
@@ -197,6 +210,7 @@ async function loadProducts() {
 }
 
 
+
 function renderProduct(product) {
 
   const image =
@@ -206,12 +220,12 @@ function renderProduct(product) {
   const title =
     product.title_en ||
     product.title_ru ||
-    "Untitled rug";
+    "Ковер без названия";
 
   const price =
     product.price != null
       ? `${product.price} ${product.currency || ""}`
-      : "No price";
+      : "Цена не указана";
 
   const statusClass =
     product.status === "hidden"
@@ -238,7 +252,7 @@ function renderProduct(product) {
                    color:#777;
                  "
                >
-                 NO IMAGE
+                 НЕТ ФОТО
                </div>`
         }
 
@@ -263,7 +277,7 @@ function renderProduct(product) {
           <button
             onclick="editProduct('${product.id}')"
           >
-            EDIT
+            РЕДАКТИРОВАТЬ
           </button>
 
           <button
@@ -271,8 +285,8 @@ function renderProduct(product) {
           >
             ${
               product.status === "hidden"
-                ? "PUBLISH"
-                : "HIDE"
+                ? "ОПУБЛИКОВАТЬ"
+                : "СКРЫТЬ"
             }
           </button>
 
@@ -285,18 +299,20 @@ function renderProduct(product) {
 }
 
 
+
 function formatStatus(status) {
 
   const labels = {
-    available: "Available",
-    made_to_order: "Made to order",
-    sold: "Sold",
-    hidden: "Hidden"
+    available: "Доступен",
+    made_to_order: "Под заказ",
+    sold: "Продан",
+    hidden: "Скрыт"
   };
 
-  return labels[status] || status || "Unknown";
+  return labels[status] || status || "Неизвестно";
 
 }
+
 
 
 // =====================================================
@@ -310,13 +326,16 @@ addProductButton.addEventListener("click", () => {
 });
 
 
+
 closeModalButton.addEventListener("click", closeModal);
 cancelButton.addEventListener("click", closeModal);
+
 
 
 function openNewProduct() {
 
   editingProduct = null;
+  removedImages = [];
 
   productForm.reset();
 
@@ -337,13 +356,14 @@ function openNewProduct() {
   resetUploads();
 
   document.getElementById("modal-title").textContent =
-    "Add Rug";
+    "Добавить ковер";
 
   hideFormMessage();
 
   modal.classList.remove("hidden");
 
 }
+
 
 
 async function editProduct(id) {
@@ -365,12 +385,14 @@ async function editProduct(id) {
   }
 
   editingProduct = data;
+  removedImages = [];
 
   fillProductForm(data);
 
   modal.classList.remove("hidden");
 
 }
+
 
 
 function fillProductForm(product) {
@@ -413,35 +435,62 @@ function fillProductForm(product) {
 
   resetUploads();
 
+
+
+  // COVER
+
   if (product.cover_image) {
 
     coverPreview.innerHTML =
-      thumbnail(product.cover_image);
+      existingThumbnail(
+        product.cover_image,
+        "cover"
+      );
 
   }
+
+
+
+  // INTERIOR
 
   if (product.interior_image) {
 
     interiorPreview.innerHTML =
-      thumbnail(product.interior_image);
+      existingThumbnail(
+        product.interior_image,
+        "interior"
+      );
 
   }
+
+
+
+  // GALLERY
 
   if (Array.isArray(product.gallery)) {
 
     galleryPreview.innerHTML =
       product.gallery
-        .map(url => thumbnail(url))
+        .map((url, index) =>
+          existingThumbnail(
+            url,
+            "gallery",
+            index
+          )
+        )
         .join("");
 
   }
 
+
+
   document.getElementById("modal-title").textContent =
-    "Edit Rug";
+    "Редактировать ковер";
 
   hideFormMessage();
 
 }
+
 
 
 function closeModal() {
@@ -451,11 +500,14 @@ function closeModal() {
 }
 
 
+
 function resetUploads() {
 
   coverFile = null;
   galleryFiles = [];
   interiorFile = null;
+
+  removedImages = [];
 
   coverInput.value = "";
   galleryInput.value = "";
@@ -466,6 +518,7 @@ function resetUploads() {
   interiorPreview.innerHTML = "";
 
 }
+
 
 
 // =====================================================
@@ -480,24 +533,43 @@ coverInput.addEventListener("change", () => {
   if (coverFile) {
 
     coverPreview.innerHTML =
-      thumbnailFromFile(coverFile);
+      newFileThumbnail(
+        coverFile,
+        "cover"
+      );
 
   }
 
 });
 
 
+
 galleryInput.addEventListener("change", () => {
 
-  galleryFiles =
+  const newFiles =
     [...galleryInput.files];
 
-  galleryPreview.innerHTML =
-    galleryFiles
-      .map(file => thumbnailFromFile(file))
-      .join("");
+  if (!newFiles.length) {
+    return;
+  }
+
+  /*
+   * IMPORTANT:
+   * Do not replace galleryFiles.
+   * Add newly selected files to existing ones.
+   */
+  galleryFiles = [
+    ...galleryFiles,
+    ...newFiles
+  ];
+
+  renderGalleryPreviews();
+
+  // Reset input so selecting the same file again works.
+  galleryInput.value = "";
 
 });
+
 
 
 interiorInput.addEventListener("change", () => {
@@ -508,32 +580,275 @@ interiorInput.addEventListener("change", () => {
   if (interiorFile) {
 
     interiorPreview.innerHTML =
-      thumbnailFromFile(interiorFile);
+      newFileThumbnail(
+        interiorFile,
+        "interior"
+      );
 
   }
 
 });
 
 
-function thumbnail(url) {
+
+// =====================================================
+// EXISTING IMAGE DELETE
+// =====================================================
+
+function removeExistingImage(url, type, index = null) {
+
+  if (!url) {
+    return;
+  }
+
+  removedImages.push(url);
+
+
+
+  if (type === "cover") {
+
+    coverPreview.innerHTML = "";
+
+    /*
+     * If user deletes the existing cover,
+     * do not accidentally upload the old one again.
+     */
+    if (
+      editingProduct &&
+      editingProduct.cover_image === url
+    ) {
+      editingProduct.cover_image = null;
+    }
+
+  }
+
+
+
+  if (type === "interior") {
+
+    interiorPreview.innerHTML = "";
+
+    if (
+      editingProduct &&
+      editingProduct.interior_image === url
+    ) {
+      editingProduct.interior_image = null;
+    }
+
+  }
+
+
+
+  if (type === "gallery") {
+
+    const currentGallery =
+      Array.isArray(editingProduct?.gallery)
+        ? [...editingProduct.gallery]
+        : [];
+
+    const newGallery =
+      currentGallery.filter(
+        galleryUrl => galleryUrl !== url
+      );
+
+    if (editingProduct) {
+      editingProduct.gallery = newGallery;
+    }
+
+    renderGalleryPreviews();
+
+  }
+
+}
+
+
+
+function removeNewGalleryFile(index) {
+
+  galleryFiles.splice(index, 1);
+
+  renderGalleryPreviews();
+
+}
+
+
+
+function removeNewCoverFile() {
+
+  coverFile = null;
+
+  coverInput.value = "";
+
+  coverPreview.innerHTML = "";
+
+}
+
+
+
+function removeNewInteriorFile() {
+
+  interiorFile = null;
+
+  interiorInput.value = "";
+
+  interiorPreview.innerHTML = "";
+
+}
+
+
+
+// =====================================================
+// IMAGE PREVIEWS
+// =====================================================
+
+function existingThumbnail(url, type, index = null) {
+
+  let removeAction = "";
+
+  if (type === "cover") {
+
+    removeAction =
+      `onclick="removeExistingImage(
+        '${escapeJs(url)}',
+        'cover'
+      )"`;
+
+  }
+
+  if (type === "interior") {
+
+    removeAction =
+      `onclick="removeExistingImage(
+        '${escapeJs(url)}',
+        'interior'
+      )"`;
+
+  }
+
+  if (type === "gallery") {
+
+    removeAction =
+      `onclick="removeExistingImage(
+        '${escapeJs(url)}',
+        'gallery',
+        ${index}
+      )"`;
+
+  }
 
   return `
     <div class="thumb">
       <img src="${escapeAttribute(url)}">
+
+      <button
+        type="button"
+        class="thumb-delete"
+        ${removeAction}
+        title="Удалить"
+      >
+        ×
+      </button>
     </div>
   `;
 
 }
 
 
-function thumbnailFromFile(file) {
+
+function newFileThumbnail(file, type, index = null) {
 
   const url =
     URL.createObjectURL(file);
 
-  return thumbnail(url);
+  let removeAction = "";
+
+  if (type === "cover") {
+
+    removeAction =
+      `onclick="removeNewCoverFile()"`;
+
+  }
+
+  if (type === "interior") {
+
+    removeAction =
+      `onclick="removeNewInteriorFile()"`;
+
+  }
+
+  if (type === "gallery") {
+
+    removeAction =
+      `onclick="removeNewGalleryFile(${index})"`;
+
+  }
+
+  return `
+    <div class="thumb">
+      <img src="${escapeAttribute(url)}">
+
+      <button
+        type="button"
+        class="thumb-delete"
+        ${removeAction}
+        title="Удалить"
+      >
+        ×
+      </button>
+    </div>
+  `;
 
 }
+
+
+
+function renderGalleryPreviews() {
+
+  let html = "";
+
+
+
+  // Existing gallery images
+
+  if (
+    editingProduct &&
+    Array.isArray(editingProduct.gallery)
+  ) {
+
+    html +=
+      editingProduct.gallery
+        .map((url, index) =>
+          existingThumbnail(
+            url,
+            "gallery",
+            index
+          )
+        )
+        .join("");
+
+  }
+
+
+
+  // Newly selected gallery images
+
+  html +=
+    galleryFiles
+      .map((file, index) =>
+        newFileThumbnail(
+          file,
+          "gallery",
+          index
+        )
+      )
+      .join("");
+
+
+
+  galleryPreview.innerHTML = html;
+
+}
+
 
 
 // =====================================================
@@ -589,12 +904,13 @@ async function optimizeImage(file) {
     });
 
   if (!blob) {
-    throw new Error("Image optimization failed.");
+    throw new Error("Не удалось оптимизировать изображение.");
   }
 
   return blob;
 
 }
+
 
 
 // =====================================================
@@ -642,6 +958,71 @@ async function uploadImage(file, type) {
 }
 
 
+
+// =====================================================
+// STORAGE DELETE
+// =====================================================
+
+function getStoragePath(publicUrl) {
+
+  if (!publicUrl) {
+    return null;
+  }
+
+  const marker =
+    "/storage/v1/object/public/rugs/";
+
+  const index =
+    publicUrl.indexOf(marker);
+
+  if (index === -1) {
+    return null;
+  }
+
+  return decodeURIComponent(
+    publicUrl.substring(
+      index + marker.length
+    )
+  );
+
+}
+
+
+
+async function deleteStorageImage(publicUrl) {
+
+  const path =
+    getStoragePath(publicUrl);
+
+  if (!path) {
+    return;
+  }
+
+  const {
+    error
+  } = await db
+    .storage
+    .from("rugs")
+    .remove([path]);
+
+  /*
+   * Do not break saving if the DB record can be
+   * successfully updated but the old file cannot
+   * be removed from Storage.
+   */
+  if (error) {
+
+    console.warn(
+      "Could not delete storage file:",
+      error.message
+    );
+
+  }
+
+}
+
+
+
 // =====================================================
 // SAVE PRODUCT
 // =====================================================
@@ -656,11 +1037,15 @@ productForm.addEventListener("submit", async (event) => {
     );
 
   saveButton.disabled = true;
-  saveButton.textContent = "SAVING...";
+  saveButton.textContent = "СОХРАНЕНИЕ...";
+
+
 
   try {
 
-    showFormMessage("Preparing product...");
+    showFormMessage("Подготавливаем товар...");
+
+
 
     const titleRu =
       document.getElementById("title-ru").value.trim();
@@ -673,6 +1058,8 @@ productForm.addEventListener("submit", async (event) => {
         titleEn ||
         titleRu
       );
+
+
 
     let coverUrl =
       editingProduct?.cover_image ||
@@ -688,13 +1075,40 @@ productForm.addEventListener("submit", async (event) => {
         : [];
 
 
+
+    // Remove images that user deleted
+
+    galleryUrls =
+      galleryUrls.filter(
+        url => !removedImages.includes(url)
+      );
+
+    if (
+      coverUrl &&
+      removedImages.includes(coverUrl)
+    ) {
+      coverUrl = null;
+    }
+
+    if (
+      interiorUrl &&
+      removedImages.includes(interiorUrl)
+    ) {
+      interiorUrl = null;
+    }
+
+
+
     // COVER
 
     if (coverFile) {
 
       showFormMessage(
-        "Optimizing cover image..."
+        "Оптимизируем обложку..."
       );
+
+      const oldCoverUrl =
+        coverUrl;
 
       coverUrl =
         await uploadImage(
@@ -702,7 +1116,22 @@ productForm.addEventListener("submit", async (event) => {
           "cover"
         );
 
+      /*
+       * New cover replaces old cover.
+       */
+      if (
+        oldCoverUrl &&
+        oldCoverUrl !== coverUrl
+      ) {
+
+        removedImages.push(
+          oldCoverUrl
+        );
+
+      }
+
     }
+
 
 
     // INTERIOR
@@ -710,8 +1139,11 @@ productForm.addEventListener("submit", async (event) => {
     if (interiorFile) {
 
       showFormMessage(
-        "Optimizing interior image..."
+        "Оптимизируем фото интерьера..."
       );
+
+      const oldInteriorUrl =
+        interiorUrl;
 
       interiorUrl =
         await uploadImage(
@@ -719,7 +1151,22 @@ productForm.addEventListener("submit", async (event) => {
           "interior"
         );
 
+      /*
+       * New interior replaces old interior.
+       */
+      if (
+        oldInteriorUrl &&
+        oldInteriorUrl !== interiorUrl
+      ) {
+
+        removedImages.push(
+          oldInteriorUrl
+        );
+
+      }
+
     }
+
 
 
     // GALLERY
@@ -727,11 +1174,10 @@ productForm.addEventListener("submit", async (event) => {
     if (galleryFiles.length) {
 
       showFormMessage(
-        `Optimizing ${galleryFiles.length} gallery image(s)...`
+        `Оптимизируем ${galleryFiles.length} новых фото...`
       );
 
-      const newGallery =
-        [];
+      const newGallery = [];
 
       for (
         let i = 0;
@@ -749,13 +1195,18 @@ productForm.addEventListener("submit", async (event) => {
 
       }
 
-      galleryUrls =
-        [
-          ...galleryUrls,
-          ...newGallery
-        ];
+      /*
+       * IMPORTANT:
+       * Append new photos instead of replacing
+       * the existing gallery.
+       */
+      galleryUrls = [
+        ...galleryUrls,
+        ...newGallery
+      ];
 
     }
+
 
 
     const product = {
@@ -821,9 +1272,11 @@ productForm.addEventListener("submit", async (event) => {
     };
 
 
+
     showFormMessage(
-      "Saving product..."
+      "Сохраняем товар..."
     );
+
 
 
     let result;
@@ -849,14 +1302,47 @@ productForm.addEventListener("submit", async (event) => {
     }
 
 
+
     if (result.error) {
       throw result.error;
     }
 
 
+
+    /*
+     * DB is saved first.
+     * Now safely remove deleted/replaced files
+     * from Supabase Storage.
+     */
+
+    if (removedImages.length) {
+
+      showFormMessage(
+        "Удаляем старые фотографии..."
+      );
+
+      const uniqueRemovedImages =
+        [...new Set(removedImages)];
+
+      for (
+        const imageUrl
+        of uniqueRemovedImages
+      ) {
+
+        await deleteStorageImage(
+          imageUrl
+        );
+
+      }
+
+    }
+
+
+
     closeModal();
 
     await loadProducts();
+
 
 
   } catch (error) {
@@ -865,18 +1351,20 @@ productForm.addEventListener("submit", async (event) => {
 
     showFormMessage(
       error.message ||
-      "Something went wrong."
+      "Что-то пошло не так."
     );
 
   } finally {
 
     saveButton.disabled = false;
+
     saveButton.textContent =
-      "SAVE PRODUCT";
+      "СОХРАНИТЬ КОВЕР";
 
   }
 
 });
+
 
 
 // =====================================================
@@ -911,6 +1399,7 @@ async function toggleVisibility(id, currentStatus) {
 }
 
 
+
 // =====================================================
 // HELPERS
 // =====================================================
@@ -931,6 +1420,7 @@ function createSlug(text) {
 }
 
 
+
 function showFormMessage(text) {
 
   formMessage.textContent =
@@ -943,6 +1433,7 @@ function showFormMessage(text) {
 }
 
 
+
 function hideFormMessage() {
 
   formMessage.classList.add(
@@ -950,6 +1441,7 @@ function hideFormMessage() {
   );
 
 }
+
 
 
 function escapeHtml(value) {
@@ -964,11 +1456,25 @@ function escapeHtml(value) {
 }
 
 
+
 function escapeAttribute(value) {
 
   return escapeHtml(value);
 
 }
+
+
+
+function escapeJs(value) {
+
+  return String(value ?? "")
+    .replaceAll("\\", "\\\\")
+    .replaceAll("'", "\\'")
+    .replaceAll("\n", "\\n")
+    .replaceAll("\r", "\\r");
+
+}
+
 
 
 // =====================================================
