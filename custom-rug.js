@@ -238,57 +238,78 @@
        WORKSPACE
        ========================================================= */
 
-    function setupWorkspace() {
-        if (!rugWorkspace) return;
+function setupWorkspace() {
+    if (!rugWorkspace) return;
 
-        Object.assign(rugWorkspace.style, {
-            position: "relative",
+    Object.assign(rugWorkspace.style, {
+        position: "relative",
+        width: "100%",
+        minWidth: "0",
+        minHeight: "280px",
+        height: "clamp(280px, 65vw, 600px)",
+        overflow: "hidden",
+        boxSizing: "border-box"
+    });
+
+    if (rugCanvasWrap) {
+        Object.assign(rugCanvasWrap.style, {
+            position: "absolute",
+            inset: "0",
             width: "100%",
             height: "100%",
+            overflow: "hidden",
             minWidth: "0",
             minHeight: "0",
-            overflow: "hidden",
             boxSizing: "border-box"
         });
-
-        if (rugCanvasWrap) {
-            Object.assign(rugCanvasWrap.style, {
-                position: "absolute",
-                left: "0",
-                top: "0",
-                width: "100%",
-                height: "100%",
-                overflow: "hidden",
-                minWidth: "0",
-                minHeight: "0",
-                boxSizing: "border-box"
-            });
-        }
-
-        if (canvas) {
-            Object.assign(canvas.style, {
-                position: "absolute",
-                left: "0",
-                top: "0",
-                display: "none",
-                maxWidth: "none",
-                maxHeight: "none"
-            });
-        }
     }
 
-    function getAvailableFrame() {
-        if (!rugWorkspace) {
-            return { width: 600, height: 450 };
-        }
+    if (canvas) {
+        Object.assign(canvas.style, {
+            position: "absolute",
+            display: "none",
+            maxWidth: "none",
+            maxHeight: "none",
+            margin: "0",
+            padding: "0"
+        });
+    }
+}
 
-        const rect = rugWorkspace.getBoundingClientRect();
-
+function getAvailableFrame() {
+    if (!rugWorkspace) {
         return {
-            width: Math.max(1, rect.width),
-            height: Math.max(1, rect.height)
+            width: 600,
+            height: 450
         };
     }
+
+    const rect = rugWorkspace.getBoundingClientRect();
+
+    let width = rect.width;
+    let height = rect.height;
+
+    // Mobile fallback:
+    // percentage height can collapse when parent has no explicit height
+    if (width <= 1) {
+        width = rugWorkspace.clientWidth || window.innerWidth || 600;
+    }
+
+    if (height <= 1) {
+        height = Math.max(
+            280,
+            Math.min(
+                600,
+                width * 0.75
+            )
+        );
+    }
+
+    return {
+        width: Math.max(1, width),
+        height: Math.max(1, height)
+    };
+}
 
 
     /* =========================================================
