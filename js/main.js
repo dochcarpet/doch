@@ -540,8 +540,7 @@ function getProductImages(product) {
     const images = [];
 
     /*
-       Main image always comes first.
-       This should be your clean white-background photo.
+       Main image.
     */
 
     if (product.cover_image) {
@@ -552,21 +551,46 @@ function getProductImages(product) {
 
     }
 
+
     /*
-       Additional interior / detail photos.
+       Gallery images.
+       Supabase may return this either
+       as an array or as a JSON string.
     */
 
-    if (
-        Array.isArray(
-            product.gallery_images
-        )
-    ) {
+    let gallery =
+        product.gallery_images;
+
+
+    if (typeof gallery === "string") {
+
+        try {
+
+            gallery =
+                JSON.parse(gallery);
+
+        } catch (error) {
+
+            console.warn(
+                "Could not parse gallery_images:",
+                gallery
+            );
+
+            gallery = [];
+
+        }
+
+    }
+
+
+    if (Array.isArray(gallery)) {
 
         images.push(
-            ...product.gallery_images
+            ...gallery
         );
 
     }
+
 
     /*
        Remove empty values and duplicates.
@@ -574,12 +598,17 @@ function getProductImages(product) {
 
     return [
         ...new Set(
-            images.filter(Boolean)
+            images
+                .filter(Boolean)
+                .map(
+                    image =>
+                        String(image).trim()
+                )
+                .filter(Boolean)
         )
     ];
 
 }
-
 
 /* =========================================================
    RENDER PRODUCTS
