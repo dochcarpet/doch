@@ -946,7 +946,6 @@ footer {
     gap: 25px;
 }
 
-
 /* ================================
    MODAL
 ================================ */
@@ -960,7 +959,7 @@ footer {
     background: rgba(11,11,10,.97);
 
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1.35fr) minmax(360px, .65fr);
 
     transform: translateY(100%);
 
@@ -968,6 +967,8 @@ footer {
         transform .5s cubic-bezier(.7,0,.2,1);
 
     visibility: hidden;
+
+    overflow: hidden;
 }
 
 .modal.active {
@@ -975,49 +976,106 @@ footer {
     visibility: visible;
 }
 
+
+/* CLOSE */
+
 .modal-close {
     position: absolute;
 
-    z-index: 5;
+    z-index: 20;
 
-    top: 25px;
-    right: 30px;
+    top: 20px;
+    right: 25px;
+
+    width: 45px;
+    height: 45px;
 
     border: 0;
-    background: none;
+    background: transparent;
 
     font-size: 35px;
+    line-height: 1;
 
     cursor: pointer;
 }
 
+
+/* ================================
+   MODAL IMAGE AREA
+================================ */
+
 .modal-image {
-    background:
-        radial-gradient(
-            circle at center,
-            #ddd 0 25%,
-            transparent 26%
-        ),
-        linear-gradient(
-            135deg,
-            #444,
-            #aaa
-        );
+    position: relative;
+
+    width: 100%;
+    height: 100%;
+
+    min-width: 0;
+    min-height: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    overflow: hidden;
+
+    background: #f1eee7;
 }
+
+
+/*
+   IMPORTANT
+
+   The image itself must stay inside
+   the left area and never push
+   the product information.
+*/
+
+.modal-image img {
+    display: block;
+
+    width: 100%;
+    height: 100%;
+
+    max-width: 100%;
+    max-height: 100%;
+
+    object-fit: contain;
+
+    object-position: center;
+}
+
+
+/* ================================
+   MODAL CONTENT
+================================ */
 
 .modal-content {
-    padding: 15vw 7vw;
-    align-self: center;
+    min-width: 0;
+
+    height: 100%;
+
+    padding: 110px 7vw 70px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    overflow-y: auto;
+
+    border-left: 1px solid var(--line);
 }
 
+
 .modal-content h2 {
-    font-size: clamp(45px, 6vw, 90px);
+    font-size: clamp(45px, 5vw, 90px);
 
     line-height: .85;
     letter-spacing: -.07em;
 
     margin: 30px 0;
 }
+
 
 .modal-details {
     display: flex;
@@ -1031,11 +1089,55 @@ footer {
     font: 10px var(--mono);
 }
 
+
 .modal-content p {
     color: var(--grey);
 
     font-size: 13px;
     line-height: 1.5;
+
+    max-width: 420px;
+}
+
+
+/* ================================
+   MODAL MOBILE
+================================ */
+
+@media (max-width: 800px) {
+
+    .modal {
+        grid-template-columns: 1fr;
+        grid-template-rows: minmax(300px, 48vh) auto;
+
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    .modal-image {
+        width: 100%;
+        height: 100%;
+
+        min-height: 300px;
+    }
+
+    .modal-content {
+        height: auto;
+
+        min-height: 52vh;
+
+        padding: 45px 25px 60px;
+
+        border-left: 0;
+        border-top: 1px solid var(--line);
+
+        justify-content: flex-start;
+    }
+
+    .modal-content h2 {
+        font-size: clamp(40px, 12vw, 65px);
+    }
+
 }
 
 
