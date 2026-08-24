@@ -168,7 +168,61 @@ const translations = {
         "status.available": "AVAILABLE",
         "status.made": "MADE TO ORDER",
         "status.sold": "SOLD OUT",
-        "status.handmade": "HANDMADE"
+        "status.handmade": "HANDMADE",
+
+                /* =========================
+           FAQ
+        ========================= */
+
+        "faq.eyebrow": "07 / FAQ",
+        "faq.title":
+            "QUESTIONS<br><em>YOU MIGHT HAVE.</em>",
+
+        "faq.q1":
+            "IS THIS A REAL RUG?",
+        "faq.a1":
+            "Unfortunately, yes. Every rug is actually made by hand. We use real yarn, real tools and an unreasonable amount of time.",
+
+        "faq.q2":
+            "CAN I ORDER MY OWN MEME?",
+        "faq.a2":
+            "Yes. Send us the image and we’ll turn it into a rug. The worse the meme, the better the rug.",
+
+        "faq.q3":
+            "HOW LONG DOES IT TAKE?",
+        "faq.a3":
+            "Each rug is handmade, so production time depends on the size and complexity of the design. We’ll tell you the estimated time before production starts.",
+
+        "faq.q4":
+            "DO YOU SHIP?",
+        "faq.a4":
+            "Yes. Your internet relic can leave the studio and travel to you.",
+
+        "faq.q5":
+            "WHY?",
+        "faq.a5":
+            "We don't know. We just felt the internet deserved to be slightly softer.",
+
+
+        /* =========================
+           COMPANY / MANIFESTO
+        ========================= */
+
+        "company.eyebrow": "08 / ABOUT DOCH",
+        "company.title":
+            "A VERY<br><em>SERIOUS<br>RUG STUDIO.</em>",
+
+        "company.large":
+            "DOCH makes handmade rugs for people who have already seen enough things online.",
+
+        "company.text":
+            "We turn memes, internet artifacts and questionable visual decisions into physical objects. Every rug is tufted, carved and finished by hand. There is no algorithm involved in making the rug. There is, however, a questionable amount of internet involved in choosing what goes on it.",
+
+        "company.mono":
+            "WE TAKE THE INTERNET<br>VERY SERIOUSLY.<br>JUST NOT TOO SERIOUSLY.",
+
+        "company.link":
+            "MORE ABOUT THE STUDIO ↗"
 
     },
 
@@ -276,7 +330,61 @@ const translations = {
         "status.available": "В НАЛИЧИИ",
         "status.made": "ПОД ЗАКАЗ",
         "status.sold": "ПРОДАН",
-        "status.handmade": "РУЧНАЯ РАБОТА"
+        "status.handmade": "РУЧНАЯ РАБОТА",
+
+                /* =========================
+           FAQ
+        ========================= */
+
+        "faq.eyebrow": "07 / FAQ",
+        "faq.title":
+            "ВОПРОСЫ,<br><em>КОТОРЫЕ МОГУТ<br>У ВАС ВОЗНИКНУТЬ.</em>",
+
+        "faq.q1":
+            "ЭТО ВООБЩЕ НАСТОЯЩИЙ КОВЁР?",
+        "faq.a1":
+            "К сожалению, да. Каждый ковёр действительно делается вручную. Настоящая пряжа, настоящие инструменты и совершенно неразумное количество времени.",
+
+        "faq.q2":
+            "МОЖНО ЗАКАЗАТЬ СВОЙ МЕМ?",
+        "faq.a2":
+            "Да. Присылайте картинку — мы превратим её в ковёр. Чем хуже мем, тем лучше ковёр.",
+
+        "faq.q3":
+            "СКОЛЬКО ЭТО ДЕЛАЕТСЯ?",
+        "faq.a3":
+            "Каждый ковёр делается вручную, поэтому срок зависит от размера и сложности дизайна. Точные сроки мы сообщим до начала производства.",
+
+        "faq.q4":
+            "ВЫ ОТПРАВЛЯЕТЕ КОВРЫ?",
+        "faq.a4":
+            "Да. Ваша интернет-реликвия может покинуть студию и отправиться к вам.",
+
+        "faq.q5":
+            "ЗАЧЕМ?",
+        "faq.a5":
+            "Не знаем. Просто решили, что интернету иногда не помешает стать немного мягче.",
+
+
+        /* =========================
+           COMPANY / MANIFESTO
+        ========================= */
+
+        "company.eyebrow": "08 / О DOCH",
+        "company.title":
+            "ОЧЕНЬ<br><em>СЕРЬЁЗНАЯ<br>СТУДИЯ КОВРОВ.</em>",
+
+        "company.large":
+            "DOCH делает ковры ручной работы для людей, которые уже увидели в интернете достаточно всего.",
+
+        "company.text":
+            "Мы превращаем мемы, интернет-артефакты и сомнительные визуальные решения в физические объекты. Каждый ковёр тафтится, карвится и доводится вручную. Алгоритмы в производстве ковра не участвуют. Зато интернета в выборе того, что на нём изображено, подозрительно много.",
+
+        "company.mono":
+            "МЫ ОЧЕНЬ СЕРЬЁЗНО<br>ОТНОСИМСЯ К ИНТЕРНЕТУ.<br>ПРОСТО НЕ СЛИШКОМ СЕРЬЁЗНО.",
+
+        "company.link":
+            "БОЛЬШЕ О СТУДИИ ↗"
 
     }
 
