@@ -170,6 +170,8 @@
 
     let colorSmoothing = 0;
 
+    let rawDetailData = null;
+
     let currentDetailData = null;
 
     let currentGrid = null;
@@ -576,34 +578,59 @@
 
 
         smoothingInput.addEventListener(
-            "input",
-            () => {
+    "input",
+    () => {
 
-                colorSmoothing =
-                    clamp(
-                        Number(
-                            smoothingInput.value
-                        ) || 0,
-                        0,
-                        100
-                    );
+        colorSmoothing =
+            clamp(
+                Number(
+                    smoothingInput.value
+                ) || 0,
+                0,
+                100
+            );
 
-                updateSmoothingLabel();
+        updateSmoothingLabel();
 
-                if (
-                    currentDetailData
-                ) {
 
-                    currentDetailData.data =
-                        smoothColorMap(
-                            currentDetailData.data,
+        /*
+           ALWAYS start from the original
+           detail map.
+
+           This prevents:
+
+           20 → 50 → 80 → 30
+
+           from repeatedly smoothing an already
+           smoothed image.
+        */
+
+        if (
+            rawDetailData
+        ) {
+
+            currentDetailData = {
+                width:
+                    rawDetailData.width,
+
+                height:
+                    rawDetailData.height,
+
+                data:
+                    colorSmoothing > 0
+                        ? smoothColorMap(
+                            rawDetailData.data,
                             colorSmoothing
-                        );
+                        )
+                        : rawDetailData.data.map(
+                            row => row.slice()
+                        )
+            };
 
-                    renderPreview();
-                }
-            }
-        );
+            renderPreview();
+        }
+    }
+);
 
         /*
            -----------------------------------------------------
@@ -712,26 +739,6 @@
                 queueGenerate();
             }
         );
-    }
-
-
-    function updateShapeLabel(element) {
-
-        if (!element) {
-            return;
-        }
-
-        if (pixelRoundness <= 5) {
-            element.textContent = "SQUARE";
-        } else if (pixelRoundness < 30) {
-            element.textContent = "SLIGHT";
-        } else if (pixelRoundness < 60) {
-            element.textContent = "ROUNDED";
-        } else if (pixelRoundness < 85) {
-            element.textContent = "VERY ROUNDED";
-        } else {
-            element.textContent = "MAXIMUM";
-        }
     }
 
 
@@ -1983,12 +1990,12 @@
                        one neighbor can be enough.
                     */
 
-                    const requiredNeighbors =
-                        amount < 25
-                            ? 3
-                            : amount < 60
-                                ? 2
-                                : 1;
+                   const requiredNeighbors =
+                         amount < 25
+                             ? 3
+                             : amount < 60
+                                 ? 2
+                                 : 2;
 
 
                     if (
@@ -2368,15 +2375,38 @@
        ROUNDED CELL
        ========================================================= */
 
-    function drawCell(
-        ctx,
+/* =========================================================
+   SQUARE CELL
+
+   COLOR SMOOTHING changes colors only.
+   Cells themselves always remain square.
+   ========================================================= */
+
+function drawCell(
+    ctx,
+    x,
+    y,
+    width,
+    height,
+    color
+) {
+
+    if (!color) {
+        return;
+    }
+
+
+    ctx.fillStyle =
+        color;
+
+
+    ctx.fillRect(
         x,
         y,
         width,
-        height,
-        color,
-        roundness
-    ) {
+        height
+    );
+} {
 
         if (!color) {
             return;
@@ -2797,8 +2827,7 @@
                     y * cellHeight,
                     cellWidth,
                     cellHeight,
-                    color,
-                    pixelRoundness
+                    color
                 );
             }
         }
@@ -4551,7 +4580,7 @@
             "12px Arial";
 
         ctx.fillText(
-            `${width} × ${height} CM · ${currentGrid.width} × ${currentGrid.height} GRID · ${GRID_CELL_CM} CM CELL · ${numberOfColors} COLORS · DETAIL ${detailLevel} · SHAPE ${pixelRoundness}`,
+            `${width} × ${height} CM · ${currentGrid.width} × ${currentGrid.height} GRID · ${GRID_CELL_CM} CM CELL · ${numberOfColors} COLORS · DETAIL ${detailLevel} · SMOOTHING ${pixelRoundness}`,
             25,
             58
         );
@@ -4593,7 +4622,6 @@
                     CELL,
                     CELL,
                     data[y][x],
-                    pixelRoundness
                 );
             }
         }
@@ -4901,7 +4929,7 @@
 
 
         link.download =
-            `doch-rug-${width}x${height}cm-${currentGrid.width}x${currentGrid.height}-detail-${detailLevel}-shape-${pixelRoundness}.png`;
+            `doch-rug-${width}x${height}cm-${currentGrid.width}x${currentGrid.height}-detail-${detailLevel}-smoothing-${pixelRoundness}.png`;
 
 
         link.href =
@@ -5068,7 +5096,6 @@
                     cellWidth,
                     cellHeight,
                     currentDetailData.data[y][x],
-                    pixelRoundness
                 );
             }
         }
