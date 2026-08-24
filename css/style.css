@@ -1303,30 +1303,30 @@ footer {
     }
 
 
-    /* COMPANY */
+    /* BRAND */
 
-    .company {
+    .brand {
         padding: 100px 25px;
     }
 
-    .company-header {
+    .brand-header {
         display: block;
     }
 
-    .company h2 {
+    .brand h2 {
         margin-top: 60px;
     }
 
-    .company-grid {
+    .brand-grid {
         display: block;
         margin-top: 80px;
     }
 
-    .company-large {
+    .brand-large {
         font-size: 30px;
     }
 
-    .company-copy {
+    .brand-copy {
         margin-top: 70px;
     }
 
@@ -1710,21 +1710,21 @@ footer {
 
 
 /* =========================================================
-   COMPANY / MANIFESTO
+   brand / MANIFESTO
 ========================================================= */
 
-.company {
+.brand {
     padding: 150px 7vw;
     border-top: 1px solid var(--line);
 }
 
-.company-header {
+.brand-header {
     display: grid;
     grid-template-columns: 1fr 2fr;
     gap: 40px;
 }
 
-.company h2 {
+.brand h2 {
     margin: 0;
 
     font-size: clamp(55px, 8vw, 120px);
@@ -1733,7 +1733,7 @@ footer {
     font-weight: 900;
 }
 
-.company-grid {
+.brand-grid {
     margin-top: 110px;
 
     display: grid;
@@ -1742,7 +1742,7 @@ footer {
     gap: 10vw;
 }
 
-.company-large {
+.brand-large {
     margin: 0;
 
     max-width: 800px;
@@ -1752,11 +1752,11 @@ footer {
     letter-spacing: -.05em;
 }
 
-.company-copy {
+.brand-copy {
     align-self: end;
 }
 
-.company-copy p {
+.brand-copy p {
     margin: 0;
 
     color: var(--grey);
@@ -1765,14 +1765,14 @@ footer {
     line-height: 1.55;
 }
 
-.company-mono {
+.brand-mono {
     margin-top: 70px !important;
 
     font: 10px/1.6 var(--mono) !important;
     color: var(--white) !important;
 }
 
-.company-link {
+.brand-link {
     display: inline-block;
 
     margin-top: 45px;
