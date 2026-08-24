@@ -102,6 +102,9 @@
     let renderQueued = false;
     let resizeTimer = null;
 
+    let detailPalette = [];
+   
+    let activePalette = [];
 
     /* =========================================================
        HELPERS
@@ -1119,6 +1122,54 @@ function getAvailableFrame() {
        PALETTE UI
        ========================================================= */
 
+    function recolorDetailMap(oldPalette, newPalette) {
+    if (!rawDetailData?.data?.length) return;
+
+    const oldColors = oldPalette.map(normalizeHex);
+    const newColors = newPalette.map(normalizeHex);
+
+    const colorMap = new Map();
+
+    oldColors.forEach((oldColor, index) => {
+        if (newColors[index]) {
+            colorMap.set(
+                oldColor,
+                newColors[index]
+            );
+        }
+    });
+
+    const recolored = rawDetailData.data.map(row =>
+        row.map(color => {
+            if (!color) return null;
+
+            return colorMap.get(
+                normalizeHex(color)
+            ) || color;
+        })
+    );
+
+    currentDetailData = {
+        width: rawDetailData.width,
+        height: rawDetailData.height,
+        data: colorSmoothing
+            ? smoothColorMap(
+                recolored,
+                colorSmoothing
+            )
+            : recolored
+    };
+
+    renderPreview();
+
+    renderColorLegend(
+        currentDetailData.data,
+        newPalette
+    );
+
+    updateStats();
+}
+
     function renderPalette(palette) {
         if (!paletteElement) return;
 
@@ -1163,16 +1214,27 @@ function getAvailableFrame() {
             if (index === undefined) return;
 
             if (e.target.type === "color") {
+                const indexNumber = Number(index);
                 const value = normalizeHex(e.target.value);
-                customPalette[Number(index)] = value;
-
+            
+                if (!customPalette.length) {
+                    customPalette = [...generatedPalette];
+                }
+            
+                customPalette[indexNumber] = value;
+            
                 const text = paletteElement.querySelector(
                     `.palette-hex[data-palette-index="${index}"]`
                 );
-
-                if (text) text.value = value;
-
-                queueGenerate();
+            
+                if (text) {
+                    text.value = value;
+                }
+            
+                recolorDetailMap(
+                    detailPalette,
+                    customPalette
+                );
             }
         });
 
@@ -1181,18 +1243,28 @@ function getAvailableFrame() {
             if (index === undefined) return;
 
             if (e.target.classList.contains("palette-hex")) {
+                const indexNumber = Number(index);
                 const value = normalizeHex(e.target.value);
-
-                customPalette[Number(index)] = value;
+            
+                if (!customPalette.length) {
+                    customPalette = [...generatedPalette];
+                }
+            
+                customPalette[indexNumber] = value;
                 e.target.value = value;
-
+            
                 const color = paletteElement.querySelector(
                     `.palette-color[data-palette-index="${index}"]`
                 );
-
-                if (color) color.value = value;
-
-                queueGenerate();
+            
+                if (color) {
+                    color.value = value;
+                }
+            
+                recolorDetailMap(
+                    detailPalette,
+                    customPalette
+                );
             }
         });
 
@@ -1561,10 +1633,14 @@ function getAvailableFrame() {
                 );
 
                 rawDetailData = {
-                    width: detailGrid.width,
-                    height: detailGrid.height,
-                    data: copyMap(detailData)
-                };
+                   width: detailGrid.width,
+                   height: detailGrid.height,
+                   data: copyMap(detailData)
+               };
+               
+               detailPalette = palette.map(normalizeHex);
+
+                
 
                 currentDetailData = {
                     width: detailGrid.width,
