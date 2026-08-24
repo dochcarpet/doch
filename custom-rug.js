@@ -2,23 +2,25 @@
    DOCH — CUSTOM RUG
    IMAGE → YARN → RUG
 
-   IMPORTANT:
-   ---------------------------------------------------------
    PHYSICAL GRID
-   - ALWAYS 5 × 5 CM
-   - 100 × 100 CM = 20 × 20 cells
-   - 100 × 75 CM  = 20 × 15 cells
-   - DOES NOT CHANGE WITH DETAIL
+   ---------------------------------------------------------
+   ALWAYS 5 × 5 CM
+
+   100 × 100 CM = 20 × 20 cells
+   100 × 75 CM  = 20 × 15 cells
+
+   PHYSICAL GRID DOES NOT CHANGE WITH DETAIL.
 
    DETAIL
-   - controls number of visual pixels INSIDE the rug
-   - does NOT change physical grid
-   - does NOT enlarge the frame
+   ---------------------------------------------------------
+   Controls number of visual pixels INSIDE the rug.
+   Does NOT change physical grid.
+   Does NOT enlarge the physical frame.
 
    PREVIEW
-   - entire rug fits inside preview automatically
-   - no mandatory scrolling
-   - zoom buttons can enlarge it manually
+   ---------------------------------------------------------
+   Entire rug fits inside preview automatically.
+   Zoom buttons can enlarge it manually.
    ========================================================= */
 
 (() => {
@@ -170,6 +172,20 @@
 
     let colorSmoothing = 0;
 
+    /*
+       IMPORTANT:
+
+       rawDetailData = untouched detail map
+       currentDetailData = map after smoothing
+
+       This prevents:
+
+       20 → 50 → 80 → 30
+
+       from repeatedly smoothing an already
+       smoothed map.
+    */
+
     let rawDetailData = null;
 
     let currentDetailData = null;
@@ -189,28 +205,60 @@
        HELPERS
        ========================================================= */
 
-    function clamp(value, min, max) {
+    function clamp(
+        value,
+        min,
+        max
+    ) {
+
         return Math.max(
             min,
-            Math.min(max, value)
+            Math.min(
+                max,
+                value
+            )
         );
     }
 
 
     function hexToRgb(hex) {
 
-        hex = String(hex || "")
-            .replace("#", "")
-            .trim();
+        hex =
+            String(hex || "")
+                .replace("#", "")
+                .trim();
+
 
         if (hex.length === 3) {
-            hex = hex
-                .split("")
-                .map(x => x + x)
-                .join("");
+
+            hex =
+                hex
+                    .split("")
+                    .map(
+                        x => x + x
+                    )
+                    .join("");
         }
 
-        const n = parseInt(hex, 16);
+
+        const n =
+            parseInt(
+                hex,
+                16
+            );
+
+
+        if (
+            Number.isNaN(n)
+        ) {
+
+            return {
+                r: 0,
+                g: 0,
+                b: 0
+            };
+        }
+
 
         return {
             r: (n >> 16) & 255,
@@ -220,19 +268,31 @@
     }
 
 
-    function rgbToHex(r, g, b) {
+    function rgbToHex(
+        r,
+        g,
+        b
+    ) {
 
         return (
             "#" +
-            [r, g, b]
-                .map(value =>
-                    clamp(
-                        Math.round(value),
-                        0,
-                        255
-                    )
-                    .toString(16)
-                    .padStart(2, "0")
+            [
+                r,
+                g,
+                b
+            ]
+                .map(
+                    value =>
+                        clamp(
+                            value,
+                            0,
+                            255
+                        )
+                            .toString(16)
+                            .padStart(
+                                2,
+                                "0"
+                            )
                 )
                 .join("")
                 .toUpperCase()
@@ -240,15 +300,29 @@
     }
 
 
-    function normalizeHex(value) {
+    function normalizeHex(
+        value
+    ) {
 
-        value = String(value || "").trim();
+        value =
+            String(
+                value || ""
+            ).trim();
 
-        if (!value.startsWith("#")) {
-            value = "#" + value;
+
+        if (
+            !value.startsWith("#")
+        ) {
+
+            value =
+                "#" + value;
         }
 
-        if (/^#[0-9a-fA-F]{3}$/.test(value)) {
+
+        if (
+            /^#[0-9a-fA-F]{3}$/
+                .test(value)
+        ) {
 
             return (
                 "#" +
@@ -258,19 +332,34 @@
             ).toUpperCase();
         }
 
-        if (/^#[0-9a-fA-F]{6}$/.test(value)) {
+
+        if (
+            /^#[0-9a-fA-F]{6}$/
+                .test(value)
+        ) {
+
             return value.toUpperCase();
         }
+
 
         return "#000000";
     }
 
 
-    function colorDistance(a, b) {
+    function colorDistance(
+        a,
+        b
+    ) {
 
-        const dr = a.r - b.r;
-        const dg = a.g - b.g;
-        const db = a.b - b.b;
+        const dr =
+            a.r - b.r;
+
+        const dg =
+            a.g - b.g;
+
+        const db =
+            a.b - b.b;
+
 
         return Math.sqrt(
             dr * dr * 0.299 +
@@ -280,26 +369,36 @@
     }
 
 
-    function columnLabel(index) {
+    function columnLabel(
+        index
+    ) {
 
         let result = "";
-        let n = index + 1;
 
-        while (n > 0) {
+        let n =
+            index + 1;
+
+
+        while (
+            n > 0
+        ) {
 
             const remainder =
                 (n - 1) % 26;
+
 
             result =
                 String.fromCharCode(
                     65 + remainder
                 ) + result;
 
+
             n =
                 Math.floor(
                     (n - 1) / 26
                 );
         }
+
 
         return result;
     }
@@ -314,44 +413,46 @@
         const width =
             Math.max(
                 1,
-                Number(widthInput?.value) || 100
+                Number(
+                    widthInput?.value
+                ) || 100
             );
+
 
         const height =
             Math.max(
                 1,
-                Number(heightInput?.value) || 75
+                Number(
+                    heightInput?.value
+                ) || 75
             );
 
-        return {
-            width: Math.max(
-                1,
-                Math.round(
-                    width / GRID_CELL_CM
-                )
-            ),
 
-            height: Math.max(
-                1,
-                Math.round(
-                    height / GRID_CELL_CM
+        return {
+
+            width:
+                Math.max(
+                    1,
+                    Math.round(
+                        width /
+                        GRID_CELL_CM
+                    )
+                ),
+
+            height:
+                Math.max(
+                    1,
+                    Math.round(
+                        height /
+                        GRID_CELL_CM
+                    )
                 )
-            )
         };
     }
 
 
     /* =========================================================
        DETAIL GRID
-       =========================================================
-       
-       DETAIL is NOT physical grid.
-
-       We use a sensible amount of visual cells and preserve
-       the rug aspect ratio.
-
-       The resulting detail image is then rendered INTO the
-       fixed physical frame.
        ========================================================= */
 
     function calculateDetailGrid() {
@@ -359,21 +460,30 @@
         const width =
             Math.max(
                 1,
-                Number(widthInput?.value) || 100
+                Number(
+                    widthInput?.value
+                ) || 100
             );
+
 
         const height =
             Math.max(
                 1,
-                Number(heightInput?.value) || 75
+                Number(
+                    heightInput?.value
+                ) || 75
             );
+
 
         const detailWidth =
             clamp(
-                Math.round(detailLevel),
+                Math.round(
+                    detailLevel
+                ),
                 MIN_DETAIL,
                 MAX_DETAIL
             );
+
 
         const detailHeight =
             Math.max(
@@ -385,9 +495,13 @@
                 )
             );
 
+
         return {
-            width: detailWidth,
-            height: detailHeight
+            width:
+                detailWidth,
+
+            height:
+                detailHeight
         };
     }
 
@@ -396,30 +510,39 @@
        CONTROLS
        ========================================================= */
 
-    function styleSlider(input) {
+    function styleSlider(
+        input
+    ) {
 
         if (!input) {
             return;
         }
 
-        input.style.width = "100%";
-        input.style.boxSizing = "border-box";
-        input.style.cursor = "pointer";
+
+        input.style.width =
+            "100%";
+
+        input.style.boxSizing =
+            "border-box";
+
+        input.style.cursor =
+            "pointer";
     }
 
 
     function createExtraControls() {
 
-        /*
-           Remove controls from previous version if they exist.
-        */
+        document
+            .getElementById(
+                "rugSmoothingControl"
+            )
+            ?.remove();
+
 
         document
-             .getElementById("rugSmoothingControl")
-             ?.remove();
-
-        document
-            .getElementById("rugDetailControl")
+            .getElementById(
+                "rugDetailControl"
+            )
             ?.remove();
 
 
@@ -428,20 +551,23 @@
         }
 
 
-              /*
-           -----------------------------------------------------
+        /* =====================================================
            COLOR SMOOTHING
-           -----------------------------------------------------
-        */
+           ===================================================== */
 
         const smoothingBlock =
-            document.createElement("div");
+            document.createElement(
+                "div"
+            );
+
 
         smoothingBlock.id =
             "rugSmoothingControl";
 
+
         smoothingBlock.className =
             "control-section";
+
 
         smoothingBlock.innerHTML = `
             <div class="section-label">
@@ -497,11 +623,6 @@
         `;
 
 
-        /*
-           IMPORTANT:
-           Put immediately after palette block.
-        */
-
         const paletteSection =
             paletteElement.closest(
                 ".control-section"
@@ -527,6 +648,7 @@
                 "rugSmoothingInput"
             );
 
+
         const smoothingValue =
             document.getElementById(
                 "rugSmoothingValue"
@@ -540,7 +662,9 @@
 
         function updateSmoothingLabel() {
 
-            if (colorSmoothing <= 5) {
+            if (
+                colorSmoothing <= 5
+            ) {
 
                 smoothingValue.textContent =
                     "NONE";
@@ -578,74 +702,84 @@
 
 
         smoothingInput.addEventListener(
-    "input",
-    () => {
+            "input",
+            () => {
 
-        colorSmoothing =
-            clamp(
-                Number(
-                    smoothingInput.value
-                ) || 0,
-                0,
-                100
-            );
-
-        updateSmoothingLabel();
+                colorSmoothing =
+                    clamp(
+                        Number(
+                            smoothingInput.value
+                        ) || 0,
+                        0,
+                        100
+                    );
 
 
-        /*
-           ALWAYS start from the original
-           detail map.
+                updateSmoothingLabel();
 
-           This prevents:
 
-           20 → 50 → 80 → 30
+                /*
+                   Re-render immediately from the
+                   untouched original detail map.
+                */
 
-           from repeatedly smoothing an already
-           smoothed image.
-        */
+                if (
+                    rawDetailData
+                ) {
 
-        if (
-            rawDetailData
-        ) {
+                    currentDetailData = {
 
-            currentDetailData = {
-                width:
-                    rawDetailData.width,
+                        width:
+                            rawDetailData.width,
 
-                height:
-                    rawDetailData.height,
+                        height:
+                            rawDetailData.height,
 
-                data:
-                    colorSmoothing > 0
-                        ? smoothColorMap(
-                            rawDetailData.data,
-                            colorSmoothing
-                        )
-                        : rawDetailData.data.map(
-                            row => row.slice()
-                        )
-            };
+                        data:
+                            colorSmoothing > 0
+                                ? smoothColorMap(
+                                    rawDetailData.data,
+                                    colorSmoothing
+                                )
+                                : rawDetailData.data.map(
+                                    row =>
+                                        row.slice()
+                                )
+                    };
 
-            renderPreview();
-        }
-    }
-);
 
-        /*
-           -----------------------------------------------------
+                    renderPreview();
+
+
+                    renderColorLegend(
+                        currentDetailData.data,
+                        getCurrentPalette()
+                    );
+
+
+                    updateStats();
+                }
+            }
+        );
+
+
+        /* =====================================================
            DETAIL
-           -----------------------------------------------------
-        */
+           ===================================================== */
 
         const detailBlock =
-            document.createElement("div");
+            document.createElement(
+                "div"
+            );
+
 
         detailBlock.id =
             "rugDetailControl";
 
+
         detailBlock.className =
             "control-section";
+
 
         detailBlock.innerHTML = `
             <div class="section-label">
@@ -702,8 +836,8 @@
 
 
         smoothingBlock.after(
-                detailBlock
-            );
+            detailBlock
+        );
 
 
         const detailInput =
@@ -711,13 +845,16 @@
                 "rugDetailInput"
             );
 
+
         const detailValue =
             document.getElementById(
                 "rugDetailValue"
             );
 
 
-        styleSlider(detailInput);
+        styleSlider(
+            detailInput
+        );
 
 
         detailInput.addEventListener(
@@ -733,8 +870,10 @@
                         MAX_DETAIL
                     );
 
+
                 detailValue.textContent =
                     detailLevel;
+
 
                 queueGenerate();
             }
@@ -753,28 +892,29 @@
         }
 
 
-        /*
-           The workspace itself is the physical rug frame.
-           It must not grow because DETAIL grows.
-        */
-
         rugWorkspace.style.position =
             "relative";
+
 
         rugWorkspace.style.width =
             "100%";
 
+
         rugWorkspace.style.height =
             "100%";
+
 
         rugWorkspace.style.minWidth =
             "0";
 
+
         rugWorkspace.style.minHeight =
             "0";
 
+
         rugWorkspace.style.overflow =
             "hidden";
+
 
         rugWorkspace.style.boxSizing =
             "border-box";
@@ -785,26 +925,34 @@
             rugCanvasWrap.style.position =
                 "absolute";
 
+
             rugCanvasWrap.style.left =
                 "0";
+
 
             rugCanvasWrap.style.top =
                 "0";
 
+
             rugCanvasWrap.style.width =
                 "100%";
+
 
             rugCanvasWrap.style.height =
                 "100%";
 
+
             rugCanvasWrap.style.overflow =
                 "hidden";
+
 
             rugCanvasWrap.style.minWidth =
                 "0";
 
+
             rugCanvasWrap.style.minHeight =
                 "0";
+
 
             rugCanvasWrap.style.boxSizing =
                 "border-box";
@@ -816,17 +964,22 @@
             canvas.style.position =
                 "absolute";
 
+
             canvas.style.left =
                 "0";
+
 
             canvas.style.top =
                 "0";
 
+
             canvas.style.display =
                 "none";
 
+
             canvas.style.maxWidth =
                 "none";
+
 
             canvas.style.maxHeight =
                 "none";
@@ -849,10 +1002,6 @@
         }
 
 
-        /*
-           Before generation we show the original image.
-        */
-
         const rect =
             getAvailableFrame();
 
@@ -873,15 +1022,20 @@
         let drawWidth =
             rect.width;
 
+
         let drawHeight =
             drawWidth /
             imageRatio;
 
 
-        if (drawHeight > rect.height) {
+        if (
+            drawHeight >
+            rect.height
+        ) {
 
             drawHeight =
                 rect.height;
+
 
             drawWidth =
                 drawHeight *
@@ -890,10 +1044,17 @@
 
 
         const x =
-            (rect.width - drawWidth) / 2;
+            (
+                rect.width -
+                drawWidth
+            ) / 2;
+
 
         const y =
-            (rect.height - drawHeight) / 2;
+            (
+                rect.height -
+                drawHeight
+            ) / 2;
 
 
         const dpr =
@@ -907,15 +1068,18 @@
             Math.max(
                 1,
                 Math.round(
-                    drawWidth * dpr
+                    drawWidth *
+                    dpr
                 )
             );
+
 
         canvas.height =
             Math.max(
                 1,
                 Math.round(
-                    drawHeight * dpr
+                    drawHeight *
+                    dpr
                 )
             );
 
@@ -923,21 +1087,27 @@
         canvas.style.width =
             `${drawWidth}px`;
 
+
         canvas.style.height =
             `${drawHeight}px`;
+
 
         canvas.style.left =
             `${x}px`;
 
+
         canvas.style.top =
             `${y}px`;
+
 
         canvas.style.display =
             "block";
 
 
         const ctx =
-            canvas.getContext("2d");
+            canvas.getContext(
+                "2d"
+            );
 
 
         ctx.setTransform(
@@ -968,12 +1138,14 @@
 
 
         if (emptyPreview) {
+
             emptyPreview.style.display =
                 "none";
         }
 
 
         if (previewStatus) {
+
             previewStatus.textContent =
                 "IMAGE LOADED";
         }
@@ -1000,15 +1172,18 @@
 
 
         return {
-            width: Math.max(
-                1,
-                rect.width
-            ),
 
-            height: Math.max(
-                1,
-                rect.height
-            )
+            width:
+                Math.max(
+                    1,
+                    rect.width
+                ),
+
+            height:
+                Math.max(
+                    1,
+                    rect.height
+                )
         };
     }
 
@@ -1031,6 +1206,7 @@
         let width =
             sourceImage.naturalWidth;
 
+
         let height =
             sourceImage.naturalHeight;
 
@@ -1051,6 +1227,7 @@
                 )
             );
 
+
         height =
             Math.max(
                 1,
@@ -1069,6 +1246,7 @@
         temp.width =
             width;
 
+
         temp.height =
             height;
 
@@ -1077,7 +1255,8 @@
             temp.getContext(
                 "2d",
                 {
-                    willReadFrequently: true
+                    willReadFrequently:
+                        true
                 }
             );
 
@@ -1113,12 +1292,14 @@
 
 
         if (
-            backgroundMode === "remove"
+            backgroundMode ===
+            "remove"
         ) {
 
             removeBackgroundPixels(
                 imageData
             );
+
 
             tempCtx.putImageData(
                 imageData,
@@ -1129,8 +1310,11 @@
 
 
         return {
-            canvas: temp,
-            imageData
+            canvas:
+                temp,
+
+            imageData:
+                imageData
         };
     }
 
@@ -1160,7 +1344,8 @@
 
 
         const brightnessAmount =
-            brightness * 2.55;
+            brightness *
+            2.55;
 
 
         const factor =
@@ -1184,9 +1369,11 @@
                 data[i] +
                 brightnessAmount;
 
+
             let g =
                 data[i + 1] +
                 brightnessAmount;
+
 
             let b =
                 data[i + 2] +
@@ -1198,10 +1385,12 @@
                 (r - 128) +
                 128;
 
+
             g =
                 factor *
                 (g - 128) +
                 128;
+
 
             b =
                 factor *
@@ -1210,13 +1399,27 @@
 
 
             data[i] =
-                clamp(r, 0, 255);
+                clamp(
+                    r,
+                    0,
+                    255
+                );
+
 
             data[i + 1] =
-                clamp(g, 0, 255);
+                clamp(
+                    g,
+                    0,
+                    255
+                );
+
 
             data[i + 2] =
-                clamp(b, 0, 255);
+                clamp(
+                    b,
+                    0,
+                    255
+                );
         }
     }
 
@@ -1232,14 +1435,17 @@
         const data =
             imageData.data;
 
+
         const width =
             imageData.width;
+
 
         const height =
             imageData.height;
 
 
         const points = [
+
             0,
 
             (width - 1) * 4,
@@ -1257,6 +1463,7 @@
                 width -
                 1
             ) * 4
+
         ];
 
 
@@ -1267,12 +1474,19 @@
         };
 
 
-        points.forEach(index => {
+        points.forEach(
+            index => {
 
-            bg.r += data[index];
-            bg.g += data[index + 1];
-            bg.b += data[index + 2];
-        });
+                bg.r +=
+                    data[index];
+
+                bg.g +=
+                    data[index + 1];
+
+                bg.b +=
+                    data[index + 2];
+            }
+        );
 
 
         bg.r /= 4;
@@ -1280,7 +1494,8 @@
         bg.b /= 4;
 
 
-        const threshold = 55;
+        const threshold =
+            55;
 
 
         for (
@@ -1290,9 +1505,16 @@
         ) {
 
             const current = {
-                r: data[i],
-                g: data[i + 1],
-                b: data[i + 2]
+
+                r:
+                    data[i],
+
+                g:
+                    data[i + 1],
+
+                b:
+                    data[i + 2]
+
             };
 
 
@@ -1303,7 +1525,8 @@
                 ) < threshold
             ) {
 
-                data[i + 3] = 0;
+                data[i + 3] =
+                    0;
             }
         }
     }
@@ -1327,8 +1550,8 @@
 
 
         /*
-           Sample every ~20th pixel.
-           This is enough for palette extraction and much faster.
+           Every 80 RGBA values =
+           every 20th pixel.
         */
 
         for (
@@ -1349,10 +1572,12 @@
                     data[i] / 16
                 ) * 16;
 
+
             const g =
                 Math.floor(
                     data[i + 1] / 16
                 ) * 16;
+
 
             const b =
                 Math.floor(
@@ -1367,7 +1592,9 @@
             buckets.set(
                 key,
                 (
-                    buckets.get(key) || 0
+                    buckets.get(
+                        key
+                    ) || 0
                 ) + 1
             );
         }
@@ -1379,7 +1606,10 @@
                     (a, b) =>
                         b[1] - a[1]
                 )
-                .slice(0, 80)
+                .slice(
+                    0,
+                    80
+                )
                 .map(
                     ([key, weight]) => {
 
@@ -1390,7 +1620,10 @@
                         ] =
                             key
                                 .split(",")
-                                .map(Number);
+                                .map(
+                                    Number
+                                );
+
 
                         return {
                             r,
@@ -1402,7 +1635,9 @@
                 );
 
 
-        if (!sorted.length) {
+        if (
+            !sorted.length
+        ) {
 
             return DEFAULT_PALETTE.slice(
                 0,
@@ -1417,19 +1652,23 @@
 
 
         while (
-            result.length < count &&
-            result.length < sorted.length
+            result.length <
+                count &&
+            result.length <
+                sorted.length
         ) {
 
             let best =
                 null;
+
 
             let bestScore =
                 -Infinity;
 
 
             for (
-                const candidate of sorted
+                const candidate
+                of sorted
             ) {
 
                 const duplicate =
@@ -1469,7 +1708,8 @@
                 const score =
                     minimum +
                     Math.log(
-                        candidate.weight + 1
+                        candidate.weight +
+                        1
                     ) * 3;
 
 
@@ -1480,6 +1720,7 @@
 
                     bestScore =
                         score;
+
 
                     best =
                         candidate;
@@ -1492,7 +1733,9 @@
             }
 
 
-            result.push(best);
+            result.push(
+                best
+            );
         }
 
 
@@ -1504,6 +1747,18 @@
                     color.b
                 )
         );
+    }
+
+
+    /* =========================================================
+       CURRENT PALETTE
+       ========================================================= */
+
+    function getCurrentPalette() {
+
+        return customPalette.length
+            ? customPalette
+            : generatedPalette;
     }
 
 
@@ -1525,7 +1780,8 @@
             sourceCanvas.getContext(
                 "2d",
                 {
-                    willReadFrequently: true
+                    willReadFrequently:
+                        true
                 }
             );
 
@@ -1540,7 +1796,9 @@
 
 
         const rgbPalette =
-            palette.map(hexToRgb);
+            palette.map(
+                hexToRgb
+            );
 
 
         const output =
@@ -1573,7 +1831,9 @@
                 Math.max(
                     sy + 1,
                     Math.floor(
-                        (y + 1) /
+                        (
+                            y + 1
+                        ) /
                         detailGrid.height *
                         sourceCanvas.height
                     )
@@ -1598,11 +1858,13 @@
                     Math.max(
                         sx + 1,
                         Math.floor(
-                            (x + 1) /
+                            (
+                                x + 1
+                            ) /
                             detailGrid.width *
                             sourceCanvas.width
-                    )
-                );
+                        )
+                    );
 
 
                 let r = 0;
@@ -1632,9 +1894,10 @@
 
 
                         const alpha =
-                            sourceData.data[
-                                index + 3
-                            ];
+                            sourceData
+                                .data[
+                                    index + 3
+                                ];
 
 
                         if (
@@ -1645,49 +1908,67 @@
 
 
                         r +=
-                            sourceData.data[
-                                index
-                            ];
+                            sourceData
+                                .data[
+                                    index
+                                ];
+
 
                         g +=
-                            sourceData.data[
-                                index + 1
-                            ];
+                            sourceData
+                                .data[
+                                    index + 1
+                                ];
+
 
                         b +=
-                            sourceData.data[
-                                index + 2
-                            ];
+                            sourceData
+                                .data[
+                                    index + 2
+                                ];
+
 
                         count++;
                     }
                 }
 
 
-                if (!count) {
+                if (
+                    !count
+                ) {
 
-                    row[x] = null;
+                    row[x] =
+                        null;
 
                     continue;
                 }
 
 
                 const average = {
-                    r: r / count,
-                    g: g / count,
-                    b: b / count
+
+                    r:
+                        r / count,
+
+                    g:
+                        g / count,
+
+                    b:
+                        b / count
+
                 };
 
 
                 let nearest =
                     rgbPalette[0];
 
+
                 let nearestDistance =
                     Infinity;
 
 
                 for (
-                    const color of rgbPalette
+                    const color
+                    of rgbPalette
                 ) {
 
                     const distance =
@@ -1704,6 +1985,7 @@
 
                         nearestDistance =
                             distance;
+
 
                         nearest =
                             color;
@@ -1728,17 +2010,19 @@
         return output;
     }
 
-       /* =========================================================
+
+    /* =========================================================
        COLOR SMOOTHING
        =========================================================
 
-       Merges small areas of visually similar colors.
+       Changes COLORS only.
 
-       IMPORTANT:
-       - Does NOT blur the image.
-       - Does NOT change pixel shape.
-       - Does NOT change physical grid.
-       - Works only on the generated color map.
+       Does NOT:
+       - blur the image
+       - change cell geometry
+       - change physical grid
+       - round cells
+       - enlarge frame
        ========================================================= */
 
     function smoothColorMap(
@@ -1751,12 +2035,14 @@
             !map.length ||
             amount <= 0
         ) {
+
             return map;
         }
 
 
         const height =
             map.length;
+
 
         const width =
             map[0]?.length || 0;
@@ -1766,36 +2052,18 @@
             width === 0 ||
             height === 0
         ) {
+
             return map;
         }
 
 
-        /*
-           Convert 0–100 slider into
-           a useful color-distance threshold.
-
-           Maximum distance is roughly 255.
-           We intentionally keep this conservative
-           so strong color boundaries survive.
-        */
-
         const colorThreshold =
             8 +
-            (amount / 100) * 52;
+            (
+                amount /
+                100
+            ) * 52;
 
-
-        /*
-           Number of smoothing passes.
-
-           Low amount:
-             one pass
-
-           High amount:
-             several passes
-
-           This lets larger regions gradually
-           absorb tiny neighboring regions.
-        */
 
         const passes =
             Math.max(
@@ -1808,8 +2076,9 @@
 
 
         let result =
-            map.map(row =>
-                row.slice()
+            map.map(
+                row =>
+                    row.slice()
             );
 
 
@@ -1820,8 +2089,9 @@
         ) {
 
             const next =
-                result.map(row =>
-                    row.slice()
+                result.map(
+                    row =>
+                        row.slice()
                 );
 
 
@@ -1852,18 +2122,13 @@
                         );
 
 
-                    /*
-                       Count neighboring colors.
-
-                       We use 4-way neighbors first.
-                       This avoids diagonal bleeding
-                       across sharp corners.
-                    */
-
-                    const neighbors = [];
+                    const neighbors =
+                        [];
 
 
-                    if (x > 0) {
+                    if (
+                        x > 0
+                    ) {
 
                         neighbors.push(
                             result[y][x - 1]
@@ -1871,7 +2136,10 @@
                     }
 
 
-                    if (x < width - 1) {
+                    if (
+                        x <
+                        width - 1
+                    ) {
 
                         neighbors.push(
                             result[y][x + 1]
@@ -1879,7 +2147,9 @@
                     }
 
 
-                    if (y > 0) {
+                    if (
+                        y > 0
+                    ) {
 
                         neighbors.push(
                             result[y - 1][x]
@@ -1887,18 +2157,16 @@
                     }
 
 
-                    if (y < height - 1) {
+                    if (
+                        y <
+                        height - 1
+                    ) {
 
                         neighbors.push(
                             result[y + 1][x]
                         );
                     }
 
-
-                    /*
-                       Count how often each neighboring
-                       color occurs.
-                    */
 
                     const counts =
                         new Map();
@@ -1913,6 +2181,7 @@
                             continue;
                         }
 
+
                         counts.set(
                             color,
                             (
@@ -1924,13 +2193,9 @@
                     }
 
 
-                    /*
-                       Find the dominant neighboring
-                       color that is sufficiently close.
-                    */
-
                     let bestColor =
                         null;
+
 
                     let bestCount =
                         0;
@@ -1945,7 +2210,8 @@
                     ) {
 
                         if (
-                            color === current
+                            color ===
+                            current
                         ) {
                             continue;
                         }
@@ -1976,26 +2242,19 @@
                             bestCount =
                                 count;
 
+
                             bestColor =
                                 color;
                         }
                     }
 
 
-                    /*
-                       Do not allow a single neighbor
-                       to immediately destroy a region.
-
-                       At stronger smoothing levels,
-                       one neighbor can be enough.
-                    */
-
-                   const requiredNeighbors =
-                         amount < 25
-                             ? 3
-                             : amount < 60
-                                 ? 2
-                                 : 2;
+                    const requiredNeighbors =
+                        amount < 25
+                            ? 3
+                            : amount < 60
+                                ? 2
+                                : 2;
 
 
                     if (
@@ -2015,20 +2274,6 @@
                 next;
         }
 
-
-        /*
-           Second stage:
-           remove tiny isolated islands.
-
-           Example:
-
-           A A A A
-           A B A A
-           A A A A
-
-           If B is close enough to A,
-           it disappears.
-        */
 
         if (
             amount >= 20
@@ -2060,6 +2305,7 @@
         const height =
             map.length;
 
+
         const width =
             map[0]?.length || 0;
 
@@ -2068,35 +2314,33 @@
             width === 0 ||
             height === 0
         ) {
+
             return map;
         }
 
 
         const result =
-            map.map(row =>
-                row.slice()
+            map.map(
+                row =>
+                    row.slice()
             );
 
-
-        /*
-           Maximum island size that can be
-           swallowed by smoothing.
-
-           Stronger smoothing removes larger
-           little fragments.
-        */
 
         const maxIslandSize =
             Math.round(
                 1 +
-                (amount / 100) * 14
+                (
+                    amount /
+                    100
+                ) * 14
             );
 
 
         const visited =
             Array.from(
                 {
-                    length: height
+                    length:
+                        height
                 },
                 () =>
                     Array(
@@ -2110,10 +2354,13 @@
             y
         ) {
 
-            const list = [];
+            const list =
+                [];
 
 
-            if (x > 0) {
+            if (
+                x > 0
+            ) {
 
                 list.push([
                     x - 1,
@@ -2122,7 +2369,10 @@
             }
 
 
-            if (x < width - 1) {
+            if (
+                x <
+                width - 1
+            ) {
 
                 list.push([
                     x + 1,
@@ -2131,7 +2381,9 @@
             }
 
 
-            if (y > 0) {
+            if (
+                y > 0
+            ) {
 
                 list.push([
                     x,
@@ -2140,7 +2392,10 @@
             }
 
 
-            if (y < height - 1) {
+            if (
+                y <
+                height - 1
+            ) {
 
                 list.push([
                     x,
@@ -2173,19 +2428,28 @@
 
 
                 const color =
-                    result[startY][startX];
+                    result[
+                        startY
+                    ][
+                        startX
+                    ];
 
 
                 if (!color) {
 
-                    visited[startY][startX] =
-                        true;
+                    visited[
+                        startY
+                    ][
+                        startX
+                    ] = true;
 
                     continue;
                 }
 
 
-                const component = [];
+                const component =
+                    [];
+
 
                 const queue = [
                     [
@@ -2195,8 +2459,11 @@
                 ];
 
 
-                visited[startY][startX] =
-                    true;
+                visited[
+                    startY
+                ][
+                    startX
+                ] = true;
 
 
                 while (
@@ -2220,6 +2487,7 @@
                         component.length >
                         maxIslandSize
                     ) {
+
                         break;
                     }
 
@@ -2262,11 +2530,6 @@
                 }
 
 
-                /*
-                   Only process genuinely small
-                   isolated components.
-                */
-
                 if (
                     component.length >
                     maxIslandSize
@@ -2277,6 +2540,7 @@
 
                 let replacement =
                     null;
+
 
                 let replacementScore =
                     Infinity;
@@ -2307,7 +2571,8 @@
 
                         if (
                             !neighborColor ||
-                            neighborColor === color
+                            neighborColor ===
+                                color
                         ) {
                             continue;
                         }
@@ -2339,6 +2604,7 @@
 
                             replacementScore =
                                 distance;
+
 
                             replacement =
                                 neighborColor;
@@ -2372,37 +2638,42 @@
 
 
     /* =========================================================
-       ROUNDED CELL
+       SQUARE CELL
+       =========================================================
+
+       IMPORTANT:
+
+       Cells are ALWAYS square/rectangular grid cells.
+
+       COLOR SMOOTHING changes colors only.
+       It does NOT round cells.
        ========================================================= */
 
-/* =========================================================
-   SQUARE CELL
-
-   COLOR SMOOTHING changes colors only.
-   Cells themselves always remain square.
-   ========================================================= */
-
-function drawCell(
-    ctx,
-    x,
-    y,
-    width,
-    height,
-    color
-) {
-    if (!color) {
-        return;
-    }
-
-    ctx.fillStyle = color;
-
-    ctx.fillRect(
+    function drawCell(
+        ctx,
         x,
         y,
         width,
-        height
-    );
-}
+        height,
+        color
+    ) {
+
+        if (!color) {
+            return;
+        }
+
+
+        ctx.fillStyle =
+            color;
+
+
+        ctx.fillRect(
+            x,
+            y,
+            width,
+            height
+        );
+    }
 
 
     /* =========================================================
@@ -2433,11 +2704,8 @@ function drawCell(
 
 
         /*
-           -----------------------------------------------------
-           IMPORTANT:
-           The physical frame is based ONLY on the rug ratio.
-           DETAIL never changes it.
-           -----------------------------------------------------
+           Physical frame depends ONLY on
+           the physical rug ratio.
         */
 
         const physicalRatio =
@@ -2447,6 +2715,7 @@ function drawCell(
 
         let frameWidth =
             frame.width;
+
 
         let frameHeight =
             frameWidth /
@@ -2461,21 +2730,19 @@ function drawCell(
             frameHeight =
                 frame.height;
 
+
             frameWidth =
                 frameHeight *
                 physicalRatio;
         }
 
 
-        /*
-           Small safety margin so the border is not clipped.
-        */
-
         frameWidth =
             Math.max(
                 10,
                 frameWidth - 4
             );
+
 
         frameHeight =
             Math.max(
@@ -2485,57 +2752,57 @@ function drawCell(
 
 
         /*
-           Manual zoom.
-           At 100% = FIT.
+           Zoom.
         */
 
         const visualWidth =
             frameWidth *
             zoomLevel;
 
+
         const visualHeight =
             frameHeight *
             zoomLevel;
 
 
-        /*
-           Center when fit.
-           When zoomed, keep the image inside
-           the scroll-free workspace as much as possible.
-        */
-
         let left =
-            (frame.width -
-                visualWidth) / 2;
+            (
+                frame.width -
+                visualWidth
+            ) / 2;
+
 
         let top =
-            (frame.height -
-                visualHeight) / 2;
+            (
+                frame.height -
+                visualHeight
+            ) / 2;
 
 
-        if (zoomLevel > 1) {
+        if (
+            zoomLevel > 1
+        ) {
 
             left =
                 Math.max(
                     0,
-                    (frame.width -
-                        visualWidth) / 2
+                    (
+                        frame.width -
+                        visualWidth
+                    ) / 2
                 );
+
 
             top =
                 Math.max(
                     0,
-                    (frame.height -
-                        visualHeight) / 2
+                    (
+                        frame.height -
+                        visualHeight
+                    ) / 2
                 );
         }
 
-
-        /*
-           High-resolution backing canvas,
-           but dimensions are based on PHYSICAL
-           frame size, NOT DETAIL size.
-        */
 
         const dpr =
             Math.min(
@@ -2548,15 +2815,18 @@ function drawCell(
             Math.max(
                 1,
                 Math.round(
-                    visualWidth * dpr
+                    visualWidth *
+                    dpr
                 )
             );
+
 
         canvas.height =
             Math.max(
                 1,
                 Math.round(
-                    visualHeight * dpr
+                    visualHeight *
+                    dpr
                 )
             );
 
@@ -2564,14 +2834,18 @@ function drawCell(
         canvas.style.width =
             `${visualWidth}px`;
 
+
         canvas.style.height =
             `${visualHeight}px`;
+
 
         canvas.style.left =
             `${left}px`;
 
+
         canvas.style.top =
             `${top}px`;
+
 
         canvas.style.display =
             "block";
@@ -2602,13 +2876,12 @@ function drawCell(
 
 
         /*
-           -----------------------------------------------------
-           BACKGROUND
-           -----------------------------------------------------
+           Background.
         */
 
         ctx.fillStyle =
             "#11110f";
+
 
         ctx.fillRect(
             0,
@@ -2619,17 +2892,8 @@ function drawCell(
 
 
         /*
-           -----------------------------------------------------
-           DETAIL CELLS
-           -----------------------------------------------------
-
-           We map the detail grid INTO the fixed physical
-           rectangle.
-
-           Therefore:
-             20×20 physical grid stays 20×20.
-             DETAIL 20 / 100 / 500 only changes the
-             visual subdivisions.
+           Detail map is mapped INTO the
+           fixed physical frame.
         */
 
         const data =
@@ -2639,6 +2903,7 @@ function drawCell(
         const detailWidth =
             currentDetailData.width;
 
+
         const detailHeight =
             currentDetailData.height;
 
@@ -2646,6 +2911,7 @@ function drawCell(
         const cellWidth =
             visualWidth /
             detailWidth;
+
 
         const cellHeight =
             visualHeight /
@@ -2668,29 +2934,20 @@ function drawCell(
                 x++
             ) {
 
-                const color =
-                    row[x];
-
-
                 drawCell(
                     ctx,
                     x * cellWidth,
                     y * cellHeight,
                     cellWidth,
                     cellHeight,
-                    color
+                    row[x]
                 );
             }
         }
 
 
         /*
-           -----------------------------------------------------
-           PHYSICAL GRID
-           -----------------------------------------------------
-
-           This is ALWAYS based on currentGrid.
-           currentGrid is ALWAYS width / 5 and height / 5.
+           Physical grid.
         */
 
         drawPhysicalGrid(
@@ -2707,8 +2964,10 @@ function drawCell(
         ctx.strokeStyle =
             "rgba(255,255,255,.8)";
 
+
         ctx.lineWidth =
             1.5;
+
 
         ctx.strokeRect(
             0.75,
@@ -2722,7 +2981,8 @@ function drawCell(
 
             zoomValue.textContent =
                 `${Math.round(
-                    zoomLevel * 100
+                    zoomLevel *
+                    100
                 )}%`;
         }
 
@@ -2753,6 +3013,7 @@ function drawCell(
             width /
             currentGrid.width;
 
+
         const cellHeight =
             height /
             currentGrid.height;
@@ -2764,12 +3025,13 @@ function drawCell(
         ctx.strokeStyle =
             "rgba(255,255,255,.32)";
 
+
         ctx.lineWidth =
             1;
 
 
         /*
-           Vertical.
+           Vertical lines.
         */
 
         for (
@@ -2786,22 +3048,25 @@ function drawCell(
 
             ctx.beginPath();
 
+
             ctx.moveTo(
                 px,
                 0
             );
+
 
             ctx.lineTo(
                 px,
                 height
             );
 
+
             ctx.stroke();
         }
 
 
         /*
-           Horizontal.
+           Horizontal lines.
         */
 
         for (
@@ -2818,15 +3083,18 @@ function drawCell(
 
             ctx.beginPath();
 
+
             ctx.moveTo(
                 0,
                 py
             );
 
+
             ctx.lineTo(
                 width,
                 py
             );
+
 
             ctx.stroke();
         }
@@ -2854,14 +3122,10 @@ function drawCell(
         gridTopLabels.innerHTML =
             "";
 
+
         gridLeftLabels.innerHTML =
             "";
 
-
-        /*
-           The labels are positioned relative to the
-           physical frame.
-        */
 
         const frame =
             getAvailableFrame();
@@ -2875,8 +3139,10 @@ function drawCell(
         let width =
             frame.width;
 
+
         let height =
-            width / ratio;
+            width /
+            ratio;
 
 
         if (
@@ -2887,8 +3153,10 @@ function drawCell(
             height =
                 frame.height;
 
+
             width =
-                height * ratio;
+                height *
+                ratio;
         }
 
 
@@ -2898,6 +3166,7 @@ function drawCell(
                 width - 4
             );
 
+
         height =
             Math.max(
                 1,
@@ -2906,24 +3175,26 @@ function drawCell(
 
 
         const left =
-            (frame.width -
-                width) / 2;
+            (
+                frame.width -
+                width
+            ) / 2;
+
 
         const top =
-            (frame.height -
-                height) / 2;
+            (
+                frame.height -
+                height
+            ) / 2;
 
-
-        /*
-           Labels are only useful when they fit.
-           The CSS remains responsible for their appearance.
-        */
 
         gridTopLabels.style.position =
             "absolute";
 
+
         gridTopLabels.style.left =
             `${left}px`;
+
 
         gridTopLabels.style.top =
             `${Math.max(
@@ -2931,17 +3202,22 @@ function drawCell(
                 top - 18
             )}px`;
 
+
         gridTopLabels.style.width =
             `${width}px`;
+
 
         gridTopLabels.style.height =
             "16px";
 
+
         gridTopLabels.style.display =
             "flex";
 
+
         gridTopLabels.style.justifyContent =
             "space-around";
+
 
         gridTopLabels.style.pointerEvents =
             "none";
@@ -2950,29 +3226,37 @@ function drawCell(
         gridLeftLabels.style.position =
             "absolute";
 
+
         gridLeftLabels.style.left =
             `${Math.max(
                 0,
                 left - 22
             )}px`;
 
+
         gridLeftLabels.style.top =
             `${top}px`;
+
 
         gridLeftLabels.style.width =
             "20px";
 
+
         gridLeftLabels.style.height =
             `${height}px`;
+
 
         gridLeftLabels.style.display =
             "flex";
 
+
         gridLeftLabels.style.flexDirection =
             "column";
 
+
         gridLeftLabels.style.justifyContent =
             "space-around";
+
 
         gridLeftLabels.style.pointerEvents =
             "none";
@@ -2989,11 +3273,14 @@ function drawCell(
                     "span"
                 );
 
+
             span.textContent =
                 columnLabel(x);
 
+
             span.style.textAlign =
                 "center";
+
 
             gridTopLabels.appendChild(
                 span
@@ -3012,11 +3299,16 @@ function drawCell(
                     "span"
                 );
 
+
             span.textContent =
-                String(y + 1);
+                String(
+                    y + 1
+                );
+
 
             span.style.textAlign =
                 "center";
+
 
             gridLeftLabels.appendChild(
                 span
@@ -3043,7 +3335,10 @@ function drawCell(
 
 
         palette.forEach(
-            (hex, index) => {
+            (
+                hex,
+                index
+            ) => {
 
                 const row =
                     document.createElement(
@@ -3101,12 +3396,14 @@ function drawCell(
             event => {
 
                 const index =
-                    event.target.dataset
+                    event.target
+                        .dataset
                         .paletteIndex;
 
 
                 if (
-                    index === undefined
+                    index ===
+                    undefined
                 ) {
                     return;
                 }
@@ -3151,12 +3448,14 @@ function drawCell(
             event => {
 
                 const index =
-                    event.target.dataset
+                    event.target
+                        .dataset
                         .paletteIndex;
 
 
                 if (
-                    index === undefined
+                    index ===
+                    undefined
                 ) {
                     return;
                 }
@@ -3191,6 +3490,7 @@ function drawCell(
 
 
                     if (color) {
+
                         color.value =
                             normalized;
                     }
@@ -3229,7 +3529,9 @@ function drawCell(
                 ) {
 
                     customPalette =
-                        [...generatedPalette];
+                        [
+                            ...generatedPalette
+                        ];
                 }
 
 
@@ -3244,12 +3546,16 @@ function drawCell(
                 ) {
 
                     customPalette =
-                        ["#000000"];
+                        [
+                            "#000000"
+                        ];
                 }
 
 
                 generatedPalette =
-                    [...customPalette];
+                    [
+                        ...customPalette
+                    ];
 
 
                 renderPalette(
@@ -3310,7 +3616,8 @@ function drawCell(
             event => {
 
                 const file =
-                    event.target.files?.[0];
+                    event.target
+                        .files?.[0];
 
 
                 if (!file) {
@@ -3327,6 +3634,7 @@ function drawCell(
                     alert(
                         "Please select an image."
                     );
+
 
                     return;
                 }
@@ -3369,11 +3677,6 @@ function drawCell(
                         }
 
 
-                        /*
-                           THIS FIXES the "image doesn't load"
-                           feeling: show it immediately.
-                        */
-
                         showLoadedImage();
 
 
@@ -3383,11 +3686,6 @@ function drawCell(
                                 "IMAGE LOADED";
                         }
 
-
-                        /*
-                           Generate after browser paints
-                           the uploaded image.
-                        */
 
                         requestAnimationFrame(
                             () => {
@@ -3505,7 +3803,8 @@ function drawCell(
 
                 numberOfColors =
                     Number(
-                        button.dataset.colors
+                        button.dataset
+                            .colors
                     );
 
 
@@ -3597,6 +3896,7 @@ function drawCell(
             () => {
 
                 updateHeightFromWidth();
+
 
                 queueGenerate();
             }
@@ -3704,6 +4004,7 @@ function drawCell(
                 renderQueued =
                     false;
 
+
                 generateRug();
             }
         );
@@ -3735,10 +4036,6 @@ function drawCell(
         }
 
 
-        /*
-           Use timeout so UI can paint PROCESSING first.
-        */
-
         setTimeout(
             () => {
 
@@ -3753,9 +4050,9 @@ function drawCell(
                     }
 
 
-                    /*
-                       Palette.
-                    */
+                    /* =========================================
+                       PALETTE
+                       ========================================= */
 
                     if (
                         !customPalette.length
@@ -3775,23 +4072,22 @@ function drawCell(
 
 
                     const palette =
-                        customPalette.length
-                            ? customPalette
-                            : generatedPalette;
+                        getCurrentPalette();
 
 
-                    /*
-                       DETAIL GRID.
+                    if (
+                        !palette.length
+                    ) {
 
-                       Example:
-                       DETAIL = 80
-                       SIZE = 100 × 100
+                        throw new Error(
+                            "Palette is empty."
+                        );
+                    }
 
-                       => detail image roughly 80 × 80
 
-                       But physical grid remains:
-                       20 × 20
-                    */
+                    /* =========================================
+                       DETAIL GRID
+                       ========================================= */
 
                     const detailGrid =
                         calculateDetailGrid();
@@ -3805,7 +4101,15 @@ function drawCell(
                         );
 
 
-                    currentDetailData = {
+                    /*
+                       IMPORTANT:
+
+                       Save the completely untouched
+                       detail map.
+                    */
+
+                    rawDetailData = {
+
                         width:
                             detailGrid.width,
 
@@ -3813,35 +4117,59 @@ function drawCell(
                             detailGrid.height,
 
                         data:
-                            detailData
+                            detailData.map(
+                                row =>
+                                    row.slice()
+                            )
                     };
 
 
                     /*
-                       PHYSICAL GRID.
-
-                       100 × 100:
-                       20 × 20
-
-                       100 × 75:
-                       20 × 15
-
-                       ALWAYS 5 CM.
+                       Apply smoothing ONLY to a copy.
                     */
+
+                    const renderedData =
+                        colorSmoothing > 0
+                            ? smoothColorMap(
+                                rawDetailData.data,
+                                colorSmoothing
+                            )
+                            : rawDetailData.data.map(
+                                row =>
+                                    row.slice()
+                            );
+
+
+                    currentDetailData = {
+
+                        width:
+                            detailGrid.width,
+
+                        height:
+                            detailGrid.height,
+
+                        data:
+                            renderedData
+                    };
+
+
+                    /* =========================================
+                       PHYSICAL GRID
+                       ========================================= */
 
                     currentGrid =
                         calculatePhysicalGrid();
 
 
-                    /*
-                       Render.
-                    */
+                    /* =========================================
+                       RENDER
+                       ========================================= */
 
                     renderPreview();
 
 
                     renderColorLegend(
-                        detailData,
+                        renderedData,
                         palette
                     );
 
@@ -3996,10 +4324,15 @@ function drawCell(
 
 
         palette.forEach(
-            (hex, index) => {
+            (
+                hex,
+                index
+            ) => {
 
                 const normalized =
-                    normalizeHex(hex);
+                    normalizeHex(
+                        hex
+                    );
 
 
                 const item =
@@ -4056,7 +4389,9 @@ function drawCell(
 
     function applyZoom() {
 
-        if (!currentDetailData) {
+        if (
+            !currentDetailData
+        ) {
             return;
         }
 
@@ -4114,11 +4449,12 @@ function drawCell(
             () => {
 
                 /*
-                   100% means FIT TO FRAME.
+                   100% = FIT TO FRAME.
                 */
 
                 zoomLevel =
                     1;
+
 
                 applyZoom();
             }
@@ -4139,6 +4475,7 @@ function drawCell(
                 if (!sourceImage) {
 
                     imageInput?.click();
+
 
                     return;
                 }
@@ -4188,7 +4525,7 @@ function drawCell(
 
 
     /* =========================================================
-       EXPORT
+       EXPORT CONTROLS
        ========================================================= */
 
     function createExportControls() {
@@ -4229,6 +4566,7 @@ function drawCell(
         downloadButton.type =
             "button";
 
+
         downloadButton.textContent =
             "DOWNLOAD PNG";
 
@@ -4251,6 +4589,7 @@ function drawCell(
 
         projectorButton.type =
             "button";
+
 
         projectorButton.textContent =
             "PROJECTOR MODE";
@@ -4281,6 +4620,7 @@ function drawCell(
         container.appendChild(
             downloadButton
         );
+
 
         container.appendChild(
             projectorButton
@@ -4317,6 +4657,7 @@ function drawCell(
                 "Generate the rug first."
             );
 
+
             return;
         }
 
@@ -4338,18 +4679,21 @@ function drawCell(
 
 
         /*
-           Export detail resolution is intentionally
-           independent from physical grid resolution.
+           Export detail resolution is independent
+           from physical grid resolution.
         */
 
         const CELL =
             20;
 
+
         const LABEL =
             55;
 
+
         const HEADER =
             90;
+
 
         const LEGEND =
             150;
@@ -4386,6 +4730,7 @@ function drawCell(
         out.width =
             exportWidth;
 
+
         out.height =
             exportHeight;
 
@@ -4399,6 +4744,7 @@ function drawCell(
         ctx.fillStyle =
             "#11110f";
 
+
         ctx.fillRect(
             0,
             0,
@@ -4407,15 +4753,17 @@ function drawCell(
         );
 
 
-        /*
-           Header.
-        */
+        /* =====================================================
+           HEADER
+           ===================================================== */
 
         ctx.fillStyle =
             "#f2f0ea";
 
+
         ctx.font =
             "bold 22px Arial";
+
 
         ctx.fillText(
             "DOCH / RUG GRID",
@@ -4427,8 +4775,10 @@ function drawCell(
         ctx.fillStyle =
             "#77746d";
 
+
         ctx.font =
             "12px Arial";
+
 
         ctx.fillText(
             `${width} × ${height} CM · ${currentGrid.width} × ${currentGrid.height} GRID · ${GRID_CELL_CM} CM CELL · ${numberOfColors} COLORS · DETAIL ${detailLevel} · SMOOTHING ${colorSmoothing}`,
@@ -4440,13 +4790,14 @@ function drawCell(
         const imageX =
             LABEL;
 
+
         const imageY =
             HEADER;
 
 
-        /*
-           Draw detail cells.
-        */
+        /* =====================================================
+           DETAIL CELLS
+           ===================================================== */
 
         const data =
             currentDetailData.data;
@@ -4472,19 +4823,20 @@ function drawCell(
                         y * CELL,
                     CELL,
                     CELL,
-                    data[y][x],
+                    data[y][x]
                 );
             }
         }
 
 
-        /*
-           Physical grid.
-        */
+        /* =====================================================
+           PHYSICAL GRID
+           ===================================================== */
 
         const physicalCellWidth =
             imageWidth /
             currentGrid.width;
+
 
         const physicalCellHeight =
             imageHeight /
@@ -4493,6 +4845,7 @@ function drawCell(
 
         ctx.strokeStyle =
             "rgba(255,255,255,.35)";
+
 
         ctx.lineWidth =
             1;
@@ -4513,16 +4866,19 @@ function drawCell(
 
             ctx.beginPath();
 
+
             ctx.moveTo(
                 px,
                 imageY
             );
+
 
             ctx.lineTo(
                 px,
                 imageY +
                 imageHeight
             );
+
 
             ctx.stroke();
         }
@@ -4543,10 +4899,12 @@ function drawCell(
 
             ctx.beginPath();
 
+
             ctx.moveTo(
                 imageX,
                 py
             );
+
 
             ctx.lineTo(
                 imageX +
@@ -4554,19 +4912,22 @@ function drawCell(
                 py
             );
 
+
             ctx.stroke();
         }
 
 
-        /*
-           Border.
-        */
+        /* =====================================================
+           BORDER
+           ===================================================== */
 
         ctx.strokeStyle =
             "#f2f0ea";
 
+
         ctx.lineWidth =
             2;
+
 
         ctx.strokeRect(
             imageX,
@@ -4576,15 +4937,17 @@ function drawCell(
         );
 
 
-        /*
-           Top letters.
-        */
+        /* =====================================================
+           TOP LETTERS
+           ===================================================== */
 
         ctx.fillStyle =
             "#aaa79f";
 
+
         ctx.font =
             "10px Arial";
+
 
         ctx.textAlign =
             "center";
@@ -4600,7 +4963,8 @@ function drawCell(
                 imageX +
                 x *
                 physicalCellWidth +
-                physicalCellWidth / 2;
+                physicalCellWidth /
+                    2;
 
 
             ctx.fillText(
@@ -4611,9 +4975,9 @@ function drawCell(
         }
 
 
-        /*
-           Left numbers.
-        */
+        /* =====================================================
+           LEFT NUMBERS
+           ===================================================== */
 
         ctx.textAlign =
             "right";
@@ -4629,7 +4993,8 @@ function drawCell(
                 imageY +
                 y *
                 physicalCellHeight +
-                physicalCellHeight / 2;
+                physicalCellHeight /
+                    2;
 
 
             ctx.fillText(
@@ -4640,9 +5005,9 @@ function drawCell(
         }
 
 
-        /*
-           Legend.
-        */
+        /* =====================================================
+           LEGEND
+           ===================================================== */
 
         const legendY =
             imageY +
@@ -4653,11 +5018,14 @@ function drawCell(
         ctx.textAlign =
             "left";
 
+
         ctx.fillStyle =
             "#f2f0ea";
 
+
         ctx.font =
             "bold 12px Arial";
+
 
         ctx.fillText(
             "COLOR LEGEND",
@@ -4696,21 +5064,26 @@ function drawCell(
 
 
         const palette =
-            customPalette.length
-                ? customPalette
-                : generatedPalette;
+            getCurrentPalette();
 
 
         palette.forEach(
-            (hex, index) => {
+            (
+                hex,
+                index
+            ) => {
 
                 const normalized =
-                    normalizeHex(hex);
+                    normalizeHex(
+                        hex
+                    );
 
 
                 const itemX =
                     25 +
-                    (index % 4) *
+                    (
+                        index % 4
+                    ) *
                     190;
 
 
@@ -4738,6 +5111,7 @@ function drawCell(
                 ctx.strokeStyle =
                     "#77746d";
 
+
                 ctx.strokeRect(
                     itemX,
                     itemY - 11,
@@ -4748,6 +5122,7 @@ function drawCell(
 
                 ctx.fillStyle =
                     "#f2f0ea";
+
 
                 ctx.font =
                     "11px Arial";
@@ -4808,6 +5183,7 @@ function drawCell(
                 "Generate the rug first."
             );
 
+
             return;
         }
 
@@ -4844,7 +5220,8 @@ function drawCell(
 
 
         const ratio =
-            width / height;
+            width /
+            height;
 
 
         const workspace =
@@ -4869,6 +5246,7 @@ function drawCell(
         const renderWidth =
             1200;
 
+
         const renderHeight =
             Math.round(
                 renderWidth /
@@ -4878,6 +5256,7 @@ function drawCell(
 
         projectorCanvas.width =
             renderWidth;
+
 
         projectorCanvas.height =
             renderHeight;
@@ -4900,6 +5279,7 @@ function drawCell(
         ctx.fillStyle =
             "#11110f";
 
+
         ctx.fillRect(
             0,
             0,
@@ -4908,12 +5288,13 @@ function drawCell(
         );
 
 
-        /*
-           Detail map into physical rug rectangle.
-        */
+        /* =====================================================
+           DETAIL MAP
+           ===================================================== */
 
         const detailWidth =
             currentDetailData.width;
+
 
         const detailHeight =
             currentDetailData.height;
@@ -4922,6 +5303,7 @@ function drawCell(
         const cellWidth =
             renderWidth /
             detailWidth;
+
 
         const cellHeight =
             renderHeight /
@@ -4946,19 +5328,20 @@ function drawCell(
                     y * cellHeight,
                     cellWidth,
                     cellHeight,
-                    currentDetailData.data[y][x],
+                    currentDetailData.data[y][x]
                 );
             }
         }
 
 
-        /*
-           Physical 5 cm grid.
-        */
+        /* =====================================================
+           PHYSICAL 5 CM GRID
+           ===================================================== */
 
         const gridCellWidth =
             renderWidth /
             currentGrid.width;
+
 
         const gridCellHeight =
             renderHeight /
@@ -4967,6 +5350,7 @@ function drawCell(
 
         ctx.strokeStyle =
             "rgba(255,255,255,.35)";
+
 
         ctx.lineWidth =
             1;
@@ -4986,15 +5370,18 @@ function drawCell(
 
             ctx.beginPath();
 
+
             ctx.moveTo(
                 px,
                 0
             );
 
+
             ctx.lineTo(
                 px,
                 renderHeight
             );
+
 
             ctx.stroke();
         }
@@ -5014,15 +5401,18 @@ function drawCell(
 
             ctx.beginPath();
 
+
             ctx.moveTo(
                 0,
                 py
             );
 
+
             ctx.lineTo(
                 renderWidth,
                 py
             );
+
 
             ctx.stroke();
         }
@@ -5030,6 +5420,7 @@ function drawCell(
 
         ctx.strokeStyle =
             "rgba(255,255,255,.8)";
+
 
         ctx.lineWidth =
             2;
@@ -5053,9 +5444,9 @@ function drawCell(
         );
 
 
-        /*
-           Info.
-        */
+        /* =====================================================
+           INFO
+           ===================================================== */
 
         const info =
             document.createElement(
@@ -5076,7 +5467,9 @@ function drawCell(
 
 
         info.innerHTML = `
-            <span>DOCH / PROJECTOR MODE</span>
+            <span>
+                DOCH / PROJECTOR MODE
+            </span>
 
             <span>
                 ${width} × ${height} CM
@@ -5093,9 +5486,9 @@ function drawCell(
         );
 
 
-        /*
-           Close.
-        */
+        /* =====================================================
+           CLOSE
+           ===================================================== */
 
         const close =
             document.createElement(
@@ -5105,6 +5498,7 @@ function drawCell(
 
         close.type =
             "button";
+
 
         close.textContent =
             "EXIT PROJECTOR";
@@ -5220,14 +5614,14 @@ function drawCell(
 
 
     /*
-       Make sure labels don't accidentally create
-       a scrollable workspace.
+       Prevent accidental scrolling.
     */
 
     if (rugCanvasWrap) {
 
         rugCanvasWrap.scrollLeft =
             0;
+
 
         rugCanvasWrap.scrollTop =
             0;
@@ -5246,7 +5640,6 @@ function drawCell(
             ) {
 
                 showLoadedImage();
-
             }
         }
     );
