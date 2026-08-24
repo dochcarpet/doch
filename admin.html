@@ -343,25 +343,25 @@
 
 
     .product-actions {
-      display: flex;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
       gap: 7px;
       margin-top: 12px;
     }
-
-
-
+    
     .product-actions button {
-      flex: 1;
-      padding: 9px;
+      width: 100%;
+      padding: 9px 6px;
       border: 0;
       border-radius: 9px;
       background: #292929;
       color: white;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 700;
     }
-
+    
     .product-actions .delete-product {
+      grid-column: 1 / -1;
       background: #3a2020;
       color: #ff7777;
     }
@@ -642,15 +642,12 @@
 
 
       .product-actions {
-        flex-direction: column;
+        grid-template-columns: 1fr;
       }
-
-
-
-      .product-actions button {
-        width: 100%;
+      
+      .product-actions .delete-product {
+        grid-column: auto;
       }
-
 
 
       .product-info {
