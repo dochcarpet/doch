@@ -1277,6 +1277,59 @@ footer {
         font-size: clamp(40px, 12vw, 65px);
     }
 
+        /* FAQ */
+
+    .faq {
+        padding: 100px 25px;
+    }
+
+    .faq-header {
+        display: block;
+        margin-bottom: 70px;
+    }
+
+    .faq h2 {
+        margin-top: 60px;
+    }
+
+    .faq-question {
+        padding: 24px 0;
+        font-size: 10px;
+    }
+
+    .faq-answer p {
+        padding-right: 25px;
+        font-size: 13px;
+    }
+
+
+    /* COMPANY */
+
+    .company {
+        padding: 100px 25px;
+    }
+
+    .company-header {
+        display: block;
+    }
+
+    .company h2 {
+        margin-top: 60px;
+    }
+
+    .company-grid {
+        display: block;
+        margin-top: 80px;
+    }
+
+    .company-large {
+        font-size: 30px;
+    }
+
+    .company-copy {
+        margin-top: 70px;
+    }
+
 }
 
 
@@ -1547,4 +1600,186 @@ footer {
         padding: 40px 25px;
     }
 
+}
+
+/* =========================================================
+   FAQ
+========================================================= */
+
+.faq {
+    padding: 150px 7vw;
+    border-top: 1px solid var(--line);
+}
+
+.faq-header {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 40px;
+
+    margin-bottom: 100px;
+}
+
+.faq h2 {
+    margin: 0;
+
+    font-size: clamp(55px, 8vw, 120px);
+    line-height: .83;
+    letter-spacing: -.07em;
+    font-weight: 900;
+}
+
+.faq-list {
+    border-top: 1px solid var(--line);
+}
+
+.faq-item {
+    border-bottom: 1px solid var(--line);
+}
+
+.faq-question {
+    width: 100%;
+
+    padding: 28px 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    border: 0;
+    background: transparent;
+
+    cursor: pointer;
+
+    text-align: left;
+
+    font: 12px var(--mono);
+    letter-spacing: .06em;
+}
+
+.faq-question span:last-child {
+    width: 30px;
+    height: 30px;
+
+    border: 1px solid currentColor;
+    border-radius: 50%;
+
+    display: grid;
+    place-items: center;
+
+    font-size: 16px;
+
+    transition:
+        transform .3s,
+        background .3s,
+        color .3s;
+}
+
+.faq-answer {
+    max-width: 650px;
+
+    height: 0;
+    overflow: hidden;
+
+    opacity: 0;
+
+    transition:
+        height .4s ease,
+        opacity .3s ease;
+}
+
+.faq-answer p {
+    margin: 0;
+    padding: 0 50px 30px 0;
+
+    color: var(--grey);
+
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.faq-item.active .faq-answer {
+    opacity: 1;
+}
+
+.faq-item.active .faq-question span:last-child {
+    transform: rotate(45deg);
+
+    background: var(--accent);
+    color: var(--black);
+}
+
+
+/* =========================================================
+   COMPANY / MANIFESTO
+========================================================= */
+
+.company {
+    padding: 150px 7vw;
+    border-top: 1px solid var(--line);
+}
+
+.company-header {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 40px;
+}
+
+.company h2 {
+    margin: 0;
+
+    font-size: clamp(55px, 8vw, 120px);
+    line-height: .83;
+    letter-spacing: -.07em;
+    font-weight: 900;
+}
+
+.company-grid {
+    margin-top: 110px;
+
+    display: grid;
+    grid-template-columns: 1.3fr .7fr;
+
+    gap: 10vw;
+}
+
+.company-large {
+    margin: 0;
+
+    max-width: 800px;
+
+    font-size: clamp(28px, 4vw, 55px);
+    line-height: .95;
+    letter-spacing: -.05em;
+}
+
+.company-copy {
+    align-self: end;
+}
+
+.company-copy p {
+    margin: 0;
+
+    color: var(--grey);
+
+    font-size: 14px;
+    line-height: 1.55;
+}
+
+.company-mono {
+    margin-top: 70px !important;
+
+    font: 10px/1.6 var(--mono) !important;
+    color: var(--white) !important;
+}
+
+.company-link {
+    display: inline-block;
+
+    margin-top: 45px;
+
+    padding-bottom: 8px;
+
+    border-bottom: 1px solid var(--white);
+
+    font: 10px var(--mono);
 }
