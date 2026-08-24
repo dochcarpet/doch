@@ -986,3 +986,21 @@ button {
         grid-template-columns: 32px auto;
     }
 }
+
+@media (max-width: 768px) {
+    #rugWorkspace {
+        width: 100%;
+        height: min(75vw, 520px) !important;
+        min-height: 280px;
+    }
+
+    #rugCanvasWrap {
+        width: 100%;
+        height: 100%;
+    }
+
+    #rugCanvas {
+        max-width: none !important;
+        max-height: none !important;
+    }
+}
