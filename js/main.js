@@ -1377,7 +1377,7 @@ function updateCart() {
                             );
 
                         cart.splice(
-                            index,M
+                            index,
                             1
                         );
 
