@@ -1377,11 +1377,11 @@ function updateCart() {
                             );
 
                         cart.splice(
-                            index,
+                            index,M
                             1
                         );
 
-                        updateCart();
+                        updateCart();                                                         
 
                     }
                 );
@@ -1533,6 +1533,94 @@ document
         }
     );
 
+/* =========================================================
+   FAQ
+========================================================= */
+
+function initFAQ() {
+
+    document
+        .querySelectorAll(".faq-question")
+        .forEach(button => {
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    const item =
+                        button.closest(".faq-item");
+
+                    const answer =
+                        item.querySelector(".faq-answer");
+
+                    const isOpen =
+                        item.classList.contains("active");
+
+
+                    /*
+                       Close all other answers.
+                    */
+
+                    document
+                        .querySelectorAll(".faq-item.active")
+                        .forEach(openItem => {
+
+                            if (openItem !== item) {
+
+                                const openAnswer =
+                                    openItem.querySelector(
+                                        ".faq-answer"
+                                    );
+
+                                openAnswer.style.height =
+                                    "0px";
+
+                                openItem.classList.remove(
+                                    "active"
+                                );
+
+                            }
+
+                        });
+
+
+                    /*
+                       Toggle current answer.
+                    */
+
+                    if (isOpen) {
+
+                        answer.style.height =
+                            "0px";
+
+                        item.classList.remove(
+                            "active"
+                        );
+
+                    } else {
+
+                        item.classList.add(
+                            "active"
+                        );
+
+                        answer.style.height =
+                            answer.scrollHeight + "px";
+
+                    }
+
+                }
+            );
+
+        });
+
+}
+
+
+/* =========================================================
+   INIT FAQ
+========================================================= */
+
+initFAQ();
 
 /* =========================================================
    ESC
