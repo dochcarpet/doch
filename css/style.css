@@ -959,7 +959,10 @@ footer {
     background: rgba(11,11,10,.97);
 
     display: grid;
-    grid-template-columns: minmax(0, 1.35fr) minmax(360px, .65fr);
+
+    grid-template-columns:
+        minmax(0, 1fr)
+        minmax(360px, 480px);
 
     transform: translateY(100%);
 
@@ -1013,10 +1016,6 @@ footer {
     min-width: 0;
     min-height: 0;
 
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
     overflow: hidden;
 
     background: #f1eee7;
@@ -1045,6 +1044,146 @@ footer {
     object-position: center;
 }
 
+/* ================================
+   MODAL GALLERY
+================================ */
+
+.modal-gallery {
+    position: relative;
+
+    width: 100%;
+    height: 100%;
+
+    min-width: 0;
+    min-height: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    overflow: hidden;
+}
+
+.modal-gallery img {
+    display: block;
+
+    width: 100%;
+    height: 100%;
+
+    min-width: 0;
+    min-height: 0;
+
+    object-fit: contain;
+    object-position: center;
+
+    user-select: none;
+}
+
+
+/* ================================
+   GALLERY ARROWS
+================================ */
+
+.gallery-arrow {
+    position: absolute;
+
+    top: 50%;
+    z-index: 5;
+
+    transform: translateY(-50%);
+
+    width: 48px;
+    height: 48px;
+
+    border: 1px solid rgba(11,11,10,.25);
+    border-radius: 50%;
+
+    background: rgba(241,238,231,.9);
+    color: var(--black);
+
+    display: grid;
+    place-items: center;
+
+    cursor: pointer;
+
+    font: 18px var(--mono);
+
+    transition:
+        background .2s,
+        transform .2s,
+        opacity .2s;
+}
+
+.gallery-arrow:hover {
+    background: var(--black);
+    color: var(--white);
+}
+
+.gallery-prev {
+    left: 22px;
+}
+
+.gallery-next {
+    right: 22px;
+}
+
+
+/* ================================
+   GALLERY DOTS
+================================ */
+
+.gallery-dots {
+    position: absolute;
+
+    left: 50%;
+    bottom: 24px;
+
+    z-index: 6;
+
+    transform: translateX(-50%);
+
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    padding: 8px 12px;
+
+    background: rgba(11,11,10,.75);
+
+    border-radius: 30px;
+
+    backdrop-filter: blur(6px);
+}
+
+.gallery-dot {
+    width: 7px;
+    height: 7px;
+
+    padding: 0;
+
+    border: 1px solid var(--white);
+    border-radius: 50%;
+
+    background: transparent;
+
+    cursor: pointer;
+
+    opacity: .5;
+
+    transition:
+        opacity .2s,
+        transform .2s,
+        background .2s;
+}
+
+.gallery-dot.active {
+    background: var(--accent);
+    border-color: var(--accent);
+
+    opacity: 1;
+
+    transform: scale(1.25);
+}
 
 /* ================================
    MODAL CONTENT
