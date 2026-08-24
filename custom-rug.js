@@ -939,12 +939,14 @@ function getAvailableFrame() {
         const visualHeight = height * zoomLevel;
 
         const left = Math.max(
-            0,
-            (frame.width === visualWidth
-                ? 0
-                : (frame.width - visualWidth) / 2) +
-            (frame.frameOffsetX || 0)
-        );
+             0,
+             (frame.width - visualWidth) / 2
+         );
+         
+         const top = Math.max(
+             0,
+             (frame.height - visualHeight) / 2
+         );
 
         const top = Math.max(
             0,
