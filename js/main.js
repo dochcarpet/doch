@@ -205,23 +205,23 @@ const translations = {
 
 
         /* =========================
-           COMPANY / MANIFESTO
+           BRAND / MANIFESTO
         ========================= */
 
-        "company.eyebrow": "08 / ABOUT DOCH",
-        "company.title":
+        "brand.eyebrow": "08 / ABOUT DOCH",
+        "brand.title":
             "A VERY<br><em>SERIOUS<br>RUG STUDIO.</em>",
 
-        "company.large":
+        "brand.large":
             "DOCH makes handmade rugs for people who have already seen enough things online.",
 
-        "company.text":
+        "brand.text":
             "We turn memes, internet artifacts and questionable visual decisions into physical objects. Every rug is tufted, carved and finished by hand. There is no algorithm involved in making the rug. There is, however, a questionable amount of internet involved in choosing what goes on it.",
 
-        "company.mono":
+        "brand.mono":
             "WE TAKE THE INTERNET<br>VERY SERIOUSLY.<br>JUST NOT TOO SERIOUSLY.",
 
-        "company.link":
+        "brand.link":
             "MORE ABOUT THE STUDIO ↗"
 
     },
@@ -367,23 +367,23 @@ const translations = {
 
 
         /* =========================
-           COMPANY / MANIFESTO
+           brand / MANIFESTO
         ========================= */
 
-        "company.eyebrow": "08 / О DOCH",
-        "company.title":
+        "brand.eyebrow": "08 / О DOCH",
+        "brand.title":
             "ОЧЕНЬ<br><em>СЕРЬЁЗНАЯ<br>СТУДИЯ КОВРОВ.</em>",
 
-        "company.large":
+        "brand.large":
             "DOCH делает ковры ручной работы для людей, которые уже увидели в интернете достаточно всего.",
 
-        "company.text":
+        "brand.text":
             "Мы превращаем мемы, интернет-артефакты и сомнительные визуальные решения в физические объекты. Каждый ковёр тафтится, карвится и доводится вручную. Алгоритмы в производстве ковра не участвуют. Зато интернета в выборе того, что на нём изображено, подозрительно много.",
 
-        "company.mono":
+        "brand.mono":
             "МЫ ОЧЕНЬ СЕРЬЁЗНО<br>ОТНОСИМСЯ К ИНТЕРНЕТУ.<br>ПРОСТО НЕ СЛИШКОМ СЕРЬЁЗНО.",
 
-        "company.link":
+        "brand.link":
             "БОЛЬШЕ О СТУДИИ ↗"
 
     }
