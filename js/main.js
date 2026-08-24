@@ -431,7 +431,7 @@ async function loadProducts() {
                 cover:
                     product.cover_image,
                 gallery:
-                    product.gallery_images
+                    product.gallery
             }))
         );
 
@@ -535,12 +535,16 @@ function getProductDescription(product) {
    PRODUCT IMAGES
 ========================================================= */
 
+/* =========================================================
+   PRODUCT IMAGES
+========================================================= */
+
 function getProductImages(product) {
 
     const images = [];
 
     /*
-       Main image.
+       Main cover image.
     */
 
     if (product.cover_image) {
@@ -553,14 +557,16 @@ function getProductImages(product) {
 
 
     /*
-       Gallery images.
-       Supabase may return this either
-       as an array or as a JSON string.
+       Additional gallery images.
     */
 
     let gallery =
-        product.gallery_images;
+        product.gallery;
 
+
+    /*
+       Supabase may return JSON as a string.
+    */
 
     if (typeof gallery === "string") {
 
@@ -572,7 +578,7 @@ function getProductImages(product) {
         } catch (error) {
 
             console.warn(
-                "Could not parse gallery_images:",
+                "Could not parse gallery:",
                 gallery
             );
 
