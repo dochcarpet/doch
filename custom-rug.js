@@ -2390,15 +2390,11 @@ function drawCell(
     height,
     color
 ) {
-
     if (!color) {
         return;
     }
 
-
-    ctx.fillStyle =
-        color;
-
+    ctx.fillStyle = color;
 
     ctx.fillRect(
         x,
@@ -2406,152 +2402,7 @@ function drawCell(
         width,
         height
     );
-} {
-
-        if (!color) {
-            return;
-        }
-
-
-        ctx.fillStyle =
-            color;
-
-
-        const t =
-            clamp(
-                roundness / 100,
-                0,
-                1
-            );
-
-
-        /*
-           The gap is subtle.
-           At 0 cells touch.
-           At 100 they look like rounded
-           tuft/punch-needle pixels.
-        */
-
-        const gap =
-            Math.min(
-                width,
-                height
-            ) *
-            0.22 *
-            t;
-
-
-        const x1 =
-            x + gap / 2;
-
-        const y1 =
-            y + gap / 2;
-
-        const w =
-            Math.max(
-                0.1,
-                width - gap
-            );
-
-        const h =
-            Math.max(
-                0.1,
-                height - gap
-            );
-
-
-        const radius =
-            Math.min(
-                w,
-                h
-            ) *
-            0.5 *
-            Math.pow(t, 0.72);
-
-
-        ctx.beginPath();
-
-
-        if (
-            typeof ctx.roundRect ===
-            "function"
-        ) {
-
-            ctx.roundRect(
-                x1,
-                y1,
-                w,
-                h,
-                radius
-            );
-
-            ctx.fill();
-
-            return;
-        }
-
-
-        /*
-           Fallback for older browsers.
-        */
-
-        ctx.moveTo(
-            x1 + radius,
-            y1
-        );
-
-        ctx.lineTo(
-            x1 + w - radius,
-            y1
-        );
-
-        ctx.quadraticCurveTo(
-            x1 + w,
-            y1,
-            x1 + w,
-            y1 + radius
-        );
-
-        ctx.lineTo(
-            x1 + w,
-            y1 + h - radius
-        );
-
-        ctx.quadraticCurveTo(
-            x1 + w,
-            y1 + h,
-            x1 + w - radius,
-            y1 + h
-        );
-
-        ctx.lineTo(
-            x1 + radius,
-            y1 + h
-        );
-
-        ctx.quadraticCurveTo(
-            x1,
-            y1 + h,
-            x1,
-            y1 + h - radius
-        );
-
-        ctx.lineTo(
-            x1,
-            y1 + radius
-        );
-
-        ctx.quadraticCurveTo(
-            x1,
-            y1,
-            x1 + radius,
-            y1
-        );
-
-        ctx.closePath();
-
-        ctx.fill();
-    }
+}
 
 
     /* =========================================================
@@ -4580,7 +4431,7 @@ function drawCell(
             "12px Arial";
 
         ctx.fillText(
-            `${width} × ${height} CM · ${currentGrid.width} × ${currentGrid.height} GRID · ${GRID_CELL_CM} CM CELL · ${numberOfColors} COLORS · DETAIL ${detailLevel} · SMOOTHING ${pixelRoundness}`,
+            `${width} × ${height} CM · ${currentGrid.width} × ${currentGrid.height} GRID · ${GRID_CELL_CM} CM CELL · ${numberOfColors} COLORS · DETAIL ${detailLevel} · SMOOTHING ${colorSmoothing}`,
             25,
             58
         );
@@ -4929,7 +4780,7 @@ function drawCell(
 
 
         link.download =
-            `doch-rug-${width}x${height}cm-${currentGrid.width}x${currentGrid.height}-detail-${detailLevel}-smoothing-${pixelRoundness}.png`;
+            `doch-rug-${width}x${height}cm-${currentGrid.width}x${currentGrid.height}-detail-${detailLevel}-smoothing-${colorSmoothing}.png`;
 
 
         link.href =
@@ -5232,7 +5083,7 @@ function drawCell(
                 · ${currentGrid.width} × ${currentGrid.height} GRID
                 · ${GRID_CELL_CM} CM CELL
                 · DETAIL ${detailLevel}
-                · SHAPE ${pixelRoundness}
+                · SMOOTHING ${colorSmoothing}
             </span>
         `;
 
