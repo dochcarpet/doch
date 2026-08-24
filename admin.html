@@ -1,20 +1,49 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
+
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png">
-  <link rel="icon" href="images/favicon.ico">
-  
-  <title>DOCH — Admin</title>
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <link
+    rel="apple-touch-icon"
+    href="images/apple-touch-icon.png"
+  >
+
+  <link
+    rel="icon"
+    type="image/png"
+    sizes="32x32"
+    href="images/favicon-32x32.png"
+  >
+
+  <link
+    rel="icon"
+    type="image/png"
+    sizes="16x16"
+    href="images/favicon-16x16.png"
+  >
+
+  <link
+    rel="icon"
+    href="images/favicon.ico"
+  >
+
+  <title>DOCH — Админ</title>
+
+
 
   <style>
+
     * {
       box-sizing: border-box;
     }
+
+
 
     body {
       margin: 0;
@@ -23,6 +52,8 @@
       font-family: Arial, sans-serif;
     }
 
+
+
     button,
     input,
     textarea,
@@ -30,15 +61,23 @@
       font: inherit;
     }
 
+
+
     button {
       cursor: pointer;
     }
+
+
 
     .hidden {
       display: none !important;
     }
 
-    /* LOGIN */
+
+
+    /* =====================================================
+       LOGIN
+    ===================================================== */
 
     #login-screen {
       min-height: 100vh;
@@ -47,6 +86,8 @@
       justify-content: center;
       padding: 20px;
     }
+
+
 
     .login-box {
       width: 100%;
@@ -57,6 +98,8 @@
       padding: 35px;
     }
 
+
+
     .logo {
       font-size: 42px;
       font-weight: 900;
@@ -64,10 +107,14 @@
       margin-bottom: 8px;
     }
 
+
+
     .subtitle {
       color: #999;
       margin-bottom: 30px;
     }
+
+
 
     label {
       display: block;
@@ -77,6 +124,8 @@
       color: #999;
       margin-bottom: 7px;
     }
+
+
 
     input,
     textarea,
@@ -91,16 +140,22 @@
       outline: none;
     }
 
+
+
     textarea {
       min-height: 110px;
       resize: vertical;
     }
+
+
 
     input:focus,
     textarea:focus,
     select:focus {
       border-color: #b6ff00;
     }
+
+
 
     .btn {
       border: 0;
@@ -109,28 +164,40 @@
       font-weight: 800;
     }
 
+
+
     .btn-primary {
       background: #b6ff00;
       color: #111;
     }
+
+
 
     .btn-dark {
       background: #292929;
       color: white;
     }
 
+
+
     .btn-danger {
       background: #ff4545;
       color: white;
     }
 
-    /* ADMIN */
+
+
+    /* =====================================================
+       ADMIN
+    ===================================================== */
 
     .admin {
       max-width: 1250px;
       margin: auto;
       padding: 25px;
     }
+
+
 
     .topbar {
       display: flex;
@@ -140,41 +207,59 @@
       margin-bottom: 35px;
     }
 
+
+
     .topbar-left {
       display: flex;
       align-items: center;
       gap: 15px;
     }
 
+
+
     .admin-title {
       font-size: 26px;
       font-weight: 900;
     }
+
+
 
     .email {
       color: #888;
       font-size: 12px;
     }
 
+
+
     .section-head {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 20px;
+      gap: 15px;
     }
+
+
 
     .section-head h1 {
       margin: 0;
       font-size: 22px;
     }
 
-    /* PRODUCTS */
+
+
+    /* =====================================================
+       PRODUCTS
+    ===================================================== */
 
     .products {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      grid-template-columns:
+        repeat(auto-fill, minmax(230px, 1fr));
       gap: 18px;
     }
+
+
 
     .product {
       background: #1b1b1b;
@@ -183,11 +268,15 @@
       overflow: hidden;
     }
 
+
+
     .product-image {
       aspect-ratio: 1 / 1;
       background: #252525;
       overflow: hidden;
     }
+
+
 
     .product-image img {
       width: 100%;
@@ -196,9 +285,13 @@
       display: block;
     }
 
+
+
     .product-info {
       padding: 15px;
     }
+
+
 
     .product-title {
       font-size: 17px;
@@ -206,11 +299,15 @@
       margin-bottom: 7px;
     }
 
+
+
     .product-meta {
       color: #999;
       font-size: 12px;
       margin-bottom: 12px;
     }
+
+
 
     .status {
       display: inline-block;
@@ -222,27 +319,39 @@
       background: #292929;
     }
 
+
+
     .status.available {
       color: #b6ff00;
     }
+
+
 
     .status.made_to_order {
       color: #ffd166;
     }
 
+
+
     .status.sold {
       color: #ff7777;
     }
 
+
+
     .status.hidden-status {
       color: #777;
     }
+
+
 
     .product-actions {
       display: flex;
       gap: 7px;
       margin-top: 12px;
     }
+
+
 
     .product-actions button {
       flex: 1;
@@ -255,7 +364,11 @@
       font-weight: 700;
     }
 
-    /* MODAL */
+
+
+    /* =====================================================
+       MODAL
+    ===================================================== */
 
     .modal {
       position: fixed;
@@ -269,6 +382,8 @@
       overflow-y: auto;
     }
 
+
+
     .modal-box {
       width: 100%;
       max-width: 760px;
@@ -279,16 +394,23 @@
       margin: auto;
     }
 
+
+
     .modal-head {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 25px;
+      gap: 15px;
     }
+
+
 
     .modal-head h2 {
       margin: 0;
     }
+
+
 
     .close {
       border: 0;
@@ -298,7 +420,10 @@
       height: 38px;
       border-radius: 50%;
       font-size: 20px;
+      flex-shrink: 0;
     }
+
+
 
     .form-grid {
       display: grid;
@@ -306,9 +431,17 @@
       gap: 15px;
     }
 
+
+
     .full {
       grid-column: 1 / -1;
     }
+
+
+
+    /* =====================================================
+       UPLOADS
+    ===================================================== */
 
     .upload-box {
       border: 2px dashed #444;
@@ -317,32 +450,84 @@
       text-align: center;
       color: #aaa;
       margin-bottom: 10px;
+      transition: border-color .15s;
     }
+
+
 
     .upload-box:hover {
       border-color: #b6ff00;
     }
 
+
+
     .image-list {
       display: flex;
-      gap: 8px;
+      gap: 10px;
       flex-wrap: wrap;
       margin-bottom: 20px;
     }
 
+
+
     .thumb {
-      width: 75px;
-      height: 75px;
+      position: relative;
+      width: 90px;
+      height: 90px;
       border-radius: 10px;
       overflow: hidden;
       background: #292929;
+      flex-shrink: 0;
     }
+
+
 
     .thumb img {
       width: 100%;
       height: 100%;
       object-fit: cover;
+      display: block;
     }
+
+
+
+    .thumb-delete {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+
+      width: 27px;
+      height: 27px;
+
+      border: 0;
+      border-radius: 50%;
+
+      background: rgba(0, 0, 0, .78);
+      color: white;
+
+      font-size: 20px;
+      line-height: 27px;
+
+      padding: 0;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      z-index: 2;
+    }
+
+
+
+    .thumb-delete:hover {
+      background: #ff4545;
+    }
+
+
+
+    /* =====================================================
+       MODAL ACTIONS
+    ===================================================== */
 
     .modal-actions {
       display: flex;
@@ -350,6 +535,8 @@
       gap: 10px;
       margin-top: 25px;
     }
+
+
 
     .message {
       padding: 12px 14px;
@@ -359,56 +546,168 @@
       font-size: 13px;
     }
 
+
+
+    /* =====================================================
+       MOBILE
+    ===================================================== */
+
     @media(max-width: 700px) {
+
       .admin {
         padding: 15px;
       }
+
+
 
       .topbar {
         align-items: flex-start;
       }
 
+
+
+      .section-head {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+
+
+      .section-head > div {
+        width: 100%;
+        flex-direction: column;
+      }
+
+
+
+      .section-head > div .btn {
+        width: 100%;
+        text-align: center;
+      }
+
+
+
       .form-grid {
         grid-template-columns: 1fr;
       }
+
+
 
       .full {
         grid-column: auto;
       }
 
+
+
       .modal {
         align-items: flex-start;
+        padding: 10px;
       }
+
+
 
       .modal-box {
         margin-top: 10px;
+        padding: 18px;
+        border-radius: 18px;
       }
+
+
 
       .modal-actions {
         flex-direction: column;
       }
 
+
+
       .modal-actions button {
         width: 100%;
       }
+
+
+
+      .products {
+        grid-template-columns:
+          repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+
+
+      .product-actions {
+        flex-direction: column;
+      }
+
+
+
+      .product-actions button {
+        width: 100%;
+      }
+
+
+
+      .product-info {
+        padding: 12px;
+      }
+
+
+
+      .product-title {
+        font-size: 15px;
+      }
+
+
+
+      .thumb {
+        width: 82px;
+        height: 82px;
+      }
+
     }
+
+
+
+    @media(max-width: 420px) {
+
+      .products {
+        grid-template-columns: 1fr;
+      }
+
+    }
+
   </style>
+
 </head>
+
+
 
 <body>
 
-<!-- LOGIN -->
+
+<!-- =====================================================
+     LOGIN
+===================================================== -->
 
 <section id="login-screen">
 
   <div class="login-box">
 
-    <div class="logo">DOCH</div>
-    <div class="subtitle">Admin / Rug management</div>
+    <div class="logo">
+      DOCH
+    </div>
+
+    <div class="subtitle">
+      Админ / управление коврами
+    </div>
+
+
 
     <form id="login-form">
 
-      <label>Email</label>
+      <label>
+        Email
+      </label>
+
       <input
         id="login-email"
         type="email"
@@ -416,7 +715,12 @@
         autocomplete="email"
       >
 
-      <label>Password</label>
+
+
+      <label>
+        Пароль
+      </label>
+
       <input
         id="login-password"
         type="password"
@@ -424,47 +728,87 @@
         autocomplete="current-password"
       >
 
-      <button class="btn btn-primary" type="submit">
-        ENTER
+
+
+      <button
+        class="btn btn-primary"
+        type="submit"
+      >
+        ВОЙТИ
       </button>
 
     </form>
 
-    <div id="login-message" class="message hidden"></div>
+
+
+    <div
+      id="login-message"
+      class="message hidden"
+    ></div>
 
   </div>
 
 </section>
 
 
-<!-- ADMIN -->
 
-<section id="admin-screen" class="admin hidden">
+<!-- =====================================================
+     ADMIN
+===================================================== -->
+
+<section
+  id="admin-screen"
+  class="admin hidden"
+>
 
   <div class="topbar">
 
     <div class="topbar-left">
 
       <div>
-        <div class="admin-title">DOCH ADMIN</div>
-        <div id="user-email" class="email"></div>
+
+        <div class="admin-title">
+          DOCH ADMIN
+        </div>
+
+        <div
+          id="user-email"
+          class="email"
+        ></div>
+
       </div>
 
     </div>
 
-    <button id="logout" class="btn btn-dark">
-      LOG OUT
+
+
+    <button
+      id="logout"
+      class="btn btn-dark"
+    >
+      ВЫЙТИ
     </button>
 
   </div>
 
 
+
   <div class="section-head">
-  
-    <h1>Products</h1>
-  
-    <div style="display:flex; gap:10px; align-items:center;">
-  
+
+    <h1>
+      Ковры
+    </h1>
+
+
+
+    <div
+      style="
+        display:flex;
+        gap:10px;
+        align-items:center;
+      "
+    >
+
       <a
         href="custom-rug.html"
         class="btn btn-dark"
@@ -473,54 +817,87 @@
           border:1px solid #444;
         "
       >
-        RUG GENERATOR →
+        ГЕНЕРАТОР КОВРОВ →
       </a>
-  
-      <button id="add-product" class="btn btn-primary">
-        + ADD RUG
+
+
+
+      <button
+        id="add-product"
+        class="btn btn-primary"
+      >
+        + ДОБАВИТЬ КОВЕР
       </button>
-  
+
     </div>
-  
+
   </div>
 
 
-  <div id="products" class="products"></div>
+
+  <div
+    id="products"
+    class="products"
+  ></div>
 
 </section>
 
 
-<!-- PRODUCT MODAL -->
 
-<div id="modal" class="modal hidden">
+<!-- =====================================================
+     PRODUCT MODAL
+===================================================== -->
+
+<div
+  id="modal"
+  class="modal hidden"
+>
 
   <div class="modal-box">
 
     <div class="modal-head">
 
-      <h2 id="modal-title">Add Rug</h2>
+      <h2 id="modal-title">
+        Добавить ковер
+      </h2>
 
-      <button id="close-modal" class="close">
+
+
+      <button
+        id="close-modal"
+        class="close"
+        type="button"
+      >
         ×
       </button>
 
     </div>
 
 
+
     <form id="product-form">
 
-      <input id="product-id" type="hidden">
+      <input
+        id="product-id"
+        type="hidden"
+      >
+
 
 
       <div class="form-grid">
 
+
+        <!-- COVER -->
+
         <div class="full">
 
-          <label>Cover image</label>
+          <label>
+            Обложка
+          </label>
 
           <label class="upload-box">
 
-            + Upload cover
+            + Загрузить обложку
 
             <input
               id="cover-input"
@@ -531,18 +908,28 @@
 
           </label>
 
-          <div id="cover-preview" class="image-list"></div>
+
+
+          <div
+            id="cover-preview"
+            class="image-list"
+          ></div>
 
         </div>
 
 
+
+        <!-- GALLERY -->
+
         <div class="full">
 
-          <label>Gallery</label>
+          <label>
+            Галерея
+          </label>
 
           <label class="upload-box">
 
-            + Add gallery photos
+            + Добавить фотографии
 
             <input
               id="gallery-input"
@@ -554,18 +941,28 @@
 
           </label>
 
-          <div id="gallery-preview" class="image-list"></div>
+
+
+          <div
+            id="gallery-preview"
+            class="image-list"
+          ></div>
 
         </div>
 
 
+
+        <!-- INTERIOR -->
+
         <div class="full">
 
-          <label>Interior image</label>
+          <label>
+            Фото интерьера
+          </label>
 
           <label class="upload-box">
 
-            + Upload interior
+            + Загрузить фото интерьера
 
             <input
               id="interior-input"
@@ -576,50 +973,89 @@
 
           </label>
 
-          <div id="interior-preview" class="image-list"></div>
+
+
+          <div
+            id="interior-preview"
+            class="image-list"
+          ></div>
 
         </div>
 
+
+
+        <!-- TITLE RU -->
 
         <div>
 
-          <label>Title RU</label>
+          <label>
+            Название RU
+          </label>
 
-          <input id="title-ru" required>
+          <input
+            id="title-ru"
+            required
+          >
 
         </div>
 
+
+
+        <!-- TITLE EN -->
 
         <div>
 
-          <label>Title EN</label>
+          <label>
+            Название EN
+          </label>
 
-          <input id="title-en">
+          <input
+            id="title-en"
+          >
 
         </div>
 
+
+
+        <!-- DESCRIPTION RU -->
 
         <div class="full">
 
-          <label>Description RU</label>
+          <label>
+            Описание RU
+          </label>
 
-          <textarea id="description-ru"></textarea>
+          <textarea
+            id="description-ru"
+          ></textarea>
 
         </div>
 
+
+
+        <!-- DESCRIPTION EN -->
 
         <div class="full">
 
-          <label>Description EN</label>
+          <label>
+            Описание EN
+          </label>
 
-          <textarea id="description-en"></textarea>
+          <textarea
+            id="description-en"
+          ></textarea>
 
         </div>
 
 
+
+        <!-- PRICE -->
+
         <div>
 
-          <label>Price</label>
+          <label>
+            Цена
+          </label>
 
           <input
             id="price"
@@ -631,60 +1067,99 @@
         </div>
 
 
+
+        <!-- CURRENCY -->
+
         <div>
 
-          <label>Currency</label>
+          <label>
+            Валюта
+          </label>
 
           <select id="currency">
 
-            <option value="EUR">EUR</option>
-            <option value="USD">USD</option>
-            <option value="RUB">RUB</option>
-            <option value="UAH">UAH</option>
+            <option value="EUR">
+              EUR
+            </option>
+
+            <option value="USD">
+              USD
+            </option>
+
+            <option value="RUB">
+              RUB
+            </option>
+
+            <option value="UAH">
+              UAH
+            </option>
 
           </select>
 
         </div>
 
 
+
+        <!-- WIDTH -->
+
         <div>
 
-          <label>Width / cm</label>
+          <label>
+            Ширина / см
+          </label>
 
-          <input id="width" type="number" min="1">
+          <input
+            id="width"
+            type="number"
+            min="1"
+          >
 
         </div>
 
 
+
+        <!-- HEIGHT -->
+
         <div>
 
-          <label>Height / cm</label>
+          <label>
+            Высота / см
+          </label>
 
-          <input id="height" type="number" min="1">
+          <input
+            id="height"
+            type="number"
+            min="1"
+          >
 
         </div>
 
 
+
+        <!-- STATUS -->
+
         <div>
 
-          <label>Status</label>
+          <label>
+            Статус
+          </label>
 
           <select id="status">
 
             <option value="made_to_order">
-              MADE TO ORDER
+              ПОД ЗАКАЗ
             </option>
 
             <option value="available">
-              AVAILABLE
+              ДОСТУПЕН
             </option>
 
             <option value="sold">
-              SOLD
+              ПРОДАН
             </option>
 
             <option value="hidden">
-              HIDDEN
+              СКРЫТ
             </option>
 
           </select>
@@ -692,9 +1167,14 @@
         </div>
 
 
+
+        <!-- SORT -->
+
         <div>
 
-          <label>Sort order</label>
+          <label>
+            Порядок
+          </label>
 
           <input
             id="sort-order"
@@ -705,6 +1185,9 @@
         </div>
 
 
+
+        <!-- FEATURED -->
+
         <div class="full">
 
           <label>
@@ -712,10 +1195,13 @@
             <input
               id="featured"
               type="checkbox"
-              style="width:auto;margin:0 8px 0 0"
+              style="
+                width:auto;
+                margin:0 8px 0 0
+              "
             >
 
-            Featured rug
+            Показывать как Featured
 
           </label>
 
@@ -724,7 +1210,12 @@
       </div>
 
 
-      <div id="form-message" class="message hidden"></div>
+
+      <div
+        id="form-message"
+        class="message hidden"
+      ></div>
+
 
 
       <div class="modal-actions">
@@ -734,14 +1225,16 @@
           id="cancel"
           class="btn btn-dark"
         >
-          CANCEL
+          ОТМЕНА
         </button>
+
+
 
         <button
           type="submit"
           class="btn btn-primary"
         >
-          SAVE PRODUCT
+          СОХРАНИТЬ КОВЕР
         </button>
 
       </div>
@@ -753,8 +1246,11 @@
 </div>
 
 
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script src="js/admin.js"></script>
+
 
 </body>
 </html>
