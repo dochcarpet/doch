@@ -302,23 +302,30 @@ async function loadProducts() {
         );
 
         if (!response.ok) {
+
             throw new Error(
                 `Supabase error: ${response.status}`
             );
+
         }
 
         products = await response.json();
 
         console.log(
-             "DOCH PRODUCTS:",
-             products.length,
-             products.map(product => ({
-                 id: product.id,
-                 title: product.title_en || product.title_ru,
-                 status: product.status,
-                 image: product.cover_image
-             }))
-         );
+            "DOCH PRODUCTS:",
+            products.length,
+            products.map(product => ({
+                id: product.id,
+                title:
+                    product.title_en ||
+                    product.title_ru,
+                status: product.status,
+                cover:
+                    product.cover_image,
+                gallery:
+                    product.gallery_images
+            }))
+        );
 
         renderProducts();
 
@@ -378,7 +385,9 @@ function getProductTitle(product) {
         currentLanguage === "ru" &&
         product.title_ru
     ) {
+
         return product.title_ru;
+
     }
 
     return (
@@ -400,7 +409,9 @@ function getProductDescription(product) {
         currentLanguage === "ru" &&
         product.description_ru
     ) {
+
         return product.description_ru;
+
     }
 
     return (
@@ -413,12 +424,64 @@ function getProductDescription(product) {
 
 
 /* =========================================================
+   PRODUCT IMAGES
+========================================================= */
+
+function getProductImages(product) {
+
+    const images = [];
+
+    /*
+       Main image always comes first.
+       This should be your clean white-background photo.
+    */
+
+    if (product.cover_image) {
+
+        images.push(
+            product.cover_image
+        );
+
+    }
+
+    /*
+       Additional interior / detail photos.
+    */
+
+    if (
+        Array.isArray(
+            product.gallery_images
+        )
+    ) {
+
+        images.push(
+            ...product.gallery_images
+        );
+
+    }
+
+    /*
+       Remove empty values and duplicates.
+    */
+
+    return [
+        ...new Set(
+            images.filter(Boolean)
+        )
+    ];
+
+}
+
+
+/* =========================================================
    RENDER PRODUCTS
 ========================================================= */
 
 function renderProducts() {
 
-    if (!productsContainer) return;
+    if (!productsContainer) {
+        return;
+    }
 
     productsContainer.innerHTML = "";
 
@@ -436,6 +499,7 @@ function renderProducts() {
         `;
 
         return;
+
     }
 
     products.forEach(
@@ -464,7 +528,9 @@ function renderProducts() {
             const dimensions =
                 product.width_cm &&
                 product.height_cm
+
                     ? `${formatNumber(product.width_cm)} × ${formatNumber(product.height_cm)} CM`
+
                     : "";
 
             article.innerHTML = `
@@ -519,7 +585,9 @@ function renderProducts() {
                 () => openProduct(product)
             );
 
-            productsContainer.appendChild(article);
+            productsContainer.appendChild(
+                article
+            );
 
         }
     );
@@ -535,7 +603,9 @@ function renderProducts() {
 
 function openProduct(product) {
 
-    if (!product) return;
+    if (!product) {
+        return;
+    }
 
     modalTitle.textContent =
         getProductTitle(product);
@@ -544,24 +614,80 @@ function openProduct(product) {
         `${product.currency || "EUR"} ${formatPrice(product.price)}`;
 
     modalSize.textContent =
-        product.width_cm && product.height_cm
+        product.width_cm &&
+        product.height_cm
+
             ? `${formatNumber(product.width_cm)} × ${formatNumber(product.height_cm)} CM`
+
             : "";
 
     modalDescription.textContent =
         getProductDescription(product);
 
-    modalImage.className =
-        "modal-image";
 
-    modalImage.style.backgroundImage =
-        `url("${product.cover_image}")`;
+    /*
+       Build gallery.
+    */
 
-    modalImage.style.backgroundSize =
-        "cover";
+    const galleryImages =
+        getProductImages(product);
 
-    modalImage.style.backgroundPosition =
-        "center";
+
+    modalImage.innerHTML = `
+
+        <div class="modal-gallery">
+
+            <button
+                class="gallery-arrow gallery-prev"
+                type="button"
+                aria-label="Previous image"
+            >
+                ←
+            </button>
+
+            <img
+                id="galleryImage"
+                src="${escapeHtml(galleryImages[0] || "")}"
+                alt="${escapeHtml(getProductTitle(product))}"
+            >
+
+            <button
+                class="gallery-arrow gallery-next"
+                type="button"
+                aria-label="Next image"
+            >
+                →
+            </button>
+
+        </div>
+
+        <div class="gallery-dots">
+
+            ${galleryImages.map(
+                (_, index) => `
+
+                    <button
+                        type="button"
+                        class="gallery-dot ${
+                            index === 0
+                                ? "active"
+                                : ""
+                        }"
+                        data-gallery-index="${index}"
+                        aria-label="Image ${index + 1}"
+                    ></button>
+
+                `
+            ).join("")}
+
+        </div>
+
+    `;
+
+
+    /*
+       Product status / cart button.
+    */
 
     modal.dataset.product =
         product.id;
@@ -572,28 +698,318 @@ function openProduct(product) {
     const buttonText =
         addButton.querySelector("span");
 
-    if (product.status === "sold") {
 
-        addButton.disabled = true;
-        addButton.style.opacity = ".35";
-        addButton.style.pointerEvents = "none";
+    if (
+        product.status === "sold"
+    ) {
 
-        buttonText.textContent = "×";
+        addButton.disabled =
+            true;
+
+        addButton.style.opacity =
+            ".35";
+
+        addButton.style.pointerEvents =
+            "none";
+
+        buttonText.textContent =
+            "×";
 
     } else {
 
-        addButton.disabled = false;
-        addButton.style.opacity = "";
-        addButton.style.pointerEvents = "";
+        addButton.disabled =
+            false;
+
+        addButton.style.opacity =
+            "";
+
+        addButton.style.pointerEvents =
+            "";
 
         buttonText.textContent =
             translations[currentLanguage]["modal.add"];
 
     }
 
-    modal.classList.add("active");
 
-    document.body.classList.add("no-scroll");
+    modal.classList.add(
+        "active"
+    );
+
+    document.body.classList.add(
+        "no-scroll"
+    );
+
+
+    /*
+       Activate gallery.
+    */
+
+    initProductGallery(
+        galleryImages
+    );
+
+}
+
+
+/* =========================================================
+   PRODUCT GALLERY
+========================================================= */
+
+function initProductGallery(images) {
+
+    if (
+        !images ||
+        !images.length
+    ) {
+        return;
+    }
+
+    const image =
+        document.getElementById(
+            "galleryImage"
+        );
+
+    const prev =
+        modal.querySelector(
+            ".gallery-prev"
+        );
+
+    const next =
+        modal.querySelector(
+            ".gallery-next"
+        );
+
+    const dots =
+        modal.querySelectorAll(
+            ".gallery-dot"
+        );
+
+
+    let currentIndex = 0;
+
+
+    /*
+       If there is only one image,
+       hide navigation.
+    */
+
+    if (images.length <= 1) {
+
+        if (prev) {
+            prev.style.display = "none";
+        }
+
+        if (next) {
+            next.style.display = "none";
+        }
+
+        return;
+
+    }
+
+
+    function showImage(index) {
+
+        currentIndex =
+            (
+                index +
+                images.length
+            ) % images.length;
+
+        image.src =
+            images[currentIndex];
+
+
+        dots.forEach(
+            (dot, i) => {
+
+                dot.classList.toggle(
+                    "active",
+                    i === currentIndex
+                );
+
+            }
+        );
+
+    }
+
+
+    /*
+       Previous.
+    */
+
+    prev.addEventListener(
+        "click",
+        event => {
+
+            event.stopPropagation();
+
+            showImage(
+                currentIndex - 1
+            );
+
+        }
+    );
+
+
+    /*
+       Next.
+    */
+
+    next.addEventListener(
+        "click",
+        event => {
+
+            event.stopPropagation();
+
+            showImage(
+                currentIndex + 1
+            );
+
+        }
+    );
+
+
+    /*
+       Dots.
+    */
+
+    dots.forEach(
+        dot => {
+
+            dot.addEventListener(
+                "click",
+                event => {
+
+                    event.stopPropagation();
+
+                    showImage(
+                        Number(
+                            dot.dataset.galleryIndex
+                        )
+                    );
+
+                }
+            );
+
+        }
+    );
+
+
+    /*
+       Keyboard arrows.
+    */
+
+    function keyboardHandler(event) {
+
+        if (
+            !modal.classList.contains("active")
+        ) {
+            return;
+        }
+
+        if (
+            event.key === "ArrowLeft"
+        ) {
+
+            showImage(
+                currentIndex - 1
+            );
+
+        }
+
+        if (
+            event.key === "ArrowRight"
+        ) {
+
+            showImage(
+                currentIndex + 1
+            );
+
+        }
+
+    }
+
+
+    /*
+       Avoid adding duplicate global
+       keyboard listeners.
+    */
+
+    document.removeEventListener(
+        "keydown",
+        window.__dochGalleryKeyboard
+    );
+
+    window.__dochGalleryKeyboard =
+        keyboardHandler;
+
+    document.addEventListener(
+        "keydown",
+        window.__dochGalleryKeyboard
+    );
+
+
+    /*
+       Mobile swipe.
+    */
+
+    let touchStartX = 0;
+
+
+    image.addEventListener(
+        "touchstart",
+        event => {
+
+            touchStartX =
+                event.touches[0].clientX;
+
+        },
+        {
+            passive: true
+        }
+    );
+
+
+    image.addEventListener(
+        "touchend",
+        event => {
+
+            const touchEndX =
+                event.changedTouches[0].clientX;
+
+            const diff =
+                touchStartX -
+                touchEndX;
+
+
+            if (
+                Math.abs(diff) < 40
+            ) {
+                return;
+            }
+
+
+            if (diff > 0) {
+
+                showImage(
+                    currentIndex + 1
+                );
+
+            } else {
+
+                showImage(
+                    currentIndex - 1
+                );
+
+            }
+
+        },
+        {
+            passive: true
+        }
+    );
 
 }
 
@@ -609,11 +1025,16 @@ document
         closeModal
     );
 
+
 function closeModal() {
 
-    modal.classList.remove("active");
+    modal.classList.remove(
+        "active"
+    );
 
-    document.body.classList.remove("no-scroll");
+    document.body.classList.remove(
+        "no-scroll"
+    );
 
 }
 
@@ -633,12 +1054,17 @@ document
 
             const product =
                 products.find(
-                    item => item.id === id
+                    item =>
+                        item.id === id
                 );
 
-            if (!product) return;
+            if (!product) {
+                return;
+            }
 
-            if (product.status === "sold") {
+            if (
+                product.status === "sold"
+            ) {
                 return;
             }
 
@@ -665,6 +1091,7 @@ document
         openCart
     );
 
+
 document
     .getElementById("cartClose")
     .addEventListener(
@@ -672,28 +1099,43 @@ document
         closeCart
     );
 
+
 cartOverlay.addEventListener(
     "click",
     closeCart
 );
 
+
 function openCart() {
 
-    cartDrawer.classList.add("active");
+    cartDrawer.classList.add(
+        "active"
+    );
 
-    cartOverlay.classList.add("active");
+    cartOverlay.classList.add(
+        "active"
+    );
 
-    document.body.classList.add("no-scroll");
+    document.body.classList.add(
+        "no-scroll"
+    );
 
 }
 
+
 function closeCart() {
 
-    cartDrawer.classList.remove("active");
+    cartDrawer.classList.remove(
+        "active"
+    );
 
-    cartOverlay.classList.remove("active");
+    cartOverlay.classList.remove(
+        "active"
+    );
 
-    document.body.classList.remove("no-scroll");
+    document.body.classList.remove(
+        "no-scroll"
+    );
 
 }
 
@@ -707,43 +1149,58 @@ function updateCart() {
     cartCount.textContent =
         cart.length;
 
+
     if (!cart.length) {
 
         cartItems.innerHTML = `
+
             <p class="empty-cart">
                 ${translations[currentLanguage]["cart.empty"]}
             </p>
+
         `;
 
         cartTotal.textContent =
             "€0";
 
         return;
+
     }
+
 
     cartItems.innerHTML = "";
 
     let total = 0;
 
+
     cart.forEach(
         (product, index) => {
 
-            total += Number(product.price);
+            total +=
+                Number(
+                    product.price
+                );
+
 
             const element =
-                document.createElement("div");
+                document.createElement(
+                    "div"
+                );
 
             element.className =
                 "cart-item";
+
 
             element.innerHTML = `
 
                 <div>
 
                     <div class="cart-item-name">
+
                         ${escapeHtml(
                             getProductTitle(product)
                         )}
+
                     </div>
 
                     <button
@@ -768,22 +1225,37 @@ function updateCart() {
                 </div>
 
                 <div class="cart-item-price">
-                    ${escapeHtml(product.currency || "EUR")}
-                    ${formatPrice(product.price)}
+
+                    ${escapeHtml(
+                        product.currency ||
+                        "EUR"
+                    )}
+
+                    ${formatPrice(
+                        product.price
+                    )}
+
                 </div>
 
             `;
 
-            cartItems.appendChild(element);
+
+            cartItems.appendChild(
+                element
+            );
 
         }
     );
 
+
     cartTotal.textContent =
         `€${formatPrice(total)}`;
 
+
     document
-        .querySelectorAll(".remove-item")
+        .querySelectorAll(
+            ".remove-item"
+        )
         .forEach(
             button => {
 
@@ -796,7 +1268,10 @@ function updateCart() {
                                 button.dataset.index
                             );
 
-                        cart.splice(index, 1);
+                        cart.splice(
+                            index,
+                            1
+                        );
 
                         updateCart();
 
@@ -815,23 +1290,31 @@ function updateCart() {
 
 function setLanguage(language) {
 
-    if (!translations[language]) {
+    if (
+        !translations[language]
+    ) {
         return;
     }
+
 
     currentLanguage =
         language;
 
+
     document.documentElement.lang =
         language;
 
+
     document
-        .querySelectorAll("[data-i18n]")
+        .querySelectorAll(
+            "[data-i18n]"
+        )
         .forEach(
             element => {
 
                 const key =
                     element.dataset.i18n;
+
 
                 if (
                     translations[language][key]
@@ -845,36 +1328,49 @@ function setLanguage(language) {
             }
         );
 
+
     document
-        .querySelectorAll(".lang-button")
+        .querySelectorAll(
+            ".lang-button"
+        )
         .forEach(
             button => {
 
                 button.classList.toggle(
                     "active",
-                    button.dataset.lang === language
+                    button.dataset.lang ===
+                    language
                 );
 
             }
         );
 
+
     renderProducts();
+
 
     const activeId =
         modal.dataset.product;
+
 
     if (activeId) {
 
         const product =
             products.find(
-                item => item.id === activeId
+                item =>
+                    item.id === activeId
             );
 
         if (product) {
-            openProduct(product);
+
+            openProduct(
+                product
+            );
+
         }
 
     }
+
 
     updateCart();
 
@@ -886,7 +1382,9 @@ function setLanguage(language) {
 ========================================================= */
 
 document
-    .querySelectorAll(".lang-button")
+    .querySelectorAll(
+        ".lang-button"
+    )
     .forEach(
         button => {
 
@@ -936,9 +1434,12 @@ document.addEventListener(
     "keydown",
     event => {
 
-        if (event.key === "Escape") {
+        if (
+            event.key === "Escape"
+        ) {
 
             closeModal();
+
             closeCart();
 
         }
@@ -952,7 +1453,10 @@ document.addEventListener(
 ========================================================= */
 
 const heroTitle =
-    document.querySelector(".hero-title");
+    document.querySelector(
+        ".hero-title"
+    );
+
 
 setInterval(
     () => {
@@ -966,6 +1470,7 @@ setInterval(
                     ${Math.random() * 4 - 2}px,
                     ${Math.random() * 3 - 1.5}px
                 )`;
+
 
             setTimeout(
                 () => {
@@ -990,11 +1495,15 @@ setInterval(
 
 let observer;
 
+
 function initScrollReveal() {
 
     if (observer) {
+
         observer.disconnect();
+
     }
+
 
     observer =
         new IntersectionObserver(
@@ -1024,6 +1533,7 @@ function initScrollReveal() {
             }
         );
 
+
     document
         .querySelectorAll(
             ".manifesto h2, .product, .process-card, .queue-item, .about-grid"
@@ -1040,7 +1550,9 @@ function initScrollReveal() {
                 element.style.transition =
                     "opacity .8s ease, transform .8s cubic-bezier(.2,.7,.2,1)";
 
-                observer.observe(element);
+                observer.observe(
+                    element
+                );
 
             }
         );
@@ -1054,13 +1566,14 @@ function initScrollReveal() {
 
 function formatPrice(value) {
 
-    return Number(value || 0)
-        .toLocaleString(
-            "en-US",
-            {
-                maximumFractionDigits: 0
-            }
-        );
+    return Number(
+        value || 0
+    ).toLocaleString(
+        "en-US",
+        {
+            maximumFractionDigits: 0
+        }
+    );
 
 }
 
@@ -1070,11 +1583,15 @@ function formatNumber(value) {
     const number =
         Number(value);
 
+
     if (
         Number.isInteger(number)
     ) {
+
         return number;
+
     }
+
 
     return number
         .toFixed(1)
@@ -1085,17 +1602,18 @@ function formatNumber(value) {
 
 function escapeHtml(value) {
 
-    return String(value ?? "")
-        .replace(
-            /[&<>"']/g,
-            character => ({
-                "&": "&amp;",
-                "<": "&lt;",
-                ">": "&gt;",
-                '"': "&quot;",
-                "'": "&#039;"
-            }[character])
-        );
+    return String(
+        value ?? ""
+    ).replace(
+        /[&<>"']/g,
+        character => ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#039;"
+        }[character])
+    );
 
 }
 
