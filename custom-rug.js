@@ -1,128 +1,55 @@
-/* =========================================================
-   DOCH — CUSTOM RUG
+/* DOCH — CUSTOM RUG
    IMAGE → YARN → RUG
-
-   PHYSICAL GRID
-   ---------------------------------------------------------
-   ALWAYS 5 × 5 CM
-
-   100 × 100 CM = 20 × 20 cells
-   100 × 75 CM  = 20 × 15 cells
-
-   PHYSICAL GRID DOES NOT CHANGE WITH DETAIL.
-
-   DETAIL
-   ---------------------------------------------------------
-   Controls number of visual pixels INSIDE the rug.
-   Does NOT change physical grid.
-   Does NOT enlarge the physical frame.
-
-   PREVIEW
-   ---------------------------------------------------------
-   Entire rug fits inside preview automatically.
-   Zoom buttons can enlarge it manually.
-   ========================================================= */
+   Physical grid: always 5 × 5 CM.
+   Detail changes visual pixels only.
+*/
 
 (() => {
     "use strict";
-
 
     /* =========================================================
        ELEMENTS
        ========================================================= */
 
-    const imageInput =
-        document.getElementById("imageInput");
+    const $ = id => document.getElementById(id);
 
-    const fileName =
-        document.getElementById("fileName");
+    const imageInput = $("imageInput");
+    const fileName = $("fileName");
+    const keepBackground = $("keepBackground");
+    const removeBackground = $("removeBackground");
+    const colorCounts = $("colorCounts");
+    const paletteElement = $("palette");
+    const resetPalette = $("resetPalette");
 
-    const keepBackground =
-        document.getElementById("keepBackground");
+    const widthInput = $("widthInput");
+    const heightInput = $("heightInput");
+    const lockRatio = $("lockRatio");
 
-    const removeBackground =
-        document.getElementById("removeBackground");
+    const contrastInput = $("contrastInput");
+    const brightnessInput = $("brightnessInput");
+    const contrastValue = $("contrastValue");
+    const brightnessValue = $("brightnessValue");
 
-    const colorCounts =
-        document.getElementById("colorCounts");
+    const generateButton = $("generateButton");
+    const canvas = $("rugCanvas");
+    const emptyPreview = $("emptyPreview");
+    const previewStatus = $("previewStatus");
 
-    const paletteElement =
-        document.getElementById("palette");
+    const statColors = $("statColors");
+    const statSize = $("statSize");
+    const statGrid = $("statGrid");
+    const statLoops = $("statLoops");
 
-    const resetPalette =
-        document.getElementById("resetPalette");
+    const rugWorkspace = $("rugWorkspace");
+    const rugCanvasWrap = $("rugCanvasWrap");
+    const gridTopLabels = $("gridTopLabels");
+    const gridLeftLabels = $("gridLeftLabels");
+    const colorLegend = $("colorLegend");
 
-    const widthInput =
-        document.getElementById("widthInput");
-
-    const heightInput =
-        document.getElementById("heightInput");
-
-    const lockRatio =
-        document.getElementById("lockRatio");
-
-    const contrastInput =
-        document.getElementById("contrastInput");
-
-    const brightnessInput =
-        document.getElementById("brightnessInput");
-
-    const contrastValue =
-        document.getElementById("contrastValue");
-
-    const brightnessValue =
-        document.getElementById("brightnessValue");
-
-    const generateButton =
-        document.getElementById("generateButton");
-
-    const canvas =
-        document.getElementById("rugCanvas");
-
-    const emptyPreview =
-        document.getElementById("emptyPreview");
-
-    const previewStatus =
-        document.getElementById("previewStatus");
-
-    const statColors =
-        document.getElementById("statColors");
-
-    const statSize =
-        document.getElementById("statSize");
-
-    const statGrid =
-        document.getElementById("statGrid");
-
-    const statLoops =
-        document.getElementById("statLoops");
-
-    const rugWorkspace =
-        document.getElementById("rugWorkspace");
-
-    const rugCanvasWrap =
-        document.getElementById("rugCanvasWrap");
-
-    const gridTopLabels =
-        document.getElementById("gridTopLabels");
-
-    const gridLeftLabels =
-        document.getElementById("gridLeftLabels");
-
-    const colorLegend =
-        document.getElementById("colorLegend");
-
-    const zoomIn =
-        document.getElementById("zoomIn");
-
-    const zoomOut =
-        document.getElementById("zoomOut");
-
-    const zoomReset =
-        document.getElementById("zoomReset");
-
-    const zoomValue =
-        document.getElementById("zoomValue");
+    const zoomIn = $("zoomIn");
+    const zoomOut = $("zoomOut");
+    const zoomReset = $("zoomReset");
+    const zoomValue = $("zoomValue");
 
 
     /* =========================================================
@@ -133,7 +60,6 @@
 
     const MIN_DETAIL = 20;
     const MAX_DETAIL = 500;
-
     const DEFAULT_DETAIL = 80;
 
     const MIN_ZOOM = 0.5;
@@ -157,47 +83,23 @@
        ========================================================= */
 
     let sourceImage = null;
-
     let originalRatio = 4 / 3;
 
     let numberOfColors = 4;
-
     let generatedPalette = [];
-
     let customPalette = [];
 
     let backgroundMode = "keep";
-
     let detailLevel = DEFAULT_DETAIL;
-
     let colorSmoothing = 0;
 
-    /*
-       IMPORTANT:
-
-       rawDetailData = untouched detail map
-       currentDetailData = map after smoothing
-
-       This prevents:
-
-       20 → 50 → 80 → 30
-
-       from repeatedly smoothing an already
-       smoothed map.
-    */
-
     let rawDetailData = null;
-
     let currentDetailData = null;
-
     let currentGrid = null;
 
     let zoomLevel = 1;
-
     let isGenerating = false;
-
     let renderQueued = false;
-
     let resizeTimer = null;
 
 
@@ -205,125 +107,17 @@
        HELPERS
        ========================================================= */
 
-    function clamp(
-        value,
-        min,
-        max
-    ) {
+    const clamp = (v, min, max) =>
+        Math.max(min, Math.min(max, v));
 
-        return Math.max(
-            min,
-            Math.min(
-                max,
-                value
-            )
-        );
-    }
+    const num = (value, fallback = 0) =>
+        Number(value) || fallback;
 
+    const normalizeHex = value => {
+        value = String(value || "").trim();
+        if (!value.startsWith("#")) value = "#" + value;
 
-    function hexToRgb(hex) {
-
-        hex =
-            String(hex || "")
-                .replace("#", "")
-                .trim();
-
-
-        if (hex.length === 3) {
-
-            hex =
-                hex
-                    .split("")
-                    .map(
-                        x => x + x
-                    )
-                    .join("");
-        }
-
-
-        const n =
-            parseInt(
-                hex,
-                16
-            );
-
-
-        if (
-            Number.isNaN(n)
-        ) {
-
-            return {
-                r: 0,
-                g: 0,
-                b: 0
-            };
-        }
-
-
-        return {
-            r: (n >> 16) & 255,
-            g: (n >> 8) & 255,
-            b: n & 255
-        };
-    }
-
-
-    function rgbToHex(
-        r,
-        g,
-        b
-    ) {
-
-        return (
-            "#" +
-            [
-                r,
-                g,
-                b
-            ]
-                .map(
-                    value =>
-                        clamp(
-                            value,
-                            0,
-                            255
-                        )
-                            .toString(16)
-                            .padStart(
-                                2,
-                                "0"
-                            )
-                )
-                .join("")
-                .toUpperCase()
-        );
-    }
-
-
-    function normalizeHex(
-        value
-    ) {
-
-        value =
-            String(
-                value || ""
-            ).trim();
-
-
-        if (
-            !value.startsWith("#")
-        ) {
-
-            value =
-                "#" + value;
-        }
-
-
-        if (
-            /^#[0-9a-fA-F]{3}$/
-                .test(value)
-        ) {
-
+        if (/^#[0-9a-fA-F]{3}$/.test(value)) {
             return (
                 "#" +
                 value[1] + value[1] +
@@ -332,34 +126,36 @@
             ).toUpperCase();
         }
 
+        return /^#[0-9a-fA-F]{6}$/.test(value)
+            ? value.toUpperCase()
+            : "#000000";
+    };
 
-        if (
-            /^#[0-9a-fA-F]{6}$/
-                .test(value)
-        ) {
+    function hexToRgb(hex) {
+        hex = normalizeHex(hex).slice(1);
 
-            return value.toUpperCase();
-        }
-
-
-        return "#000000";
+        return {
+            r: parseInt(hex.slice(0, 2), 16),
+            g: parseInt(hex.slice(2, 4), 16),
+            b: parseInt(hex.slice(4, 6), 16)
+        };
     }
 
+    function rgbToHex(r, g, b) {
+        return "#" + [r, g, b]
+            .map(v =>
+                clamp(v, 0, 255)
+                    .toString(16)
+                    .padStart(2, "0")
+            )
+            .join("")
+            .toUpperCase();
+    }
 
-    function colorDistance(
-        a,
-        b
-    ) {
-
-        const dr =
-            a.r - b.r;
-
-        const dg =
-            a.g - b.g;
-
-        const db =
-            a.b - b.b;
-
+    function colorDistance(a, b) {
+        const dr = a.r - b.r;
+        const dg = a.g - b.g;
+        const db = a.b - b.b;
 
         return Math.sqrt(
             dr * dr * 0.299 +
@@ -368,211 +164,1067 @@
         );
     }
 
-
-    function columnLabel(
-        index
-    ) {
-
+    function columnLabel(index) {
         let result = "";
+        let n = index + 1;
 
-        let n =
-            index + 1;
-
-
-        while (
-            n > 0
-        ) {
-
-            const remainder =
-                (n - 1) % 26;
-
-
-            result =
-                String.fromCharCode(
-                    65 + remainder
-                ) + result;
-
-
-            n =
-                Math.floor(
-                    (n - 1) / 26
-                );
+        while (n) {
+            const r = (n - 1) % 26;
+            result = String.fromCharCode(65 + r) + result;
+            n = Math.floor((n - 1) / 26);
         }
 
+        return result;
+    }
+
+    function copyMap(map) {
+        return map?.map(row => row.slice()) || [];
+    }
+
+    function styleSlider(input) {
+        if (!input) return;
+        input.style.width = "100%";
+        input.style.boxSizing = "border-box";
+        input.style.cursor = "pointer";
+    }
+
+    function getPalette() {
+        return customPalette.length
+            ? customPalette
+            : generatedPalette;
+    }
+
+
+    /* =========================================================
+       GRID
+       ========================================================= */
+
+    function getSize() {
+        return {
+            width: Math.max(1, num(widthInput?.value, 100)),
+            height: Math.max(1, num(heightInput?.value, 75))
+        };
+    }
+
+    function calculatePhysicalGrid() {
+        const { width, height } = getSize();
+
+        return {
+            width: Math.max(1, Math.round(width / GRID_CELL_CM)),
+            height: Math.max(1, Math.round(height / GRID_CELL_CM))
+        };
+    }
+
+    function calculateDetailGrid() {
+        const { width, height } = getSize();
+
+        const detailWidth = clamp(
+            Math.round(detailLevel),
+            MIN_DETAIL,
+            MAX_DETAIL
+        );
+
+        return {
+            width: detailWidth,
+            height: Math.max(
+                1,
+                Math.round(detailWidth * height / width)
+            )
+        };
+    }
+
+
+    /* =========================================================
+       WORKSPACE
+       ========================================================= */
+
+    function setupWorkspace() {
+        if (!rugWorkspace) return;
+
+        Object.assign(rugWorkspace.style, {
+            position: "relative",
+            width: "100%",
+            height: "100%",
+            minWidth: "0",
+            minHeight: "0",
+            overflow: "hidden",
+            boxSizing: "border-box"
+        });
+
+        if (rugCanvasWrap) {
+            Object.assign(rugCanvasWrap.style, {
+                position: "absolute",
+                left: "0",
+                top: "0",
+                width: "100%",
+                height: "100%",
+                overflow: "hidden",
+                minWidth: "0",
+                minHeight: "0",
+                boxSizing: "border-box"
+            });
+        }
+
+        if (canvas) {
+            Object.assign(canvas.style, {
+                position: "absolute",
+                left: "0",
+                top: "0",
+                display: "none",
+                maxWidth: "none",
+                maxHeight: "none"
+            });
+        }
+    }
+
+    function getAvailableFrame() {
+        if (!rugWorkspace) {
+            return { width: 600, height: 450 };
+        }
+
+        const rect = rugWorkspace.getBoundingClientRect();
+
+        return {
+            width: Math.max(1, rect.width),
+            height: Math.max(1, rect.height)
+        };
+    }
+
+
+    /* =========================================================
+       IMAGE PREVIEW
+       ========================================================= */
+
+    function showLoadedImage() {
+        if (!sourceImage || !canvas || !rugCanvasWrap) return;
+
+        const frame = getAvailableFrame();
+        if (frame.width <= 0 || frame.height <= 0) return;
+
+        const ratio =
+            sourceImage.naturalWidth /
+            sourceImage.naturalHeight;
+
+        let width = frame.width;
+        let height = width / ratio;
+
+        if (height > frame.height) {
+            height = frame.height;
+            width = height * ratio;
+        }
+
+        const x = (frame.width - width) / 2;
+        const y = (frame.height - height) / 2;
+
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+        canvas.width = Math.max(1, Math.round(width * dpr));
+        canvas.height = Math.max(1, Math.round(height * dpr));
+
+        Object.assign(canvas.style, {
+            width: `${width}px`,
+            height: `${height}px`,
+            left: `${x}px`,
+            top: `${y}px`,
+            display: "block"
+        });
+
+        const ctx = canvas.getContext("2d");
+
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.clearRect(0, 0, width, height);
+        ctx.drawImage(sourceImage, 0, 0, width, height);
+
+        if (emptyPreview) emptyPreview.style.display = "none";
+        if (previewStatus) previewStatus.textContent = "IMAGE LOADED";
+    }
+
+
+    /* =========================================================
+       IMAGE PROCESSING
+       ========================================================= */
+
+    function processSourceImage() {
+        if (!sourceImage) return null;
+
+        const maxSize = 900;
+
+        let width = sourceImage.naturalWidth;
+        let height = sourceImage.naturalHeight;
+
+        const scale = Math.min(
+            maxSize / width,
+            maxSize / height,
+            1
+        );
+
+        width = Math.max(1, Math.round(width * scale));
+        height = Math.max(1, Math.round(height * scale));
+
+        const temp = document.createElement("canvas");
+        temp.width = width;
+        temp.height = height;
+
+        const ctx = temp.getContext("2d", {
+            willReadFrequently: true
+        });
+
+        ctx.drawImage(sourceImage, 0, 0, width, height);
+
+        const imageData = ctx.getImageData(
+            0,
+            0,
+            width,
+            height
+        );
+
+        applyImageAdjustments(imageData);
+
+        if (backgroundMode === "remove") {
+            removeBackgroundPixels(imageData);
+        }
+
+        ctx.putImageData(imageData, 0, 0);
+
+        return {
+            canvas: temp,
+            imageData
+        };
+    }
+
+    function applyImageAdjustments(imageData) {
+        const data = imageData.data;
+
+        const brightness = num(brightnessInput?.value);
+        const contrast = num(contrastInput?.value);
+
+        const brightnessAmount = brightness * 2.55;
+
+        const factor =
+            259 * (contrast + 255) /
+            (255 * (259 - contrast));
+
+        for (let i = 0; i < data.length; i += 4) {
+            data[i] = adjustChannel(
+                data[i],
+                brightnessAmount,
+                factor
+            );
+
+            data[i + 1] = adjustChannel(
+                data[i + 1],
+                brightnessAmount,
+                factor
+            );
+
+            data[i + 2] = adjustChannel(
+                data[i + 2],
+                brightnessAmount,
+                factor
+            );
+        }
+    }
+
+    function adjustChannel(value, brightness, factor) {
+        return clamp(
+            factor * (value + brightness - 128) + 128,
+            0,
+            255
+        );
+    }
+
+    function removeBackgroundPixels(imageData) {
+        const { data, width, height } = imageData;
+
+        const points = [
+            0,
+            (width - 1) * 4,
+            (height - 1) * width * 4,
+            ((height - 1) * width + width - 1) * 4
+        ];
+
+        const bg = { r: 0, g: 0, b: 0 };
+
+        for (const i of points) {
+            bg.r += data[i];
+            bg.g += data[i + 1];
+            bg.b += data[i + 2];
+        }
+
+        bg.r /= 4;
+        bg.g /= 4;
+        bg.b /= 4;
+
+        const threshold = 55;
+
+        for (let i = 0; i < data.length; i += 4) {
+            const color = {
+                r: data[i],
+                g: data[i + 1],
+                b: data[i + 2]
+            };
+
+            if (colorDistance(color, bg) < threshold) {
+                data[i + 3] = 0;
+            }
+        }
+    }
+
+
+    /* =========================================================
+       PALETTE
+       ========================================================= */
+
+    function extractPalette(imageData, count) {
+        const data = imageData.data;
+        const buckets = new Map();
+
+        for (let i = 0; i < data.length; i += 80) {
+            if (data[i + 3] < 30) continue;
+
+            const r = Math.floor(data[i] / 16) * 16;
+            const g = Math.floor(data[i + 1] / 16) * 16;
+            const b = Math.floor(data[i + 2] / 16) * 16;
+
+            const key = `${r},${g},${b}`;
+            buckets.set(key, (buckets.get(key) || 0) + 1);
+        }
+
+        const sorted = [...buckets.entries()]
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 80)
+            .map(([key, weight]) => {
+                const [r, g, b] = key.split(",").map(Number);
+                return { r, g, b, weight };
+            });
+
+        if (!sorted.length) {
+            return DEFAULT_PALETTE.slice(0, count);
+        }
+
+        const result = [sorted[0]];
+
+        while (
+            result.length < count &&
+            result.length < sorted.length
+        ) {
+            let best = null;
+            let bestScore = -Infinity;
+
+            for (const candidate of sorted) {
+                if (
+                    result.some(
+                        selected =>
+                            colorDistance(selected, candidate) < 12
+                    )
+                ) continue;
+
+                let minimum = Infinity;
+
+                for (const selected of result) {
+                    minimum = Math.min(
+                        minimum,
+                        colorDistance(selected, candidate)
+                    );
+                }
+
+                const score =
+                    minimum +
+                    Math.log(candidate.weight + 1) * 3;
+
+                if (score > bestScore) {
+                    bestScore = score;
+                    best = candidate;
+                }
+            }
+
+            if (!best) break;
+            result.push(best);
+        }
+
+        return result.map(c =>
+            rgbToHex(c.r, c.g, c.b)
+        );
+    }
+
+
+    /* =========================================================
+       DETAIL MAP
+       ========================================================= */
+
+    function createDetailMap(processed, grid, palette) {
+        const sourceCanvas = processed.canvas;
+
+        const ctx = sourceCanvas.getContext("2d", {
+            willReadFrequently: true
+        });
+
+        const sourceData = ctx.getImageData(
+            0,
+            0,
+            sourceCanvas.width,
+            sourceCanvas.height
+        );
+
+        const rgbPalette = palette.map(hexToRgb);
+
+        return Array.from(
+            { length: grid.height },
+            (_, y) => {
+                const row = new Array(grid.width);
+
+                const sy = Math.floor(
+                    y / grid.height * sourceCanvas.height
+                );
+
+                const ey = Math.max(
+                    sy + 1,
+                    Math.floor(
+                        (y + 1) /
+                        grid.height *
+                        sourceCanvas.height
+                    )
+                );
+
+                for (let x = 0; x < grid.width; x++) {
+                    const sx = Math.floor(
+                        x / grid.width *
+                        sourceCanvas.width
+                    );
+
+                    const ex = Math.max(
+                        sx + 1,
+                        Math.floor(
+                            (x + 1) /
+                            grid.width *
+                            sourceCanvas.width
+                        )
+                    );
+
+                    let r = 0;
+                    let g = 0;
+                    let b = 0;
+                    let count = 0;
+
+                    for (let py = sy; py < ey; py++) {
+                        for (let px = sx; px < ex; px++) {
+                            const i =
+                                (py * sourceCanvas.width + px) * 4;
+
+                            if (sourceData.data[i + 3] < 30) continue;
+
+                            r += sourceData.data[i];
+                            g += sourceData.data[i + 1];
+                            b += sourceData.data[i + 2];
+                            count++;
+                        }
+                    }
+
+                    if (!count) {
+                        row[x] = null;
+                        continue;
+                    }
+
+                    const average = {
+                        r: r / count,
+                        g: g / count,
+                        b: b / count
+                    };
+
+                    let nearest = rgbPalette[0];
+                    let nearestDistance = Infinity;
+
+                    for (const color of rgbPalette) {
+                        const distance =
+                            colorDistance(average, color);
+
+                        if (distance < nearestDistance) {
+                            nearestDistance = distance;
+                            nearest = color;
+                        }
+                    }
+
+                    row[x] = rgbToHex(
+                        nearest.r,
+                        nearest.g,
+                        nearest.b
+                    );
+                }
+
+                return row;
+            }
+        );
+    }
+
+
+    /* =========================================================
+       SMOOTHING
+       ========================================================= */
+
+    function smoothColorMap(map, amount) {
+        if (!map?.length || amount <= 0) return map;
+
+        const height = map.length;
+        const width = map[0]?.length || 0;
+
+        if (!width || !height) return map;
+
+        const threshold = 8 + amount / 100 * 52;
+        const passes = Math.max(
+            1,
+            Math.round(1 + amount / 25)
+        );
+
+        let result = copyMap(map);
+
+        for (let pass = 0; pass < passes; pass++) {
+            const next = copyMap(result);
+
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    const current = result[y][x];
+                    if (!current) continue;
+
+                    const neighbors = getMapNeighbors(
+                        result,
+                        x,
+                        y
+                    );
+
+                    const counts = new Map();
+
+                    for (const color of neighbors) {
+                        if (color) {
+                            counts.set(
+                                color,
+                                (counts.get(color) || 0) + 1
+                            );
+                        }
+                    }
+
+                    let bestColor = null;
+                    let bestCount = 0;
+
+                    for (const [color, count] of counts) {
+                        if (color === current) continue;
+
+                        if (
+                            colorDistance(
+                                hexToRgb(current),
+                                hexToRgb(color)
+                            ) > threshold
+                        ) continue;
+
+                        if (count > bestCount) {
+                            bestCount = count;
+                            bestColor = color;
+                        }
+                    }
+
+                    const required =
+                        amount < 25 ? 3 : 2;
+
+                    if (
+                        bestColor &&
+                        bestCount >= required
+                    ) {
+                        next[y][x] = bestColor;
+                    }
+                }
+            }
+
+            result = next;
+        }
+
+        return amount >= 20
+            ? removeSmallColorIslands(
+                result,
+                threshold,
+                amount
+            )
+            : result;
+    }
+
+    function getMapNeighbors(map, x, y) {
+        const height = map.length;
+        const width = map[0]?.length || 0;
+        const result = [];
+
+        if (x > 0) result.push(map[y][x - 1]);
+        if (x < width - 1) result.push(map[y][x + 1]);
+        if (y > 0) result.push(map[y - 1][x]);
+        if (y < height - 1) result.push(map[y + 1][x]);
+
+        return result;
+    }
+
+    function removeSmallColorIslands(
+        map,
+        colorThreshold,
+        amount
+    ) {
+        const height = map.length;
+        const width = map[0]?.length || 0;
+
+        if (!width || !height) return map;
+
+        const result = copyMap(map);
+
+        const maxIslandSize = Math.round(
+            1 + amount / 100 * 14
+        );
+
+        const visited = Array.from(
+            { length: height },
+            () => Array(width).fill(false)
+        );
+
+        const neighbors = (x, y) => {
+            const list = [];
+
+            if (x > 0) list.push([x - 1, y]);
+            if (x < width - 1) list.push([x + 1, y]);
+            if (y > 0) list.push([x, y - 1]);
+            if (y < height - 1) list.push([x, y + 1]);
+
+            return list;
+        };
+
+        for (let startY = 0; startY < height; startY++) {
+            for (let startX = 0; startX < width; startX++) {
+                if (visited[startY][startX]) continue;
+
+                const color = result[startY][startX];
+
+                if (!color) {
+                    visited[startY][startX] = true;
+                    continue;
+                }
+
+                const component = [];
+                const queue = [[startX, startY]];
+
+                visited[startY][startX] = true;
+
+                while (queue.length) {
+                    const [x, y] = queue.shift();
+
+                    component.push([x, y]);
+
+                    if (component.length > maxIslandSize) {
+                        break;
+                    }
+
+                    for (const [nx, ny] of neighbors(x, y)) {
+                        if (visited[ny][nx]) continue;
+                        if (result[ny][nx] !== color) continue;
+
+                        visited[ny][nx] = true;
+                        queue.push([nx, ny]);
+                    }
+                }
+
+                if (component.length > maxIslandSize) {
+                    continue;
+                }
+
+                let replacement = null;
+                let replacementScore = Infinity;
+
+                for (const [x, y] of component) {
+                    for (const [nx, ny] of neighbors(x, y)) {
+                        const neighborColor = result[ny][nx];
+
+                        if (
+                            !neighborColor ||
+                            neighborColor === color
+                        ) continue;
+
+                        const distance = colorDistance(
+                            hexToRgb(color),
+                            hexToRgb(neighborColor)
+                        );
+
+                        if (
+                            distance <= colorThreshold &&
+                            distance < replacementScore
+                        ) {
+                            replacementScore = distance;
+                            replacement = neighborColor;
+                        }
+                    }
+                }
+
+                if (replacement) {
+                    for (const [x, y] of component) {
+                        result[y][x] = replacement;
+                    }
+                }
+            }
+        }
 
         return result;
     }
 
 
     /* =========================================================
-       PHYSICAL GRID
+       CELL / CANVAS
        ========================================================= */
 
-    function calculatePhysicalGrid() {
+    function drawCell(ctx, x, y, width, height, color) {
+        if (!color) return;
 
-        const width =
-            Math.max(
-                1,
-                Number(
-                    widthInput?.value
-                ) || 100
-            );
+        ctx.fillStyle = color;
+        ctx.fillRect(x, y, width, height);
+    }
 
+    function getPhysicalFrame() {
+        const frame = getAvailableFrame();
 
-        const height =
-            Math.max(
-                1,
-                Number(
-                    heightInput?.value
-                ) || 75
-            );
+        const ratio =
+            currentGrid.width /
+            currentGrid.height;
 
+        let width = frame.width;
+        let height = width / ratio;
+
+        if (height > frame.height) {
+            height = frame.height;
+            width = height * ratio;
+        }
 
         return {
-
-            width:
-                Math.max(
-                    1,
-                    Math.round(
-                        width /
-                        GRID_CELL_CM
-                    )
-                ),
-
-            height:
-                Math.max(
-                    1,
-                    Math.round(
-                        height /
-                        GRID_CELL_CM
-                    )
-                )
+            frame,
+            width: Math.max(10, width - 4),
+            height: Math.max(10, height - 4)
         };
     }
 
 
     /* =========================================================
-       DETAIL GRID
+       RENDER PREVIEW
        ========================================================= */
 
-    function calculateDetailGrid() {
-
-        const width =
-            Math.max(
-                1,
-                Number(
-                    widthInput?.value
-                ) || 100
-            );
-
-
-        const height =
-            Math.max(
-                1,
-                Number(
-                    heightInput?.value
-                ) || 75
-            );
-
-
-        const detailWidth =
-            clamp(
-                Math.round(
-                    detailLevel
-                ),
-                MIN_DETAIL,
-                MAX_DETAIL
-            );
-
-
-        const detailHeight =
-            Math.max(
-                1,
-                Math.round(
-                    detailWidth *
-                    height /
-                    width
-                )
-            );
-
-
-        return {
-            width:
-                detailWidth,
-
-            height:
-                detailHeight
-        };
-    }
-
-
-    /* =========================================================
-       CONTROLS
-       ========================================================= */
-
-    function styleSlider(
-        input
-    ) {
-
-        if (!input) {
+    function renderPreview() {
+        if (!canvas || !currentDetailData || !currentGrid) {
             return;
         }
 
+        const { frame, width, height } = getPhysicalFrame();
 
-        input.style.width =
-            "100%";
+        if (frame.width <= 5 || frame.height <= 5) return;
 
-        input.style.boxSizing =
-            "border-box";
+        const visualWidth = width * zoomLevel;
+        const visualHeight = height * zoomLevel;
 
-        input.style.cursor =
-            "pointer";
+        const left = Math.max(
+            0,
+            (frame.width === visualWidth
+                ? 0
+                : (frame.width - visualWidth) / 2) +
+            (frame.frameOffsetX || 0)
+        );
+
+        const top = Math.max(
+            0,
+            (frame.height === visualHeight
+                ? 0
+                : (frame.height - visualHeight) / 2) +
+            (frame.frameOffsetY || 0)
+        );
+
+        const dpr = Math.min(
+            window.devicePixelRatio || 1,
+            2
+        );
+
+        canvas.width = Math.max(
+            1,
+            Math.round(visualWidth * dpr)
+        );
+
+        canvas.height = Math.max(
+            1,
+            Math.round(visualHeight * dpr)
+        );
+
+        Object.assign(canvas.style, {
+            width: `${visualWidth}px`,
+            height: `${visualHeight}px`,
+            left: `${left}px`,
+            top: `${top}px`,
+            display: "block"
+        });
+
+        const ctx = canvas.getContext("2d");
+
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.clearRect(0, 0, visualWidth, visualHeight);
+
+        ctx.fillStyle = "#11110f";
+        ctx.fillRect(0, 0, visualWidth, visualHeight);
+
+        const data = currentDetailData.data;
+        const cellWidth =
+            visualWidth / currentDetailData.width;
+        const cellHeight =
+            visualHeight / currentDetailData.height;
+
+        for (let y = 0; y < currentDetailData.height; y++) {
+            for (let x = 0; x < currentDetailData.width; x++) {
+                drawCell(
+                    ctx,
+                    x * cellWidth,
+                    y * cellHeight,
+                    cellWidth,
+                    cellHeight,
+                    data[y][x]
+                );
+            }
+        }
+
+        drawPhysicalGrid(
+            ctx,
+            visualWidth,
+            visualHeight
+        );
+
+        ctx.strokeStyle = "rgba(255,255,255,.8)";
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(
+            0.75,
+            0.75,
+            visualWidth - 1.5,
+            visualHeight - 1.5
+        );
+
+        if (zoomValue) {
+            zoomValue.textContent =
+                `${Math.round(zoomLevel * 100)}%`;
+        }
+
+        renderGridLabels();
+        updateStats();
     }
 
+    function drawPhysicalGrid(ctx, width, height) {
+        if (!currentGrid) return;
+
+        const cellWidth = width / currentGrid.width;
+        const cellHeight = height / currentGrid.height;
+
+        ctx.save();
+        ctx.strokeStyle = "rgba(255,255,255,.32)";
+        ctx.lineWidth = 1;
+
+        for (let x = 1; x < currentGrid.width; x++) {
+            const px = Math.round(x * cellWidth) + 0.5;
+
+            ctx.beginPath();
+            ctx.moveTo(px, 0);
+            ctx.lineTo(px, height);
+            ctx.stroke();
+        }
+
+        for (let y = 1; y < currentGrid.height; y++) {
+            const py = Math.round(y * cellHeight) + 0.5;
+
+            ctx.beginPath();
+            ctx.moveTo(0, py);
+            ctx.lineTo(width, py);
+            ctx.stroke();
+        }
+
+        ctx.restore();
+    }
+
+
+    /* =========================================================
+       GRID LABELS
+       ========================================================= */
+
+    function renderGridLabels() {
+        if (
+            !gridTopLabels ||
+            !gridLeftLabels ||
+            !currentGrid
+        ) return;
+
+        gridTopLabels.innerHTML = "";
+        gridLeftLabels.innerHTML = "";
+
+        const { frame, width, height } = getPhysicalFrame();
+
+        const left = (frame.width - width) / 2;
+        const top = (frame.height - height) / 2;
+
+        Object.assign(gridTopLabels.style, {
+            position: "absolute",
+            left: `${left}px`,
+            top: `${Math.max(0, top - 18)}px`,
+            width: `${width}px`,
+            height: "16px",
+            display: "flex",
+            justifyContent: "space-around",
+            pointerEvents: "none"
+        });
+
+        Object.assign(gridLeftLabels.style, {
+            position: "absolute",
+            left: `${Math.max(0, left - 22)}px`,
+            top: `${top}px`,
+            width: "20px",
+            height: `${height}px`,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-around",
+            pointerEvents: "none"
+        });
+
+        for (let x = 0; x < currentGrid.width; x++) {
+            const span = document.createElement("span");
+            span.textContent = columnLabel(x);
+            span.style.textAlign = "center";
+            gridTopLabels.appendChild(span);
+        }
+
+        for (let y = 0; y < currentGrid.height; y++) {
+            const span = document.createElement("span");
+            span.textContent = y + 1;
+            span.style.textAlign = "center";
+            gridLeftLabels.appendChild(span);
+        }
+    }
+
+
+    /* =========================================================
+       PALETTE UI
+       ========================================================= */
+
+    function renderPalette(palette) {
+        if (!paletteElement) return;
+
+        paletteElement.innerHTML = "";
+
+        palette.forEach((hex, index) => {
+            const row = document.createElement("div");
+
+            row.className = "palette-row";
+
+            row.innerHTML = `
+                <input
+                    class="palette-color"
+                    type="color"
+                    value="${normalizeHex(hex)}"
+                    data-palette-index="${index}"
+                >
+
+                <input
+                    class="palette-hex"
+                    type="text"
+                    value="${normalizeHex(hex)}"
+                    data-palette-index="${index}"
+                    maxlength="7"
+                    spellcheck="false"
+                >
+
+                <button
+                    class="palette-delete"
+                    type="button"
+                    data-palette-delete="${index}"
+                >×</button>
+            `;
+
+            paletteElement.appendChild(row);
+        });
+    }
+
+    if (paletteElement) {
+        paletteElement.addEventListener("input", e => {
+            const index = e.target.dataset.paletteIndex;
+            if (index === undefined) return;
+
+            if (e.target.type === "color") {
+                const value = normalizeHex(e.target.value);
+                customPalette[Number(index)] = value;
+
+                const text = paletteElement.querySelector(
+                    `.palette-hex[data-palette-index="${index}"]`
+                );
+
+                if (text) text.value = value;
+
+                queueGenerate();
+            }
+        });
+
+        paletteElement.addEventListener("change", e => {
+            const index = e.target.dataset.paletteIndex;
+            if (index === undefined) return;
+
+            if (e.target.classList.contains("palette-hex")) {
+                const value = normalizeHex(e.target.value);
+
+                customPalette[Number(index)] = value;
+                e.target.value = value;
+
+                const color = paletteElement.querySelector(
+                    `.palette-color[data-palette-index="${index}"]`
+                );
+
+                if (color) color.value = value;
+
+                queueGenerate();
+            }
+        });
+
+        paletteElement.addEventListener("click", e => {
+            const button = e.target.closest(
+                "[data-palette-delete]"
+            );
+
+            if (!button) return;
+
+            const index = Number(button.dataset.paletteDelete);
+
+            if (!customPalette.length) {
+                customPalette = [...generatedPalette];
+            }
+
+            customPalette.splice(index, 1);
+
+            if (!customPalette.length) {
+                customPalette = ["#000000"];
+            }
+
+            generatedPalette = [...customPalette];
+            renderPalette(generatedPalette);
+            queueGenerate();
+        });
+    }
+
+
+    /* =========================================================
+       EXTRA CONTROLS
+       ========================================================= */
 
     function createExtraControls() {
+        $("rugSmoothingControl")?.remove();
+        $("rugDetailControl")?.remove();
 
-        document
-            .getElementById(
-                "rugSmoothingControl"
-            )
-            ?.remove();
+        if (!paletteElement) return;
 
+        const paletteSection =
+            paletteElement.closest(".control-section");
 
-        document
-            .getElementById(
-                "rugDetailControl"
-            )
-            ?.remove();
+        const smoothing = document.createElement("div");
 
+        smoothing.id = "rugSmoothingControl";
+        smoothing.className = "control-section";
 
-        if (!paletteElement) {
-            return;
-        }
-
-
-        /* =====================================================
-           COLOR SMOOTHING
-           ===================================================== */
-
-        const smoothingBlock =
-            document.createElement(
-                "div"
-            );
-
-
-        smoothingBlock.id =
-            "rugSmoothingControl";
-
-
-        smoothingBlock.className =
-            "control-section";
-
-
-        smoothingBlock.innerHTML = `
+        smoothing.innerHTML = `
             <div class="section-label">
-                <span>04A</span>
-                COLOR SMOOTHING
+                <span>04A</span> COLOR SMOOTHING
             </div>
 
             <div style="
@@ -581,7 +1233,6 @@
                 gap:10px;
                 align-items:center;
             ">
-
                 <input
                     id="rugSmoothingInput"
                     type="range"
@@ -599,9 +1250,7 @@
                         font-family:'DM Mono',monospace;
                         font-size:10px;
                     "
-                >
-                    NONE
-                </output>
+                >NONE</output>
             </div>
 
             <div style="
@@ -622,169 +1271,66 @@
             </p>
         `;
 
-
-        const paletteSection =
-            paletteElement.closest(
-                ".control-section"
-            );
-
-
         if (paletteSection) {
-
-            paletteSection.after(
-                smoothingBlock
-            );
-
+            paletteSection.after(smoothing);
         } else {
-
-            paletteElement.after(
-                smoothingBlock
-            );
+            paletteElement.after(smoothing);
         }
 
+        const smoothingInput = $("rugSmoothingInput");
+        const smoothingValue = $("rugSmoothingValue");
 
-        const smoothingInput =
-            document.getElementById(
-                "rugSmoothingInput"
-            );
+        styleSlider(smoothingInput);
 
-
-        const smoothingValue =
-            document.getElementById(
-                "rugSmoothingValue"
-            );
-
-
-        styleSlider(
-            smoothingInput
-        );
-
-
-        function updateSmoothingLabel() {
-
-            if (
-                colorSmoothing <= 5
-            ) {
-
-                smoothingValue.textContent =
-                    "NONE";
-
-            } else if (
-                colorSmoothing < 30
-            ) {
-
-                smoothingValue.textContent =
-                    "LIGHT";
-
-            } else if (
-                colorSmoothing < 60
-            ) {
-
-                smoothingValue.textContent =
-                    "MEDIUM";
-
-            } else if (
-                colorSmoothing < 85
-            ) {
-
-                smoothingValue.textContent =
-                    "STRONG";
-
-            } else {
-
-                smoothingValue.textContent =
-                    "MAXIMUM";
-            }
-        }
-
+        const updateSmoothingLabel = () => {
+            smoothingValue.textContent =
+                colorSmoothing <= 5 ? "NONE" :
+                colorSmoothing < 30 ? "LIGHT" :
+                colorSmoothing < 60 ? "MEDIUM" :
+                colorSmoothing < 85 ? "STRONG" :
+                "MAXIMUM";
+        };
 
         updateSmoothingLabel();
 
-
-        smoothingInput.addEventListener(
-            "input",
-            () => {
-
-                colorSmoothing =
-                    clamp(
-                        Number(
-                            smoothingInput.value
-                        ) || 0,
-                        0,
-                        100
-                    );
-
-
-                updateSmoothingLabel();
-
-
-                /*
-                   Re-render immediately from the
-                   untouched original detail map.
-                */
-
-                if (
-                    rawDetailData
-                ) {
-
-                    currentDetailData = {
-
-                        width:
-                            rawDetailData.width,
-
-                        height:
-                            rawDetailData.height,
-
-                        data:
-                            colorSmoothing > 0
-                                ? smoothColorMap(
-                                    rawDetailData.data,
-                                    colorSmoothing
-                                )
-                                : rawDetailData.data.map(
-                                    row =>
-                                        row.slice()
-                                )
-                    };
-
-
-                    renderPreview();
-
-
-                    renderColorLegend(
-                        currentDetailData.data,
-                        getCurrentPalette()
-                    );
-
-
-                    updateStats();
-                }
-            }
-        );
-
-
-        /* =====================================================
-           DETAIL
-           ===================================================== */
-
-        const detailBlock =
-            document.createElement(
-                "div"
+        smoothingInput.addEventListener("input", () => {
+            colorSmoothing = clamp(
+                num(smoothingInput.value),
+                0,
+                100
             );
 
+            updateSmoothingLabel();
 
-        detailBlock.id =
-            "rugDetailControl";
+            if (!rawDetailData) return;
 
+            currentDetailData = {
+                width: rawDetailData.width,
+                height: rawDetailData.height,
+                data: colorSmoothing
+                    ? smoothColorMap(
+                        rawDetailData.data,
+                        colorSmoothing
+                    )
+                    : copyMap(rawDetailData.data)
+            };
 
-        detailBlock.className =
-            "control-section";
+            renderPreview();
+            renderColorLegend(
+                currentDetailData.data,
+                getPalette()
+            );
+            updateStats();
+        });
 
+        const detail = document.createElement("div");
 
-        detailBlock.innerHTML = `
+        detail.id = "rugDetailControl";
+        detail.className = "control-section";
+
+        detail.innerHTML = `
             <div class="section-label">
-                <span>04B</span>
-                DETAIL
+                <span>04B</span> DETAIL
             </div>
 
             <div style="
@@ -793,7 +1339,6 @@
                 gap:10px;
                 align-items:center;
             ">
-
                 <input
                     id="rugDetailInput"
                     type="range"
@@ -811,9 +1356,7 @@
                         font-family:'DM Mono',monospace;
                         font-size:10px;
                     "
-                >
-                    ${detailLevel}
-                </output>
+                >${detailLevel}</output>
             </div>
 
             <div style="
@@ -834,3388 +1377,83 @@
             </p>
         `;
 
+        smoothing.after(detail);
 
-        smoothingBlock.after(
-            detailBlock
-        );
+        const detailInput = $("rugDetailInput");
+        const detailValue = $("rugDetailValue");
 
+        styleSlider(detailInput);
 
-        const detailInput =
-            document.getElementById(
-                "rugDetailInput"
+        detailInput.addEventListener("input", () => {
+            detailLevel = clamp(
+                num(detailInput.value, DEFAULT_DETAIL),
+                MIN_DETAIL,
+                MAX_DETAIL
             );
 
-
-        const detailValue =
-            document.getElementById(
-                "rugDetailValue"
-            );
-
-
-        styleSlider(
-            detailInput
-        );
-
-
-        detailInput.addEventListener(
-            "input",
-            () => {
-
-                detailLevel =
-                    clamp(
-                        Number(
-                            detailInput.value
-                        ) || DEFAULT_DETAIL,
-                        MIN_DETAIL,
-                        MAX_DETAIL
-                    );
-
-
-                detailValue.textContent =
-                    detailLevel;
-
-
-                queueGenerate();
-            }
-        );
+            detailValue.textContent = detailLevel;
+            queueGenerate();
+        });
     }
 
 
     /* =========================================================
-       WORKSPACE
+       COLOR LEGEND
        ========================================================= */
 
-    function setupWorkspace() {
-
-        if (!rugWorkspace) {
-            return;
-        }
-
-
-        rugWorkspace.style.position =
-            "relative";
-
-
-        rugWorkspace.style.width =
-            "100%";
-
-
-        rugWorkspace.style.height =
-            "100%";
-
-
-        rugWorkspace.style.minWidth =
-            "0";
-
-
-        rugWorkspace.style.minHeight =
-            "0";
-
-
-        rugWorkspace.style.overflow =
-            "hidden";
-
-
-        rugWorkspace.style.boxSizing =
-            "border-box";
-
-
-        if (rugCanvasWrap) {
-
-            rugCanvasWrap.style.position =
-                "absolute";
-
-
-            rugCanvasWrap.style.left =
-                "0";
-
-
-            rugCanvasWrap.style.top =
-                "0";
-
-
-            rugCanvasWrap.style.width =
-                "100%";
-
-
-            rugCanvasWrap.style.height =
-                "100%";
-
-
-            rugCanvasWrap.style.overflow =
-                "hidden";
-
-
-            rugCanvasWrap.style.minWidth =
-                "0";
-
-
-            rugCanvasWrap.style.minHeight =
-                "0";
-
-
-            rugCanvasWrap.style.boxSizing =
-                "border-box";
-        }
-
-
-        if (canvas) {
-
-            canvas.style.position =
-                "absolute";
-
-
-            canvas.style.left =
-                "0";
-
-
-            canvas.style.top =
-                "0";
-
-
-            canvas.style.display =
-                "none";
-
-
-            canvas.style.maxWidth =
-                "none";
-
-
-            canvas.style.maxHeight =
-                "none";
-        }
-    }
-
-
-    /* =========================================================
-       IMAGE LOAD
-       ========================================================= */
-
-    function showLoadedImage() {
-
-        if (
-            !sourceImage ||
-            !canvas ||
-            !rugCanvasWrap
-        ) {
-            return;
-        }
-
-
-        const rect =
-            getAvailableFrame();
-
-
-        if (
-            rect.width <= 0 ||
-            rect.height <= 0
-        ) {
-            return;
-        }
-
-
-        const imageRatio =
-            sourceImage.naturalWidth /
-            sourceImage.naturalHeight;
-
-
-        let drawWidth =
-            rect.width;
-
-
-        let drawHeight =
-            drawWidth /
-            imageRatio;
-
-
-        if (
-            drawHeight >
-            rect.height
-        ) {
-
-            drawHeight =
-                rect.height;
-
-
-            drawWidth =
-                drawHeight *
-                imageRatio;
-        }
-
-
-        const x =
-            (
-                rect.width -
-                drawWidth
-            ) / 2;
-
-
-        const y =
-            (
-                rect.height -
-                drawHeight
-            ) / 2;
-
-
-        const dpr =
-            Math.min(
-                window.devicePixelRatio || 1,
-                2
-            );
-
-
-        canvas.width =
-            Math.max(
-                1,
-                Math.round(
-                    drawWidth *
-                    dpr
-                )
-            );
-
-
-        canvas.height =
-            Math.max(
-                1,
-                Math.round(
-                    drawHeight *
-                    dpr
-                )
-            );
-
-
-        canvas.style.width =
-            `${drawWidth}px`;
-
-
-        canvas.style.height =
-            `${drawHeight}px`;
-
-
-        canvas.style.left =
-            `${x}px`;
-
-
-        canvas.style.top =
-            `${y}px`;
-
-
-        canvas.style.display =
-            "block";
-
-
-        const ctx =
-            canvas.getContext(
-                "2d"
-            );
-
-
-        ctx.setTransform(
-            dpr,
-            0,
-            0,
-            dpr,
-            0,
-            0
-        );
-
-
-        ctx.clearRect(
-            0,
-            0,
-            drawWidth,
-            drawHeight
-        );
-
-
-        ctx.drawImage(
-            sourceImage,
-            0,
-            0,
-            drawWidth,
-            drawHeight
-        );
-
-
-        if (emptyPreview) {
-
-            emptyPreview.style.display =
-                "none";
-        }
-
-
-        if (previewStatus) {
-
-            previewStatus.textContent =
-                "IMAGE LOADED";
-        }
-    }
-
-
-    /* =========================================================
-       AVAILABLE FRAME
-       ========================================================= */
-
-    function getAvailableFrame() {
-
-        if (!rugWorkspace) {
-
-            return {
-                width: 600,
-                height: 450
-            };
-        }
-
-
-        const rect =
-            rugWorkspace.getBoundingClientRect();
-
-
-        return {
-
-            width:
-                Math.max(
-                    1,
-                    rect.width
-                ),
-
-            height:
-                Math.max(
-                    1,
-                    rect.height
-                )
-        };
-    }
-
-
-    /* =========================================================
-       IMAGE PROCESSING
-       ========================================================= */
-
-    function processSourceImage() {
-
-        if (!sourceImage) {
-            return null;
-        }
-
-
-        const maxSize =
-            900;
-
-
-        let width =
-            sourceImage.naturalWidth;
-
-
-        let height =
-            sourceImage.naturalHeight;
-
-
-        const scale =
-            Math.min(
-                maxSize / width,
-                maxSize / height,
-                1
-            );
-
-
-        width =
-            Math.max(
-                1,
-                Math.round(
-                    width * scale
-                )
-            );
-
-
-        height =
-            Math.max(
-                1,
-                Math.round(
-                    height * scale
-                )
-            );
-
-
-        const temp =
-            document.createElement(
-                "canvas"
-            );
-
-
-        temp.width =
-            width;
-
-
-        temp.height =
-            height;
-
-
-        const tempCtx =
-            temp.getContext(
-                "2d",
-                {
-                    willReadFrequently:
-                        true
-                }
-            );
-
-
-        tempCtx.drawImage(
-            sourceImage,
-            0,
-            0,
-            width,
-            height
-        );
-
-
-        const imageData =
-            tempCtx.getImageData(
-                0,
-                0,
-                width,
-                height
-            );
-
-
-        applyImageAdjustments(
-            imageData
-        );
-
-
-        tempCtx.putImageData(
-            imageData,
-            0,
-            0
-        );
-
-
-        if (
-            backgroundMode ===
-            "remove"
-        ) {
-
-            removeBackgroundPixels(
-                imageData
-            );
-
-
-            tempCtx.putImageData(
-                imageData,
-                0,
-                0
-            );
-        }
-
-
-        return {
-            canvas:
-                temp,
-
-            imageData:
-                imageData
-        };
-    }
-
-
-    /* =========================================================
-       IMAGE ADJUSTMENTS
-       ========================================================= */
-
-    function applyImageAdjustments(
-        imageData
-    ) {
-
-        const data =
-            imageData.data;
-
-
-        const brightness =
-            Number(
-                brightnessInput?.value
-            ) || 0;
-
-
-        const contrast =
-            Number(
-                contrastInput?.value
-            ) || 0;
-
-
-        const brightnessAmount =
-            brightness *
-            2.55;
-
-
-        const factor =
-            (
-                259 *
-                (contrast + 255)
-            ) /
-            (
-                255 *
-                (259 - contrast)
-            );
-
-
-        for (
-            let i = 0;
-            i < data.length;
-            i += 4
-        ) {
-
-            let r =
-                data[i] +
-                brightnessAmount;
-
-
-            let g =
-                data[i + 1] +
-                brightnessAmount;
-
-
-            let b =
-                data[i + 2] +
-                brightnessAmount;
-
-
-            r =
-                factor *
-                (r - 128) +
-                128;
-
-
-            g =
-                factor *
-                (g - 128) +
-                128;
-
-
-            b =
-                factor *
-                (b - 128) +
-                128;
-
-
-            data[i] =
-                clamp(
-                    r,
-                    0,
-                    255
+    function getColorCounts(data) {
+        const counts = new Map();
+
+        data.forEach(row => {
+            row.forEach(color => {
+                if (!color) return;
+                counts.set(
+                    color,
+                    (counts.get(color) || 0) + 1
                 );
+            });
+        });
 
-
-            data[i + 1] =
-                clamp(
-                    g,
-                    0,
-                    255
-                );
-
-
-            data[i + 2] =
-                clamp(
-                    b,
-                    0,
-                    255
-                );
-        }
+        return counts;
     }
 
-
-    /* =========================================================
-       BACKGROUND REMOVAL
-       ========================================================= */
-
-    function removeBackgroundPixels(
-        imageData
-    ) {
-
-        const data =
-            imageData.data;
-
-
-        const width =
-            imageData.width;
-
-
-        const height =
-            imageData.height;
-
-
-        const points = [
-
-            0,
-
-            (width - 1) * 4,
-
-            (
-                (height - 1) *
-                width
-            ) * 4,
-
-            (
-                (
-                    (height - 1) *
-                    width
-                ) +
-                width -
-                1
-            ) * 4
-
-        ];
-
-
-        const bg = {
-            r: 0,
-            g: 0,
-            b: 0
-        };
-
-
-        points.forEach(
-            index => {
-
-                bg.r +=
-                    data[index];
-
-                bg.g +=
-                    data[index + 1];
-
-                bg.b +=
-                    data[index + 2];
-            }
-        );
-
-
-        bg.r /= 4;
-        bg.g /= 4;
-        bg.b /= 4;
-
-
-        const threshold =
-            55;
-
-
-        for (
-            let i = 0;
-            i < data.length;
-            i += 4
-        ) {
-
-            const current = {
-
-                r:
-                    data[i],
-
-                g:
-                    data[i + 1],
-
-                b:
-                    data[i + 2]
-
-            };
-
-
-            if (
-                colorDistance(
-                    current,
-                    bg
-                ) < threshold
-            ) {
-
-                data[i + 3] =
-                    0;
-            }
-        }
-    }
-
-
-    /* =========================================================
-       PALETTE EXTRACTION
-       ========================================================= */
-
-    function extractPalette(
-        imageData,
-        count
-    ) {
-
-        const data =
-            imageData.data;
-
-
-        const buckets =
-            new Map();
-
-
-        /*
-           Every 80 RGBA values =
-           every 20th pixel.
-        */
-
-        for (
-            let i = 0;
-            i < data.length;
-            i += 80
-        ) {
-
-            if (
-                data[i + 3] < 30
-            ) {
-                continue;
-            }
-
-
-            const r =
-                Math.floor(
-                    data[i] / 16
-                ) * 16;
-
-
-            const g =
-                Math.floor(
-                    data[i + 1] / 16
-                ) * 16;
-
-
-            const b =
-                Math.floor(
-                    data[i + 2] / 16
-                ) * 16;
-
-
-            const key =
-                `${r},${g},${b}`;
-
-
-            buckets.set(
-                key,
-                (
-                    buckets.get(
-                        key
-                    ) || 0
-                ) + 1
-            );
-        }
-
-
-        const sorted =
-            [...buckets.entries()]
-                .sort(
-                    (a, b) =>
-                        b[1] - a[1]
-                )
-                .slice(
-                    0,
-                    80
-                )
-                .map(
-                    ([key, weight]) => {
-
-                        const [
-                            r,
-                            g,
-                            b
-                        ] =
-                            key
-                                .split(",")
-                                .map(
-                                    Number
-                                );
-
-
-                        return {
-                            r,
-                            g,
-                            b,
-                            weight
-                        };
-                    }
-                );
-
-
-        if (
-            !sorted.length
-        ) {
-
-            return DEFAULT_PALETTE.slice(
-                0,
-                count
-            );
-        }
-
-
-        const result = [
-            sorted[0]
-        ];
-
-
-        while (
-            result.length <
-                count &&
-            result.length <
-                sorted.length
-        ) {
-
-            let best =
-                null;
-
-
-            let bestScore =
-                -Infinity;
-
-
-            for (
-                const candidate
-                of sorted
-            ) {
-
-                const duplicate =
-                    result.some(
-                        selected =>
-                            colorDistance(
-                                selected,
-                                candidate
-                            ) < 12
-                    );
-
-
-                if (duplicate) {
-                    continue;
-                }
-
-
-                let minimum =
-                    Infinity;
-
-
-                result.forEach(
-                    selected => {
-
-                        minimum =
-                            Math.min(
-                                minimum,
-                                colorDistance(
-                                    selected,
-                                    candidate
-                                )
-                            );
-                    }
-                );
-
-
-                const score =
-                    minimum +
-                    Math.log(
-                        candidate.weight +
-                        1
-                    ) * 3;
-
-
-                if (
-                    score >
-                    bestScore
-                ) {
-
-                    bestScore =
-                        score;
-
-
-                    best =
-                        candidate;
-                }
-            }
-
-
-            if (!best) {
-                break;
-            }
-
-
-            result.push(
-                best
-            );
-        }
-
-
-        return result.map(
-            color =>
-                rgbToHex(
-                    color.r,
-                    color.g,
-                    color.b
-                )
-        );
-    }
-
-
-    /* =========================================================
-       CURRENT PALETTE
-       ========================================================= */
-
-    function getCurrentPalette() {
-
-        return customPalette.length
-            ? customPalette
-            : generatedPalette;
-    }
-
-
-    /* =========================================================
-       CREATE DETAIL MAP
-       ========================================================= */
-
-    function createDetailMap(
-        processed,
-        detailGrid,
-        palette
-    ) {
-
-        const sourceCanvas =
-            processed.canvas;
-
-
-        const sourceCtx =
-            sourceCanvas.getContext(
-                "2d",
-                {
-                    willReadFrequently:
-                        true
-                }
-            );
-
-
-        const sourceData =
-            sourceCtx.getImageData(
-                0,
-                0,
-                sourceCanvas.width,
-                sourceCanvas.height
-            );
-
-
-        const rgbPalette =
-            palette.map(
-                hexToRgb
-            );
-
-
-        const output =
-            new Array(
-                detailGrid.height
-            );
-
-
-        for (
-            let y = 0;
-            y < detailGrid.height;
-            y++
-        ) {
-
-            const row =
-                new Array(
-                    detailGrid.width
-                );
-
-
-            const sy =
-                Math.floor(
-                    y /
-                    detailGrid.height *
-                    sourceCanvas.height
-                );
-
-
-            const ey =
-                Math.max(
-                    sy + 1,
-                    Math.floor(
-                        (
-                            y + 1
-                        ) /
-                        detailGrid.height *
-                        sourceCanvas.height
-                    )
-                );
-
-
-            for (
-                let x = 0;
-                x < detailGrid.width;
-                x++
-            ) {
-
-                const sx =
-                    Math.floor(
-                        x /
-                        detailGrid.width *
-                        sourceCanvas.width
-                    );
-
-
-                const ex =
-                    Math.max(
-                        sx + 1,
-                        Math.floor(
-                            (
-                                x + 1
-                            ) /
-                            detailGrid.width *
-                            sourceCanvas.width
-                        )
-                    );
-
-
-                let r = 0;
-                let g = 0;
-                let b = 0;
-                let count = 0;
-
-
-                for (
-                    let py = sy;
-                    py < ey;
-                    py++
-                ) {
-
-                    for (
-                        let px = sx;
-                        px < ex;
-                        px++
-                    ) {
-
-                        const index =
-                            (
-                                py *
-                                sourceCanvas.width +
-                                px
-                            ) * 4;
-
-
-                        const alpha =
-                            sourceData
-                                .data[
-                                    index + 3
-                                ];
-
-
-                        if (
-                            alpha < 30
-                        ) {
-                            continue;
-                        }
-
-
-                        r +=
-                            sourceData
-                                .data[
-                                    index
-                                ];
-
-
-                        g +=
-                            sourceData
-                                .data[
-                                    index + 1
-                                ];
-
-
-                        b +=
-                            sourceData
-                                .data[
-                                    index + 2
-                                ];
-
-
-                        count++;
-                    }
-                }
-
-
-                if (
-                    !count
-                ) {
-
-                    row[x] =
-                        null;
-
-                    continue;
-                }
-
-
-                const average = {
-
-                    r:
-                        r / count,
-
-                    g:
-                        g / count,
-
-                    b:
-                        b / count
-
-                };
-
-
-                let nearest =
-                    rgbPalette[0];
-
-
-                let nearestDistance =
-                    Infinity;
-
-
-                for (
-                    const color
-                    of rgbPalette
-                ) {
-
-                    const distance =
-                        colorDistance(
-                            average,
-                            color
-                        );
-
-
-                    if (
-                        distance <
-                        nearestDistance
-                    ) {
-
-                        nearestDistance =
-                            distance;
-
-
-                        nearest =
-                            color;
-                    }
-                }
-
-
-                row[x] =
-                    rgbToHex(
-                        nearest.r,
-                        nearest.g,
-                        nearest.b
-                    );
-            }
-
-
-            output[y] =
-                row;
-        }
-
-
-        return output;
-    }
-
-
-    /* =========================================================
-       COLOR SMOOTHING
-       =========================================================
-
-       Changes COLORS only.
-
-       Does NOT:
-       - blur the image
-       - change cell geometry
-       - change physical grid
-       - round cells
-       - enlarge frame
-       ========================================================= */
-
-    function smoothColorMap(
-        map,
-        amount
-    ) {
-
-        if (
-            !map ||
-            !map.length ||
-            amount <= 0
-        ) {
-
-            return map;
-        }
-
-
-        const height =
-            map.length;
-
-
-        const width =
-            map[0]?.length || 0;
-
-
-        if (
-            width === 0 ||
-            height === 0
-        ) {
-
-            return map;
-        }
-
-
-        const colorThreshold =
-            8 +
-            (
-                amount /
-                100
-            ) * 52;
-
-
-        const passes =
-            Math.max(
-                1,
-                Math.round(
-                    1 +
-                    amount / 25
-                )
-            );
-
-
-        let result =
-            map.map(
-                row =>
-                    row.slice()
-            );
-
-
-        for (
-            let pass = 0;
-            pass < passes;
-            pass++
-        ) {
-
-            const next =
-                result.map(
-                    row =>
-                        row.slice()
-                );
-
-
-            for (
-                let y = 0;
-                y < height;
-                y++
-            ) {
-
-                for (
-                    let x = 0;
-                    x < width;
-                    x++
-                ) {
-
-                    const current =
-                        result[y][x];
-
-
-                    if (!current) {
-                        continue;
-                    }
-
-
-                    const currentRgb =
-                        hexToRgb(
-                            current
-                        );
-
-
-                    const neighbors =
-                        [];
-
-
-                    if (
-                        x > 0
-                    ) {
-
-                        neighbors.push(
-                            result[y][x - 1]
-                        );
-                    }
-
-
-                    if (
-                        x <
-                        width - 1
-                    ) {
-
-                        neighbors.push(
-                            result[y][x + 1]
-                        );
-                    }
-
-
-                    if (
-                        y > 0
-                    ) {
-
-                        neighbors.push(
-                            result[y - 1][x]
-                        );
-                    }
-
-
-                    if (
-                        y <
-                        height - 1
-                    ) {
-
-                        neighbors.push(
-                            result[y + 1][x]
-                        );
-                    }
-
-
-                    const counts =
-                        new Map();
-
-
-                    for (
-                        const color
-                        of neighbors
-                    ) {
-
-                        if (!color) {
-                            continue;
-                        }
-
-
-                        counts.set(
-                            color,
-                            (
-                                counts.get(
-                                    color
-                                ) || 0
-                            ) + 1
-                        );
-                    }
-
-
-                    let bestColor =
-                        null;
-
-
-                    let bestCount =
-                        0;
-
-
-                    for (
-                        const [
-                            color,
-                            count
-                        ]
-                        of counts
-                    ) {
-
-                        if (
-                            color ===
-                            current
-                        ) {
-                            continue;
-                        }
-
-
-                        const distance =
-                            colorDistance(
-                                currentRgb,
-                                hexToRgb(
-                                    color
-                                )
-                            );
-
-
-                        if (
-                            distance >
-                            colorThreshold
-                        ) {
-                            continue;
-                        }
-
-
-                        if (
-                            count >
-                            bestCount
-                        ) {
-
-                            bestCount =
-                                count;
-
-
-                            bestColor =
-                                color;
-                        }
-                    }
-
-
-                    const requiredNeighbors =
-                        amount < 25
-                            ? 3
-                            : amount < 60
-                                ? 2
-                                : 2;
-
-
-                    if (
-                        bestColor &&
-                        bestCount >=
-                        requiredNeighbors
-                    ) {
-
-                        next[y][x] =
-                            bestColor;
-                    }
-                }
-            }
-
-
-            result =
-                next;
-        }
-
-
-        if (
-            amount >= 20
-        ) {
-
-            result =
-                removeSmallColorIslands(
-                    result,
-                    colorThreshold,
-                    amount
-                );
-        }
-
-
-        return result;
-    }
-
-
-    /* =========================================================
-       REMOVE SMALL COLOR ISLANDS
-       ========================================================= */
-
-    function removeSmallColorIslands(
-        map,
-        colorThreshold,
-        amount
-    ) {
-
-        const height =
-            map.length;
-
-
-        const width =
-            map[0]?.length || 0;
-
-
-        if (
-            width === 0 ||
-            height === 0
-        ) {
-
-            return map;
-        }
-
-
-        const result =
-            map.map(
-                row =>
-                    row.slice()
-            );
-
-
-        const maxIslandSize =
-            Math.round(
-                1 +
-                (
-                    amount /
-                    100
-                ) * 14
-            );
-
-
-        const visited =
-            Array.from(
-                {
-                    length:
-                        height
-                },
-                () =>
-                    Array(
-                        width
-                    ).fill(false)
-            );
-
-
-        function getNeighbors(
-            x,
-            y
-        ) {
-
-            const list =
-                [];
-
-
-            if (
-                x > 0
-            ) {
-
-                list.push([
-                    x - 1,
-                    y
-                ]);
-            }
-
-
-            if (
-                x <
-                width - 1
-            ) {
-
-                list.push([
-                    x + 1,
-                    y
-                ]);
-            }
-
-
-            if (
-                y > 0
-            ) {
-
-                list.push([
-                    x,
-                    y - 1
-                ]);
-            }
-
-
-            if (
-                y <
-                height - 1
-            ) {
-
-                list.push([
-                    x,
-                    y + 1
-                ]);
-            }
-
-
-            return list;
-        }
-
-
-        for (
-            let startY = 0;
-            startY < height;
-            startY++
-        ) {
-
-            for (
-                let startX = 0;
-                startX < width;
-                startX++
-            ) {
-
-                if (
-                    visited[startY][startX]
-                ) {
-                    continue;
-                }
-
-
-                const color =
-                    result[
-                        startY
-                    ][
-                        startX
-                    ];
-
-
-                if (!color) {
-
-                    visited[
-                        startY
-                    ][
-                        startX
-                    ] = true;
-
-                    continue;
-                }
-
-
-                const component =
-                    [];
-
-
-                const queue = [
-                    [
-                        startX,
-                        startY
-                    ]
-                ];
-
-
-                visited[
-                    startY
-                ][
-                    startX
-                ] = true;
-
-
-                while (
-                    queue.length
-                ) {
-
-                    const [
-                        x,
-                        y
-                    ] =
-                        queue.shift();
-
-
-                    component.push([
-                        x,
-                        y
-                    ]);
-
-
-                    if (
-                        component.length >
-                        maxIslandSize
-                    ) {
-
-                        break;
-                    }
-
-
-                    for (
-                        const [
-                            nx,
-                            ny
-                        ]
-                        of getNeighbors(
-                            x,
-                            y
-                        )
-                    ) {
-
-                        if (
-                            visited[ny][nx]
-                        ) {
-                            continue;
-                        }
-
-
-                        if (
-                            result[ny][nx] !==
-                            color
-                        ) {
-                            continue;
-                        }
-
-
-                        visited[ny][nx] =
-                            true;
-
-
-                        queue.push([
-                            nx,
-                            ny
-                        ]);
-                    }
-                }
-
-
-                if (
-                    component.length >
-                    maxIslandSize
-                ) {
-                    continue;
-                }
-
-
-                let replacement =
-                    null;
-
-
-                let replacementScore =
-                    Infinity;
-
-
-                for (
-                    const [
-                        x,
-                        y
-                    ]
-                    of component
-                ) {
-
-                    for (
-                        const [
-                            nx,
-                            ny
-                        ]
-                        of getNeighbors(
-                            x,
-                            y
-                        )
-                    ) {
-
-                        const neighborColor =
-                            result[ny][nx];
-
-
-                        if (
-                            !neighborColor ||
-                            neighborColor ===
-                                color
-                        ) {
-                            continue;
-                        }
-
-
-                        const distance =
-                            colorDistance(
-                                hexToRgb(
-                                    color
-                                ),
-                                hexToRgb(
-                                    neighborColor
-                                )
-                            );
-
-
-                        if (
-                            distance >
-                            colorThreshold
-                        ) {
-                            continue;
-                        }
-
-
-                        if (
-                            distance <
-                            replacementScore
-                        ) {
-
-                            replacementScore =
-                                distance;
-
-
-                            replacement =
-                                neighborColor;
-                        }
-                    }
-                }
-
-
-                if (
-                    replacement
-                ) {
-
-                    for (
-                        const [
-                            x,
-                            y
-                        ]
-                        of component
-                    ) {
-
-                        result[y][x] =
-                            replacement;
-                    }
-                }
-            }
-        }
-
-
-        return result;
-    }
-
-
-    /* =========================================================
-       SQUARE CELL
-       =========================================================
-
-       IMPORTANT:
-
-       Cells are ALWAYS square/rectangular grid cells.
-
-       COLOR SMOOTHING changes colors only.
-       It does NOT round cells.
-       ========================================================= */
-
-    function drawCell(
-        ctx,
-        x,
-        y,
-        width,
-        height,
-        color
-    ) {
-
-        if (!color) {
-            return;
-        }
-
-
-        ctx.fillStyle =
-            color;
-
-
-        ctx.fillRect(
-            x,
-            y,
-            width,
-            height
-        );
-    }
-
-
-    /* =========================================================
-       RENDER RUG
-       ========================================================= */
-
-    function renderPreview() {
-
-        if (
-            !canvas ||
-            !currentDetailData ||
-            !currentGrid
-        ) {
-            return;
-        }
-
-
-        const frame =
-            getAvailableFrame();
-
-
-        if (
-            frame.width <= 5 ||
-            frame.height <= 5
-        ) {
-            return;
-        }
-
-
-        /*
-           Physical frame depends ONLY on
-           the physical rug ratio.
-        */
-
-        const physicalRatio =
-            currentGrid.width /
-            currentGrid.height;
-
-
-        let frameWidth =
-            frame.width;
-
-
-        let frameHeight =
-            frameWidth /
-            physicalRatio;
-
-
-        if (
-            frameHeight >
-            frame.height
-        ) {
-
-            frameHeight =
-                frame.height;
-
-
-            frameWidth =
-                frameHeight *
-                physicalRatio;
-        }
-
-
-        frameWidth =
-            Math.max(
-                10,
-                frameWidth - 4
-            );
-
-
-        frameHeight =
-            Math.max(
-                10,
-                frameHeight - 4
-            );
-
-
-        /*
-           Zoom.
-        */
-
-        const visualWidth =
-            frameWidth *
-            zoomLevel;
-
-
-        const visualHeight =
-            frameHeight *
-            zoomLevel;
-
-
-        let left =
-            (
-                frame.width -
-                visualWidth
-            ) / 2;
-
-
-        let top =
-            (
-                frame.height -
-                visualHeight
-            ) / 2;
-
-
-        if (
-            zoomLevel > 1
-        ) {
-
-            left =
-                Math.max(
-                    0,
-                    (
-                        frame.width -
-                        visualWidth
-                    ) / 2
-                );
-
-
-            top =
-                Math.max(
-                    0,
-                    (
-                        frame.height -
-                        visualHeight
-                    ) / 2
-                );
-        }
-
-
-        const dpr =
-            Math.min(
-                window.devicePixelRatio || 1,
-                2
-            );
-
-
-        canvas.width =
-            Math.max(
-                1,
-                Math.round(
-                    visualWidth *
-                    dpr
-                )
-            );
-
-
-        canvas.height =
-            Math.max(
-                1,
-                Math.round(
-                    visualHeight *
-                    dpr
-                )
-            );
-
-
-        canvas.style.width =
-            `${visualWidth}px`;
-
-
-        canvas.style.height =
-            `${visualHeight}px`;
-
-
-        canvas.style.left =
-            `${left}px`;
-
-
-        canvas.style.top =
-            `${top}px`;
-
-
-        canvas.style.display =
-            "block";
-
-
-        const ctx =
-            canvas.getContext(
-                "2d"
-            );
-
-
-        ctx.setTransform(
-            dpr,
-            0,
-            0,
-            dpr,
-            0,
-            0
-        );
-
-
-        ctx.clearRect(
-            0,
-            0,
-            visualWidth,
-            visualHeight
-        );
-
-
-        /*
-           Background.
-        */
-
-        ctx.fillStyle =
-            "#11110f";
-
-
-        ctx.fillRect(
-            0,
-            0,
-            visualWidth,
-            visualHeight
-        );
-
-
-        /*
-           Detail map is mapped INTO the
-           fixed physical frame.
-        */
-
-        const data =
-            currentDetailData.data;
-
-
-        const detailWidth =
-            currentDetailData.width;
-
-
-        const detailHeight =
-            currentDetailData.height;
-
-
-        const cellWidth =
-            visualWidth /
-            detailWidth;
-
-
-        const cellHeight =
-            visualHeight /
-            detailHeight;
-
-
-        for (
-            let y = 0;
-            y < detailHeight;
-            y++
-        ) {
-
-            const row =
-                data[y];
-
-
-            for (
-                let x = 0;
-                x < detailWidth;
-                x++
-            ) {
-
-                drawCell(
-                    ctx,
-                    x * cellWidth,
-                    y * cellHeight,
-                    cellWidth,
-                    cellHeight,
-                    row[x]
-                );
-            }
-        }
-
-
-        /*
-           Physical grid.
-        */
-
-        drawPhysicalGrid(
-            ctx,
-            visualWidth,
-            visualHeight
-        );
-
-
-        /*
-           Border.
-        */
-
-        ctx.strokeStyle =
-            "rgba(255,255,255,.8)";
-
-
-        ctx.lineWidth =
-            1.5;
-
-
-        ctx.strokeRect(
-            0.75,
-            0.75,
-            visualWidth - 1.5,
-            visualHeight - 1.5
-        );
-
-
-        if (zoomValue) {
-
-            zoomValue.textContent =
-                `${Math.round(
-                    zoomLevel *
-                    100
-                )}%`;
-        }
-
-
-        renderGridLabels();
-
-
-        updateStats();
-    }
-
-
-    /* =========================================================
-       PHYSICAL GRID
-       ========================================================= */
-
-    function drawPhysicalGrid(
-        ctx,
-        width,
-        height
-    ) {
-
-        if (!currentGrid) {
-            return;
-        }
-
-
-        const cellWidth =
-            width /
-            currentGrid.width;
-
-
-        const cellHeight =
-            height /
-            currentGrid.height;
-
-
-        ctx.save();
-
-
-        ctx.strokeStyle =
-            "rgba(255,255,255,.32)";
-
-
-        ctx.lineWidth =
-            1;
-
-
-        /*
-           Vertical lines.
-        */
-
-        for (
-            let x = 1;
-            x < currentGrid.width;
-            x++
-        ) {
-
-            const px =
-                Math.round(
-                    x * cellWidth
-                ) + 0.5;
-
-
-            ctx.beginPath();
-
-
-            ctx.moveTo(
-                px,
-                0
-            );
-
-
-            ctx.lineTo(
-                px,
-                height
-            );
-
-
-            ctx.stroke();
-        }
-
-
-        /*
-           Horizontal lines.
-        */
-
-        for (
-            let y = 1;
-            y < currentGrid.height;
-            y++
-        ) {
-
-            const py =
-                Math.round(
-                    y * cellHeight
-                ) + 0.5;
-
-
-            ctx.beginPath();
-
-
-            ctx.moveTo(
-                0,
-                py
-            );
-
-
-            ctx.lineTo(
-                width,
-                py
-            );
-
-
-            ctx.stroke();
-        }
-
-
-        ctx.restore();
-    }
-
-
-    /* =========================================================
-       GRID LABELS
-       ========================================================= */
-
-    function renderGridLabels() {
-
-        if (
-            !gridTopLabels ||
-            !gridLeftLabels ||
-            !currentGrid
-        ) {
-            return;
-        }
-
-
-        gridTopLabels.innerHTML =
-            "";
-
-
-        gridLeftLabels.innerHTML =
-            "";
-
-
-        const frame =
-            getAvailableFrame();
-
-
-        const ratio =
-            currentGrid.width /
-            currentGrid.height;
-
-
-        let width =
-            frame.width;
-
-
-        let height =
-            width /
-            ratio;
-
-
-        if (
-            height >
-            frame.height
-        ) {
-
-            height =
-                frame.height;
-
-
-            width =
-                height *
-                ratio;
-        }
-
-
-        width =
-            Math.max(
-                1,
-                width - 4
-            );
-
-
-        height =
-            Math.max(
-                1,
-                height - 4
-            );
-
-
-        const left =
-            (
-                frame.width -
-                width
-            ) / 2;
-
-
-        const top =
-            (
-                frame.height -
-                height
-            ) / 2;
-
-
-        gridTopLabels.style.position =
-            "absolute";
-
-
-        gridTopLabels.style.left =
-            `${left}px`;
-
-
-        gridTopLabels.style.top =
-            `${Math.max(
-                0,
-                top - 18
-            )}px`;
-
-
-        gridTopLabels.style.width =
-            `${width}px`;
-
-
-        gridTopLabels.style.height =
-            "16px";
-
-
-        gridTopLabels.style.display =
-            "flex";
-
-
-        gridTopLabels.style.justifyContent =
-            "space-around";
-
-
-        gridTopLabels.style.pointerEvents =
-            "none";
-
-
-        gridLeftLabels.style.position =
-            "absolute";
-
-
-        gridLeftLabels.style.left =
-            `${Math.max(
-                0,
-                left - 22
-            )}px`;
-
-
-        gridLeftLabels.style.top =
-            `${top}px`;
-
-
-        gridLeftLabels.style.width =
-            "20px";
-
-
-        gridLeftLabels.style.height =
-            `${height}px`;
-
-
-        gridLeftLabels.style.display =
-            "flex";
-
-
-        gridLeftLabels.style.flexDirection =
-            "column";
-
-
-        gridLeftLabels.style.justifyContent =
-            "space-around";
-
-
-        gridLeftLabels.style.pointerEvents =
-            "none";
-
-
-        for (
-            let x = 0;
-            x < currentGrid.width;
-            x++
-        ) {
-
-            const span =
-                document.createElement(
-                    "span"
-                );
-
-
-            span.textContent =
-                columnLabel(x);
-
-
-            span.style.textAlign =
-                "center";
-
-
-            gridTopLabels.appendChild(
-                span
-            );
-        }
-
-
-        for (
-            let y = 0;
-            y < currentGrid.height;
-            y++
-        ) {
-
-            const span =
-                document.createElement(
-                    "span"
-                );
-
-
-            span.textContent =
-                String(
-                    y + 1
-                );
-
-
-            span.style.textAlign =
-                "center";
-
-
-            gridLeftLabels.appendChild(
-                span
-            );
-        }
-    }
-
-
-    /* =========================================================
-       PALETTE UI
-       ========================================================= */
-
-    function renderPalette(
-        palette
-    ) {
-
-        if (!paletteElement) {
-            return;
-        }
-
-
-        paletteElement.innerHTML =
-            "";
-
-
-        palette.forEach(
-            (
-                hex,
-                index
-            ) => {
-
-                const row =
-                    document.createElement(
-                        "div"
-                    );
-
-
-                row.className =
-                    "palette-row";
-
-
-                row.innerHTML = `
-                    <input
-                        class="palette-color"
-                        type="color"
-                        value="${normalizeHex(hex)}"
-                        data-palette-index="${index}"
-                    >
-
-                    <input
-                        class="palette-hex"
-                        type="text"
-                        value="${normalizeHex(hex)}"
-                        data-palette-index="${index}"
-                        maxlength="7"
-                        spellcheck="false"
-                    >
-
-                    <button
-                        class="palette-delete"
-                        type="button"
-                        data-palette-delete="${index}"
-                    >
-                        ×
-                    </button>
-                `;
-
-
-                paletteElement.appendChild(
-                    row
-                );
-            }
-        );
-    }
-
-
-    /* =========================================================
-       PALETTE EVENTS
-       ========================================================= */
-
-    if (paletteElement) {
-
-        paletteElement.addEventListener(
-            "input",
-            event => {
-
-                const index =
-                    event.target
-                        .dataset
-                        .paletteIndex;
-
-
-                if (
-                    index ===
-                    undefined
-                ) {
-                    return;
-                }
-
-
-                if (
-                    event.target.type ===
-                    "color"
-                ) {
-
-                    customPalette[
-                        Number(index)
-                    ] =
-                        normalizeHex(
-                            event.target.value
-                        );
-
-
-                    const text =
-                        paletteElement.querySelector(
-                            `.palette-hex[data-palette-index="${index}"]`
-                        );
-
-
-                    if (text) {
-
-                        text.value =
-                            customPalette[
-                                Number(index)
-                            ];
-                    }
-
-
-                    queueGenerate();
-                }
-            }
-        );
-
-
-        paletteElement.addEventListener(
-            "change",
-            event => {
-
-                const index =
-                    event.target
-                        .dataset
-                        .paletteIndex;
-
-
-                if (
-                    index ===
-                    undefined
-                ) {
-                    return;
-                }
-
-
-                if (
-                    event.target.classList.contains(
-                        "palette-hex"
-                    )
-                ) {
-
-                    const normalized =
-                        normalizeHex(
-                            event.target.value
-                        );
-
-
-                    customPalette[
-                        Number(index)
-                    ] =
-                        normalized;
-
-
-                    event.target.value =
-                        normalized;
-
-
-                    const color =
-                        paletteElement.querySelector(
-                            `.palette-color[data-palette-index="${index}"]`
-                        );
-
-
-                    if (color) {
-
-                        color.value =
-                            normalized;
-                    }
-
-
-                    queueGenerate();
-                }
-            }
-        );
-
-
-        paletteElement.addEventListener(
-            "click",
-            event => {
-
-                const button =
-                    event.target.closest(
-                        "[data-palette-delete]"
-                    );
-
-
-                if (!button) {
-                    return;
-                }
-
-
-                const index =
-                    Number(
-                        button.dataset
-                            .paletteDelete
-                    );
-
-
-                if (
-                    !customPalette.length
-                ) {
-
-                    customPalette =
-                        [
-                            ...generatedPalette
-                        ];
-                }
-
-
-                customPalette.splice(
-                    index,
-                    1
-                );
-
-
-                if (
-                    !customPalette.length
-                ) {
-
-                    customPalette =
-                        [
-                            "#000000"
-                        ];
-                }
-
-
-                generatedPalette =
-                    [
-                        ...customPalette
-                    ];
-
-
-                renderPalette(
-                    generatedPalette
-                );
-
-
-                queueGenerate();
-            }
-        );
-    }
-
-
-    /* =========================================================
-       RESET PALETTE
-       ========================================================= */
-
-    if (resetPalette) {
-
-        resetPalette.addEventListener(
-            "click",
-            () => {
-
-                customPalette =
-                    [];
-
-
-                if (sourceImage) {
-
-                    generateRug();
-
-                } else {
-
-                    generatedPalette =
-                        DEFAULT_PALETTE.slice(
-                            0,
-                            numberOfColors
-                        );
-
-
-                    renderPalette(
-                        generatedPalette
-                    );
-                }
-            }
-        );
-    }
-
-
-    /* =========================================================
-       IMAGE UPLOAD
-       ========================================================= */
-
-    if (imageInput) {
-
-        imageInput.addEventListener(
-            "change",
-            event => {
-
-                const file =
-                    event.target
-                        .files?.[0];
-
-
-                if (!file) {
-                    return;
-                }
-
-
-                if (
-                    !file.type.startsWith(
-                        "image/"
-                    )
-                ) {
-
-                    alert(
-                        "Please select an image."
-                    );
-
-
-                    return;
-                }
-
-
-                if (fileName) {
-
-                    fileName.textContent =
-                        file.name;
-                }
-
-
-                const objectUrl =
-                    URL.createObjectURL(
-                        file
-                    );
-
-
-                const img =
-                    new Image();
-
-
-                img.onload =
-                    () => {
-
-                        sourceImage =
-                            img;
-
-
-                        originalRatio =
-                            img.naturalWidth /
-                            img.naturalHeight;
-
-
-                        if (
-                            lockRatio?.checked
-                        ) {
-
-                            updateHeightFromWidth();
-                        }
-
-
-                        showLoadedImage();
-
-
-                        if (previewStatus) {
-
-                            previewStatus.textContent =
-                                "IMAGE LOADED";
-                        }
-
-
-                        requestAnimationFrame(
-                            () => {
-
-                                generateRug();
-                            }
-                        );
-
-
-                        URL.revokeObjectURL(
-                            objectUrl
-                        );
-                    };
-
-
-                img.onerror =
-                    () => {
-
-                        URL.revokeObjectURL(
-                            objectUrl
-                        );
-
-
-                        alert(
-                            "Could not load this image."
-                        );
-                    };
-
-
-                img.src =
-                    objectUrl;
-            }
-        );
-    }
-
-
-    /* =========================================================
-       BACKGROUND
-       ========================================================= */
-
-    if (keepBackground) {
-
-        keepBackground.addEventListener(
-            "click",
-            () => {
-
-                backgroundMode =
-                    "keep";
-
-
-                keepBackground.classList.add(
-                    "active"
-                );
-
-
-                removeBackground
-                    ?.classList.remove(
-                        "active"
-                    );
-
-
-                queueGenerate();
-            }
-        );
-    }
-
-
-    if (removeBackground) {
-
-        removeBackground.addEventListener(
-            "click",
-            () => {
-
-                backgroundMode =
-                    "remove";
-
-
-                removeBackground.classList.add(
-                    "active"
-                );
-
-
-                keepBackground
-                    ?.classList.remove(
-                        "active"
-                    );
-
-
-                queueGenerate();
-            }
-        );
-    }
-
-
-    /* =========================================================
-       COLORS
-       ========================================================= */
-
-    if (colorCounts) {
-
-        colorCounts.addEventListener(
-            "click",
-            event => {
-
-                const button =
-                    event.target.closest(
-                        "[data-colors]"
-                    );
-
-
-                if (!button) {
-                    return;
-                }
-
-
-                numberOfColors =
-                    Number(
-                        button.dataset
-                            .colors
-                    );
-
-
-                colorCounts
-                    .querySelectorAll(
-                        "button"
-                    )
-                    .forEach(
-                        item =>
-                            item.classList.remove(
-                                "active"
-                            )
-                    );
-
-
-                button.classList.add(
-                    "active"
-                );
-
-
-                customPalette =
-                    [];
-
-
-                if (sourceImage) {
-
-                    generateRug();
-
-                } else {
-
-                    generatedPalette =
-                        DEFAULT_PALETTE.slice(
-                            0,
-                            numberOfColors
-                        );
-
-
-                    renderPalette(
-                        generatedPalette
-                    );
-                }
-            }
-        );
-    }
-
-
-    /* =========================================================
-       SIZE
-       ========================================================= */
-
-    function updateHeightFromWidth() {
-
-        if (
-            !lockRatio?.checked
-        ) {
-            return;
-        }
-
-
-        const width =
-            Number(
-                widthInput?.value
-            );
-
-
-        if (
-            !width ||
-            !originalRatio
-        ) {
-            return;
-        }
-
-
-        heightInput.value =
-            Math.max(
-                1,
-                Math.round(
-                    width /
-                    originalRatio
-                )
-            );
-    }
-
-
-    if (widthInput) {
-
-        widthInput.addEventListener(
-            "input",
-            () => {
-
-                updateHeightFromWidth();
-
-
-                queueGenerate();
-            }
-        );
-    }
-
-
-    if (heightInput) {
-
-        heightInput.addEventListener(
-            "input",
-            () => {
-
-                queueGenerate();
-            }
-        );
-    }
-
-
-    if (lockRatio) {
-
-        lockRatio.addEventListener(
-            "change",
-            () => {
-
-                if (
-                    lockRatio.checked
-                ) {
-
-                    updateHeightFromWidth();
-                }
-
-
-                queueGenerate();
-            }
-        );
-    }
-
-
-    /* =========================================================
-       CONTRAST / BRIGHTNESS
-       ========================================================= */
-
-    if (contrastInput) {
-
-        contrastInput.addEventListener(
-            "input",
-            () => {
-
-                if (contrastValue) {
-
-                    contrastValue.textContent =
-                        contrastInput.value;
-                }
-
-
-                queueGenerate();
-            }
-        );
-    }
-
-
-    if (brightnessInput) {
-
-        brightnessInput.addEventListener(
-            "input",
-            () => {
-
-                if (brightnessValue) {
-
-                    brightnessValue.textContent =
-                        brightnessInput.value;
-                }
-
-
-                queueGenerate();
-            }
-        );
-    }
-
-
-    /* =========================================================
-       GENERATION QUEUE
-       ========================================================= */
-
-    function queueGenerate() {
-
-        if (!sourceImage) {
-            return;
-        }
-
-
-        if (renderQueued) {
-            return;
-        }
-
-
-        renderQueued =
-            true;
-
-
-        requestAnimationFrame(
-            () => {
-
-                renderQueued =
-                    false;
-
-
-                generateRug();
-            }
-        );
-    }
-
-
-    /* =========================================================
-       GENERATE
-       ========================================================= */
-
-    function generateRug() {
-
-        if (
-            !sourceImage ||
-            isGenerating
-        ) {
-            return;
-        }
-
-
-        isGenerating =
-            true;
-
-
-        if (previewStatus) {
-
-            previewStatus.textContent =
-                "PROCESSING…";
-        }
-
-
-        setTimeout(
-            () => {
-
-                try {
-
-                    const processed =
-                        processSourceImage();
-
-
-                    if (!processed) {
-                        return;
-                    }
-
-
-                    /* =========================================
-                       PALETTE
-                       ========================================= */
-
-                    if (
-                        !customPalette.length
-                    ) {
-
-                        generatedPalette =
-                            extractPalette(
-                                processed.imageData,
-                                numberOfColors
-                            );
-
-
-                        renderPalette(
-                            generatedPalette
-                        );
-                    }
-
-
-                    const palette =
-                        getCurrentPalette();
-
-
-                    if (
-                        !palette.length
-                    ) {
-
-                        throw new Error(
-                            "Palette is empty."
-                        );
-                    }
-
-
-                    /* =========================================
-                       DETAIL GRID
-                       ========================================= */
-
-                    const detailGrid =
-                        calculateDetailGrid();
-
-
-                    const detailData =
-                        createDetailMap(
-                            processed,
-                            detailGrid,
-                            palette
-                        );
-
-
-                    /*
-                       IMPORTANT:
-
-                       Save the completely untouched
-                       detail map.
-                    */
-
-                    rawDetailData = {
-
-                        width:
-                            detailGrid.width,
-
-                        height:
-                            detailGrid.height,
-
-                        data:
-                            detailData.map(
-                                row =>
-                                    row.slice()
-                            )
-                    };
-
-
-                    /*
-                       Apply smoothing ONLY to a copy.
-                    */
-
-                    const renderedData =
-                        colorSmoothing > 0
-                            ? smoothColorMap(
-                                rawDetailData.data,
-                                colorSmoothing
-                            )
-                            : rawDetailData.data.map(
-                                row =>
-                                    row.slice()
-                            );
-
-
-                    currentDetailData = {
-
-                        width:
-                            detailGrid.width,
-
-                        height:
-                            detailGrid.height,
-
-                        data:
-                            renderedData
-                    };
-
-
-                    /* =========================================
-                       PHYSICAL GRID
-                       ========================================= */
-
-                    currentGrid =
-                        calculatePhysicalGrid();
-
-
-                    /* =========================================
-                       RENDER
-                       ========================================= */
-
-                    renderPreview();
-
-
-                    renderColorLegend(
-                        renderedData,
-                        palette
-                    );
-
-
-                    updateStats();
-
-
-                    if (emptyPreview) {
-
-                        emptyPreview.style.display =
-                            "none";
-                    }
-
-
-                    if (previewStatus) {
-
-                        previewStatus.textContent =
-                            "RUG READY";
-                    }
-
-
-                    createExportControls();
-
-                } catch (error) {
-
-                    console.error(
-                        "DOCH rug generation error:",
-                        error
-                    );
-
-
-                    if (previewStatus) {
-
-                        previewStatus.textContent =
-                            "PROCESSING ERROR";
-                    }
-
-                } finally {
-
-                    isGenerating =
-                        false;
-                }
-
-            },
-            10
-        );
+    function renderColorLegend(data, palette) {
+        if (!colorLegend) return;
+
+        colorLegend.innerHTML = "";
+
+        const counts = getColorCounts(data);
+
+        palette.forEach((hex, index) => {
+            const normalized = normalizeHex(hex);
+            const item = document.createElement("div");
+
+            item.className = "legend-item";
+
+            item.innerHTML = `
+                <div
+                    class="legend-color"
+                    style="background:${normalized}"
+                ></div>
+
+                <div class="legend-main">
+                    <span class="legend-label">
+                        COLOR ${index + 1}
+                    </span>
+
+                    <span class="legend-hex">
+                        ${normalized}
+                    </span>
+                </div>
+
+                <div class="legend-count">
+                    ${(counts.get(normalized) || 0).toLocaleString()}
+                    CELLS
+                </div>
+            `;
+
+            colorLegend.appendChild(item);
+        });
     }
 
 
@@ -4224,49 +1462,24 @@
        ========================================================= */
 
     function updateStats() {
-
-        const width =
-            Number(
-                widthInput?.value
-            ) || 100;
-
-
-        const height =
-            Number(
-                heightInput?.value
-            ) || 75;
-
+        const { width, height } = getSize();
 
         if (statColors) {
-
             statColors.textContent =
-                customPalette.length ||
-                numberOfColors;
+                customPalette.length || numberOfColors;
         }
 
-
         if (statSize) {
-
             statSize.textContent =
                 `${width} × ${height} CM`;
         }
 
-
-        if (
-            statGrid &&
-            currentGrid
-        ) {
-
+        if (statGrid && currentGrid) {
             statGrid.textContent =
                 `${currentGrid.width} × ${currentGrid.height}`;
         }
 
-
-        if (
-            statLoops &&
-            currentDetailData
-        ) {
-
+        if (statLoops && currentDetailData) {
             statLoops.textContent =
                 (
                     currentDetailData.width *
@@ -4277,110 +1490,317 @@
 
 
     /* =========================================================
-       COLOR LEGEND
+       GENERATION
        ========================================================= */
 
-    function renderColorLegend(
-        data,
-        palette
-    ) {
+    function queueGenerate() {
+        if (!sourceImage || renderQueued) return;
 
-        if (!colorLegend) {
-            return;
+        renderQueued = true;
+
+        requestAnimationFrame(() => {
+            renderQueued = false;
+            generateRug();
+        });
+    }
+
+    function generateRug() {
+        if (!sourceImage || isGenerating) return;
+
+        isGenerating = true;
+
+        if (previewStatus) {
+            previewStatus.textContent = "PROCESSING…";
         }
 
+        setTimeout(() => {
+            try {
+                const processed = processSourceImage();
 
-        colorLegend.innerHTML =
-            "";
+                if (!processed) return;
 
+                if (!customPalette.length) {
+                    generatedPalette = extractPalette(
+                        processed.imageData,
+                        numberOfColors
+                    );
 
-        const counts =
-            new Map();
+                    renderPalette(generatedPalette);
+                }
 
+                const palette = getPalette();
 
-        data.forEach(
-            row => {
+                if (!palette.length) {
+                    throw new Error("Palette is empty.");
+                }
 
-                row.forEach(
-                    color => {
+                const detailGrid = calculateDetailGrid();
 
-                        if (!color) {
-                            return;
-                        }
-
-
-                        counts.set(
-                            color,
-                            (
-                                counts.get(
-                                    color
-                                ) || 0
-                            ) + 1
-                        );
-                    }
+                const detailData = createDetailMap(
+                    processed,
+                    detailGrid,
+                    palette
                 );
+
+                rawDetailData = {
+                    width: detailGrid.width,
+                    height: detailGrid.height,
+                    data: copyMap(detailData)
+                };
+
+                currentDetailData = {
+                    width: detailGrid.width,
+                    height: detailGrid.height,
+                    data: colorSmoothing
+                        ? smoothColorMap(
+                            rawDetailData.data,
+                            colorSmoothing
+                        )
+                        : copyMap(rawDetailData.data)
+                };
+
+                currentGrid = calculatePhysicalGrid();
+
+                renderPreview();
+
+                renderColorLegend(
+                    currentDetailData.data,
+                    palette
+                );
+
+                updateStats();
+
+                if (emptyPreview) {
+                    emptyPreview.style.display = "none";
+                }
+
+                if (previewStatus) {
+                    previewStatus.textContent = "RUG READY";
+                }
+
+                createExportControls();
+
+            } catch (error) {
+                console.error(
+                    "DOCH rug generation error:",
+                    error
+                );
+
+                if (previewStatus) {
+                    previewStatus.textContent =
+                        "PROCESSING ERROR";
+                }
+
+            } finally {
+                isGenerating = false;
             }
+        }, 10);
+    }
+
+
+    /* =========================================================
+       PALETTE RESET
+       ========================================================= */
+
+    if (resetPalette) {
+        resetPalette.addEventListener("click", () => {
+            customPalette = [];
+
+            if (sourceImage) {
+                generateRug();
+            } else {
+                generatedPalette =
+                    DEFAULT_PALETTE.slice(
+                        0,
+                        numberOfColors
+                    );
+
+                renderPalette(generatedPalette);
+            }
+        });
+    }
+
+
+    /* =========================================================
+       IMAGE UPLOAD
+       ========================================================= */
+
+    if (imageInput) {
+        imageInput.addEventListener("change", e => {
+            const file = e.target.files?.[0];
+
+            if (!file) return;
+
+            if (!file.type.startsWith("image/")) {
+                alert("Please select an image.");
+                return;
+            }
+
+            if (fileName) {
+                fileName.textContent = file.name;
+            }
+
+            const url = URL.createObjectURL(file);
+            const img = new Image();
+
+            img.onload = () => {
+                sourceImage = img;
+
+                originalRatio =
+                    img.naturalWidth /
+                    img.naturalHeight;
+
+                if (lockRatio?.checked) {
+                    updateHeightFromWidth();
+                }
+
+                showLoadedImage();
+
+                if (previewStatus) {
+                    previewStatus.textContent =
+                        "IMAGE LOADED";
+                }
+
+                requestAnimationFrame(generateRug);
+
+                URL.revokeObjectURL(url);
+            };
+
+            img.onerror = () => {
+                URL.revokeObjectURL(url);
+                alert("Could not load this image.");
+            };
+
+            img.src = url;
+        });
+    }
+
+
+    /* =========================================================
+       BACKGROUND
+       ========================================================= */
+
+    function setBackgroundMode(mode) {
+        backgroundMode = mode;
+
+        keepBackground?.classList.toggle(
+            "active",
+            mode === "keep"
         );
 
+        removeBackground?.classList.toggle(
+            "active",
+            mode === "remove"
+        );
 
-        palette.forEach(
-            (
-                hex,
-                index
-            ) => {
+        queueGenerate();
+    }
 
-                const normalized =
-                    normalizeHex(
-                        hex
-                    );
+    keepBackground?.addEventListener(
+        "click",
+        () => setBackgroundMode("keep")
+    );
 
-
-                const item =
-                    document.createElement(
-                        "div"
-                    );
-
-
-                item.className =
-                    "legend-item";
+    removeBackground?.addEventListener(
+        "click",
+        () => setBackgroundMode("remove")
+    );
 
 
-                item.innerHTML = `
-                    <div
-                        class="legend-color"
-                        style="background:${normalized}"
-                    ></div>
+    /* =========================================================
+       COLORS
+       ========================================================= */
 
-                    <div class="legend-main">
+    if (colorCounts) {
+        colorCounts.addEventListener("click", e => {
+            const button = e.target.closest("[data-colors]");
+            if (!button) return;
 
-                        <span class="legend-label">
-                            COLOR ${index + 1}
-                        </span>
+            numberOfColors =
+                Number(button.dataset.colors);
 
-                        <span class="legend-hex">
-                            ${normalized}
-                        </span>
-
-                    </div>
-
-                    <div class="legend-count">
-                        ${
-                            (
-                                counts.get(
-                                    normalized
-                                ) || 0
-                            ).toLocaleString()
-                        } CELLS
-                    </div>
-                `;
-
-
-                colorLegend.appendChild(
-                    item
+            colorCounts
+                .querySelectorAll("button")
+                .forEach(btn =>
+                    btn.classList.remove("active")
                 );
+
+            button.classList.add("active");
+
+            customPalette = [];
+
+            if (sourceImage) {
+                generateRug();
+            } else {
+                generatedPalette =
+                    DEFAULT_PALETTE.slice(
+                        0,
+                        numberOfColors
+                    );
+
+                renderPalette(generatedPalette);
             }
+        });
+    }
+
+
+    /* =========================================================
+       SIZE
+       ========================================================= */
+
+    function updateHeightFromWidth() {
+        if (!lockRatio?.checked) return;
+
+        const width = num(widthInput?.value);
+
+        if (!width || !originalRatio) return;
+
+        heightInput.value = Math.max(
+            1,
+            Math.round(width / originalRatio)
         );
     }
+
+    widthInput?.addEventListener("input", () => {
+        updateHeightFromWidth();
+        queueGenerate();
+    });
+
+    heightInput?.addEventListener(
+        "input",
+        queueGenerate
+    );
+
+    lockRatio?.addEventListener("change", () => {
+        if (lockRatio.checked) {
+            updateHeightFromWidth();
+        }
+
+        queueGenerate();
+    });
+
+
+    /* =========================================================
+       IMAGE ADJUSTMENTS
+       ========================================================= */
+
+    contrastInput?.addEventListener("input", () => {
+        if (contrastValue) {
+            contrastValue.textContent =
+                contrastInput.value;
+        }
+
+        queueGenerate();
+    });
+
+    brightnessInput?.addEventListener("input", () => {
+        if (brightnessValue) {
+            brightnessValue.textContent =
+                brightnessInput.value;
+        }
+
+        queueGenerate();
+    });
 
 
     /* =========================================================
@@ -4388,140 +1808,66 @@
        ========================================================= */
 
     function applyZoom() {
-
-        if (
-            !currentDetailData
-        ) {
-            return;
+        if (currentDetailData) {
+            renderPreview();
         }
-
-
-        renderPreview();
     }
 
-
-    if (zoomIn) {
-
-        zoomIn.addEventListener(
-            "click",
-            () => {
-
-                zoomLevel =
-                    clamp(
-                        zoomLevel +
-                        ZOOM_STEP,
-                        MIN_ZOOM,
-                        MAX_ZOOM
-                    );
-
-
-                applyZoom();
-            }
+    zoomIn?.addEventListener("click", () => {
+        zoomLevel = clamp(
+            zoomLevel + ZOOM_STEP,
+            MIN_ZOOM,
+            MAX_ZOOM
         );
-    }
 
+        applyZoom();
+    });
 
-    if (zoomOut) {
-
-        zoomOut.addEventListener(
-            "click",
-            () => {
-
-                zoomLevel =
-                    clamp(
-                        zoomLevel -
-                        ZOOM_STEP,
-                        MIN_ZOOM,
-                        MAX_ZOOM
-                    );
-
-
-                applyZoom();
-            }
+    zoomOut?.addEventListener("click", () => {
+        zoomLevel = clamp(
+            zoomLevel - ZOOM_STEP,
+            MIN_ZOOM,
+            MAX_ZOOM
         );
-    }
 
+        applyZoom();
+    });
 
-    if (zoomReset) {
-
-        zoomReset.addEventListener(
-            "click",
-            () => {
-
-                /*
-                   100% = FIT TO FRAME.
-                */
-
-                zoomLevel =
-                    1;
-
-
-                applyZoom();
-            }
-        );
-    }
+    zoomReset?.addEventListener("click", () => {
+        zoomLevel = 1;
+        applyZoom();
+    });
 
 
     /* =========================================================
        GENERATE BUTTON
        ========================================================= */
 
-    if (generateButton) {
+    generateButton?.addEventListener("click", () => {
+        if (!sourceImage) {
+            imageInput?.click();
+            return;
+        }
 
-        generateButton.addEventListener(
-            "click",
-            () => {
-
-                if (!sourceImage) {
-
-                    imageInput?.click();
-
-
-                    return;
-                }
-
-
-                generateRug();
-            }
-        );
-    }
+        generateRug();
+    });
 
 
     /* =========================================================
        RESIZE
        ========================================================= */
 
-    window.addEventListener(
-        "resize",
-        () => {
+    window.addEventListener("resize", () => {
+        clearTimeout(resizeTimer);
 
-            clearTimeout(
-                resizeTimer
-            );
-
-
-            resizeTimer =
-                setTimeout(
-                    () => {
-
-                        if (
-                            currentDetailData
-                        ) {
-
-                            renderPreview();
-
-                        } else if (
-                            sourceImage
-                        ) {
-
-                            showLoadedImage();
-                        }
-
-                    },
-                    100
-                );
-        }
-    );
+        resizeTimer = setTimeout(() => {
+            if (currentDetailData) {
+                renderPreview();
+            } else if (sourceImage) {
+                showLoadedImage();
+            }
+        }, 100);
+    });
 
 
     /* =========================================================
@@ -4529,25 +1875,11 @@
        ========================================================= */
 
     function createExportControls() {
+        if ($("rugExportControls")) return;
 
-        if (
-            document.getElementById(
-                "rugExportControls"
-            )
-        ) {
-            return;
-        }
+        const container = document.createElement("div");
 
-
-        const container =
-            document.createElement(
-                "div"
-            );
-
-
-        container.id =
-            "rugExportControls";
-
+        container.id = "rugExportControls";
 
         container.style.cssText = `
             display:grid;
@@ -4556,22 +1888,16 @@
             margin-top:12px;
         `;
 
+        const download = document.createElement("button");
+        const projector = document.createElement("button");
 
-        const downloadButton =
-            document.createElement(
-                "button"
-            );
+        download.type = "button";
+        download.textContent = "DOWNLOAD PNG";
 
+        projector.type = "button";
+        projector.textContent = "PROJECTOR MODE";
 
-        downloadButton.type =
-            "button";
-
-
-        downloadButton.textContent =
-            "DOWNLOAD PNG";
-
-
-        downloadButton.style.cssText = `
+        download.style.cssText = `
             min-height:52px;
             border:1px solid #292925;
             background:transparent;
@@ -4580,22 +1906,7 @@
             font:10px "DM Mono",monospace;
         `;
 
-
-        const projectorButton =
-            document.createElement(
-                "button"
-            );
-
-
-        projectorButton.type =
-            "button";
-
-
-        projectorButton.textContent =
-            "PROJECTOR MODE";
-
-
-        projectorButton.style.cssText = `
+        projector.style.cssText = `
             min-height:52px;
             border:1px solid #292925;
             background:#f2f0ea;
@@ -4604,147 +1915,61 @@
             font:10px "DM Mono",monospace;
         `;
 
-
-        downloadButton.addEventListener(
+        download.addEventListener(
             "click",
             downloadRugPNG
         );
 
-
-        projectorButton.addEventListener(
+        projector.addEventListener(
             "click",
             openProjectorMode
         );
 
+        container.append(download, projector);
 
-        container.appendChild(
-            downloadButton
-        );
-
-
-        container.appendChild(
-            projectorButton
-        );
-
-
-        const previewPanel =
-            document.querySelector(
-                ".preview-panel"
-            );
-
-
-        if (previewPanel) {
-
-            previewPanel.appendChild(
-                container
-            );
-        }
+        document
+            .querySelector(".preview-panel")
+            ?.appendChild(container);
     }
 
 
     /* =========================================================
-       DOWNLOAD PNG
+       PNG EXPORT
        ========================================================= */
 
     function downloadRugPNG() {
-
-        if (
-            !currentDetailData ||
-            !currentGrid
-        ) {
-
-            alert(
-                "Generate the rug first."
-            );
-
-
+        if (!currentDetailData || !currentGrid) {
+            alert("Generate the rug first.");
             return;
         }
 
+        const { width, height } = getSize();
 
-        const width =
-            Math.round(
-                Number(
-                    widthInput?.value
-                ) || 100
-            );
-
-
-        const height =
-            Math.round(
-                Number(
-                    heightInput?.value
-                ) || 75
-            );
-
-
-        /*
-           Export detail resolution is independent
-           from physical grid resolution.
-        */
-
-        const CELL =
-            20;
-
-
-        const LABEL =
-            55;
-
-
-        const HEADER =
-            90;
-
-
-        const LEGEND =
-            150;
-
+        const CELL = 20;
+        const LABEL = 55;
+        const HEADER = 90;
+        const LEGEND = 150;
 
         const imageWidth =
-            currentDetailData.width *
-            CELL;
-
+            currentDetailData.width * CELL;
 
         const imageHeight =
-            currentDetailData.height *
-            CELL;
-
+            currentDetailData.height * CELL;
 
         const exportWidth =
-            LABEL +
-            imageWidth +
-            40;
-
+            LABEL + imageWidth + 40;
 
         const exportHeight =
-            HEADER +
-            imageHeight +
-            LEGEND;
+            HEADER + imageHeight + LEGEND;
 
+        const out = document.createElement("canvas");
 
-        const out =
-            document.createElement(
-                "canvas"
-            );
+        out.width = exportWidth;
+        out.height = exportHeight;
 
+        const ctx = out.getContext("2d");
 
-        out.width =
-            exportWidth;
-
-
-        out.height =
-            exportHeight;
-
-
-        const ctx =
-            out.getContext(
-                "2d"
-            );
-
-
-        ctx.fillStyle =
-            "#11110f";
-
-
+        ctx.fillStyle = "#11110f";
         ctx.fillRect(
             0,
             0,
@@ -4752,75 +1977,40 @@
             exportHeight
         );
 
-
-        /* =====================================================
-           HEADER
-           ===================================================== */
-
-        ctx.fillStyle =
-            "#f2f0ea";
-
-
-        ctx.font =
-            "bold 22px Arial";
-
-
+        ctx.fillStyle = "#f2f0ea";
+        ctx.font = "bold 22px Arial";
         ctx.fillText(
             "DOCH / RUG GRID",
             25,
             32
         );
 
-
-        ctx.fillStyle =
-            "#77746d";
-
-
-        ctx.font =
-            "12px Arial";
-
+        ctx.fillStyle = "#77746d";
+        ctx.font = "12px Arial";
 
         ctx.fillText(
-            `${width} × ${height} CM · ${currentGrid.width} × ${currentGrid.height} GRID · ${GRID_CELL_CM} CM CELL · ${numberOfColors} COLORS · DETAIL ${detailLevel} · SMOOTHING ${colorSmoothing}`,
+            `${width} × ${height} CM · ` +
+            `${currentGrid.width} × ${currentGrid.height} GRID · ` +
+            `${GRID_CELL_CM} CM CELL · ` +
+            `${numberOfColors} COLORS · ` +
+            `DETAIL ${detailLevel} · ` +
+            `SMOOTHING ${colorSmoothing}`,
             25,
             58
         );
 
+        const imageX = LABEL;
+        const imageY = HEADER;
+        const data = currentDetailData.data;
 
-        const imageX =
-            LABEL;
+        /* Detail */
 
-
-        const imageY =
-            HEADER;
-
-
-        /* =====================================================
-           DETAIL CELLS
-           ===================================================== */
-
-        const data =
-            currentDetailData.data;
-
-
-        for (
-            let y = 0;
-            y < currentDetailData.height;
-            y++
-        ) {
-
-            for (
-                let x = 0;
-                x < currentDetailData.width;
-                x++
-            ) {
-
+        for (let y = 0; y < currentDetailData.height; y++) {
+            for (let x = 0; x < currentDetailData.width; x++) {
                 drawCell(
                     ctx,
-                    imageX +
-                        x * CELL,
-                    imageY +
-                        y * CELL,
+                    imageX + x * CELL,
+                    imageY + y * CELL,
                     CELL,
                     CELL,
                     data[y][x]
@@ -4828,106 +2018,53 @@
             }
         }
 
+        /* Physical grid */
 
-        /* =====================================================
-           PHYSICAL GRID
-           ===================================================== */
+        const gridWidth =
+            imageWidth / currentGrid.width;
 
-        const physicalCellWidth =
-            imageWidth /
-            currentGrid.width;
-
-
-        const physicalCellHeight =
-            imageHeight /
-            currentGrid.height;
-
+        const gridHeight =
+            imageHeight / currentGrid.height;
 
         ctx.strokeStyle =
             "rgba(255,255,255,.35)";
 
+        ctx.lineWidth = 1;
 
-        ctx.lineWidth =
-            1;
-
-
-        for (
-            let x = 0;
-            x <= currentGrid.width;
-            x++
-        ) {
-
+        for (let x = 0; x <= currentGrid.width; x++) {
             const px =
                 imageX +
-                x *
-                physicalCellWidth +
+                x * gridWidth +
                 0.5;
 
-
             ctx.beginPath();
-
-
-            ctx.moveTo(
-                px,
-                imageY
-            );
-
-
+            ctx.moveTo(px, imageY);
             ctx.lineTo(
                 px,
-                imageY +
-                imageHeight
+                imageY + imageHeight
             );
-
-
             ctx.stroke();
         }
 
-
-        for (
-            let y = 0;
-            y <= currentGrid.height;
-            y++
-        ) {
-
+        for (let y = 0; y <= currentGrid.height; y++) {
             const py =
                 imageY +
-                y *
-                physicalCellHeight +
+                y * gridHeight +
                 0.5;
 
-
             ctx.beginPath();
-
-
-            ctx.moveTo(
-                imageX,
-                py
-            );
-
-
+            ctx.moveTo(imageX, py);
             ctx.lineTo(
-                imageX +
-                imageWidth,
+                imageX + imageWidth,
                 py
             );
-
-
             ctx.stroke();
         }
 
+        /* Border */
 
-        /* =====================================================
-           BORDER
-           ===================================================== */
-
-        ctx.strokeStyle =
-            "#f2f0ea";
-
-
-        ctx.lineWidth =
-            2;
-
+        ctx.strokeStyle = "#f2f0ea";
+        ctx.lineWidth = 2;
 
         ctx.strokeRect(
             imageX,
@@ -4936,96 +2073,45 @@
             imageHeight
         );
 
+        /* Labels */
 
-        /* =====================================================
-           TOP LETTERS
-           ===================================================== */
+        ctx.fillStyle = "#aaa79f";
+        ctx.font = "10px Arial";
+        ctx.textAlign = "center";
 
-        ctx.fillStyle =
-            "#aaa79f";
-
-
-        ctx.font =
-            "10px Arial";
-
-
-        ctx.textAlign =
-            "center";
-
-
-        for (
-            let x = 0;
-            x < currentGrid.width;
-            x++
-        ) {
-
-            const center =
-                imageX +
-                x *
-                physicalCellWidth +
-                physicalCellWidth /
-                    2;
-
-
+        for (let x = 0; x < currentGrid.width; x++) {
             ctx.fillText(
                 columnLabel(x),
-                center,
+                imageX +
+                    x * gridWidth +
+                    gridWidth / 2,
                 imageY - 10
             );
         }
 
+        ctx.textAlign = "right";
 
-        /* =====================================================
-           LEFT NUMBERS
-           ===================================================== */
-
-        ctx.textAlign =
-            "right";
-
-
-        for (
-            let y = 0;
-            y < currentGrid.height;
-            y++
-        ) {
-
-            const center =
-                imageY +
-                y *
-                physicalCellHeight +
-                physicalCellHeight /
-                    2;
-
-
+        for (let y = 0; y < currentGrid.height; y++) {
             ctx.fillText(
                 String(y + 1),
                 imageX - 8,
-                center + 3
+                imageY +
+                    y * gridHeight +
+                    gridHeight / 2 +
+                    3
             );
         }
 
-
-        /* =====================================================
-           LEGEND
-           ===================================================== */
+        /* Legend */
 
         const legendY =
             imageY +
             imageHeight +
             30;
 
-
-        ctx.textAlign =
-            "left";
-
-
-        ctx.fillStyle =
-            "#f2f0ea";
-
-
-        ctx.font =
-            "bold 12px Arial";
-
+        ctx.textAlign = "left";
+        ctx.fillStyle = "#f2f0ea";
+        ctx.font = "bold 12px Arial";
 
         ctx.fillText(
             "COLOR LEGEND",
@@ -5033,137 +2119,68 @@
             legendY
         );
 
+        const counts = getColorCounts(data);
+        const palette = getPalette();
 
-        const counts =
-            new Map();
+        palette.forEach((hex, index) => {
+            const normalized = normalizeHex(hex);
 
+            const itemX =
+                25 +
+                (index % 4) * 190;
 
-        data.forEach(
-            row => {
+            const itemY =
+                legendY +
+                25 +
+                Math.floor(index / 4) * 30;
 
-                row.forEach(
-                    color => {
+            ctx.fillStyle = normalized;
 
-                        if (!color) {
-                            return;
-                        }
-
-
-                        counts.set(
-                            color,
-                            (
-                                counts.get(
-                                    color
-                                ) || 0
-                            ) + 1
-                        );
-                    }
-                );
-            }
-        );
-
-
-        const palette =
-            getCurrentPalette();
-
-
-        palette.forEach(
-            (
-                hex,
-                index
-            ) => {
-
-                const normalized =
-                    normalizeHex(
-                        hex
-                    );
-
-
-                const itemX =
-                    25 +
-                    (
-                        index % 4
-                    ) *
-                    190;
-
-
-                const itemY =
-                    legendY +
-                    25 +
-                    Math.floor(
-                        index / 4
-                    ) *
-                    30;
-
-
-                ctx.fillStyle =
-                    normalized;
-
-
-                ctx.fillRect(
-                    itemX,
-                    itemY - 11,
-                    18,
-                    18
-                );
-
-
-                ctx.strokeStyle =
-                    "#77746d";
-
-
-                ctx.strokeRect(
-                    itemX,
-                    itemY - 11,
-                    18,
-                    18
-                );
-
-
-                ctx.fillStyle =
-                    "#f2f0ea";
-
-
-                ctx.font =
-                    "11px Arial";
-
-
-                ctx.fillText(
-                    `COLOR ${index + 1}`,
-                    itemX + 27,
-                    itemY
-                );
-
-
-                ctx.fillStyle =
-                    "#77746d";
-
-
-                ctx.fillText(
-                    `${normalized} · ${(counts.get(normalized) || 0).toLocaleString()}`,
-                    itemX + 27,
-                    itemY + 14
-                );
-            }
-        );
-
-
-        const link =
-            document.createElement(
-                "a"
+            ctx.fillRect(
+                itemX,
+                itemY - 11,
+                18,
+                18
             );
 
+            ctx.strokeStyle = "#77746d";
+            ctx.strokeRect(
+                itemX,
+                itemY - 11,
+                18,
+                18
+            );
+
+            ctx.fillStyle = "#f2f0ea";
+            ctx.font = "11px Arial";
+
+            ctx.fillText(
+                `COLOR ${index + 1}`,
+                itemX + 27,
+                itemY
+            );
+
+            ctx.fillStyle = "#77746d";
+
+            ctx.fillText(
+                `${normalized} · ` +
+                `${(
+                    counts.get(normalized) || 0
+                ).toLocaleString()}`,
+                itemX + 27,
+                itemY + 14
+            );
+        });
+
+        const link = document.createElement("a");
 
         link.download =
-            `doch-rug-${width}x${height}cm-${currentGrid.width}x${currentGrid.height}-detail-${detailLevel}-smoothing-${colorSmoothing}.png`;
+            `doch-rug-${width}x${height}cm-` +
+            `${currentGrid.width}x${currentGrid.height}-` +
+            `detail-${detailLevel}-` +
+            `smoothing-${colorSmoothing}.png`;
 
-
-        link.href =
-            out.toDataURL(
-                "image/png"
-            );
-
-
+        link.href = out.toDataURL("image/png");
         link.click();
     }
 
@@ -5173,26 +2190,12 @@
        ========================================================= */
 
     function openProjectorMode() {
-
-        if (
-            !currentDetailData ||
-            !currentGrid
-        ) {
-
-            alert(
-                "Generate the rug first."
-            );
-
-
+        if (!currentDetailData || !currentGrid) {
+            alert("Generate the rug first.");
             return;
         }
 
-
-        const overlay =
-            document.createElement(
-                "div"
-            );
-
+        const overlay = document.createElement("div");
 
         overlay.style.cssText = `
             position:fixed;
@@ -5206,61 +2209,26 @@
             font-family:Arial,sans-serif;
         `;
 
+        const { width, height } = getSize();
+        const ratio = width / height;
 
-        const width =
-            Number(
-                widthInput?.value
-            ) || 100;
-
-
-        const height =
-            Number(
-                heightInput?.value
-            ) || 75;
-
-
-        const ratio =
-            width /
-            height;
-
-
-        const workspace =
-            document.createElement(
-                "div"
-            );
-
+        const workspace = document.createElement("div");
 
         workspace.style.cssText = `
             position:relative;
-            width:min(90vw, 82vh * ${ratio});
+            width:min(90vw,82vh * ${ratio});
             aspect-ratio:${ratio};
         `;
 
-
         const projectorCanvas =
-            document.createElement(
-                "canvas"
-            );
+            document.createElement("canvas");
 
-
-        const renderWidth =
-            1200;
-
-
+        const renderWidth = 1200;
         const renderHeight =
-            Math.round(
-                renderWidth /
-                ratio
-            );
+            Math.round(renderWidth / ratio);
 
-
-        projectorCanvas.width =
-            renderWidth;
-
-
-        projectorCanvas.height =
-            renderHeight;
-
+        projectorCanvas.width = renderWidth;
+        projectorCanvas.height = renderHeight;
 
         projectorCanvas.style.cssText = `
             position:absolute;
@@ -5269,17 +2237,10 @@
             height:100%;
         `;
 
-
         const ctx =
-            projectorCanvas.getContext(
-                "2d"
-            );
+            projectorCanvas.getContext("2d");
 
-
-        ctx.fillStyle =
-            "#11110f";
-
-
+        ctx.fillStyle = "#11110f";
         ctx.fillRect(
             0,
             0,
@@ -5287,41 +2248,22 @@
             renderHeight
         );
 
-
-        /* =====================================================
-           DETAIL MAP
-           ===================================================== */
+        /* Detail */
 
         const detailWidth =
             currentDetailData.width;
 
-
         const detailHeight =
             currentDetailData.height;
 
-
         const cellWidth =
-            renderWidth /
-            detailWidth;
-
+            renderWidth / detailWidth;
 
         const cellHeight =
-            renderHeight /
-            detailHeight;
+            renderHeight / detailHeight;
 
-
-        for (
-            let y = 0;
-            y < detailHeight;
-            y++
-        ) {
-
-            for (
-                let x = 0;
-                x < detailWidth;
-                x++
-            ) {
-
+        for (let y = 0; y < detailHeight; y++) {
+            for (let x = 0; x < detailWidth; x++) {
                 drawCell(
                     ctx,
                     x * cellWidth,
@@ -5333,98 +2275,43 @@
             }
         }
 
-
-        /* =====================================================
-           PHYSICAL 5 CM GRID
-           ===================================================== */
+        /* Physical grid */
 
         const gridCellWidth =
-            renderWidth /
-            currentGrid.width;
-
+            renderWidth / currentGrid.width;
 
         const gridCellHeight =
-            renderHeight /
-            currentGrid.height;
-
+            renderHeight / currentGrid.height;
 
         ctx.strokeStyle =
             "rgba(255,255,255,.35)";
 
+        ctx.lineWidth = 1;
 
-        ctx.lineWidth =
-            1;
-
-
-        for (
-            let x = 1;
-            x < currentGrid.width;
-            x++
-        ) {
-
+        for (let x = 1; x < currentGrid.width; x++) {
             const px =
-                x *
-                gridCellWidth +
-                0.5;
-
+                x * gridCellWidth + 0.5;
 
             ctx.beginPath();
-
-
-            ctx.moveTo(
-                px,
-                0
-            );
-
-
-            ctx.lineTo(
-                px,
-                renderHeight
-            );
-
-
+            ctx.moveTo(px, 0);
+            ctx.lineTo(px, renderHeight);
             ctx.stroke();
         }
 
-
-        for (
-            let y = 1;
-            y < currentGrid.height;
-            y++
-        ) {
-
+        for (let y = 1; y < currentGrid.height; y++) {
             const py =
-                y *
-                gridCellHeight +
-                0.5;
-
+                y * gridCellHeight + 0.5;
 
             ctx.beginPath();
-
-
-            ctx.moveTo(
-                0,
-                py
-            );
-
-
-            ctx.lineTo(
-                renderWidth,
-                py
-            );
-
-
+            ctx.moveTo(0, py);
+            ctx.lineTo(renderWidth, py);
             ctx.stroke();
         }
-
 
         ctx.strokeStyle =
             "rgba(255,255,255,.8)";
 
-
-        ctx.lineWidth =
-            2;
-
+        ctx.lineWidth = 2;
 
         ctx.strokeRect(
             1,
@@ -5433,26 +2320,12 @@
             renderHeight - 2
         );
 
+        workspace.appendChild(projectorCanvas);
+        overlay.appendChild(workspace);
 
-        workspace.appendChild(
-            projectorCanvas
-        );
+        /* Info */
 
-
-        overlay.appendChild(
-            workspace
-        );
-
-
-        /* =====================================================
-           INFO
-           ===================================================== */
-
-        const info =
-            document.createElement(
-                "div"
-            );
-
+        const info = document.createElement("div");
 
         info.style.cssText = `
             position:absolute;
@@ -5465,11 +2338,8 @@
             font:10px Arial,sans-serif;
         `;
 
-
         info.innerHTML = `
-            <span>
-                DOCH / PROJECTOR MODE
-            </span>
+            <span>DOCH / PROJECTOR MODE</span>
 
             <span>
                 ${width} × ${height} CM
@@ -5480,29 +2350,14 @@
             </span>
         `;
 
+        overlay.appendChild(info);
 
-        overlay.appendChild(
-            info
-        );
+        /* Close */
 
+        const close = document.createElement("button");
 
-        /* =====================================================
-           CLOSE
-           ===================================================== */
-
-        const close =
-            document.createElement(
-                "button"
-            );
-
-
-        close.type =
-            "button";
-
-
-        close.textContent =
-            "EXIT PROJECTOR";
-
+        close.type = "button";
+        close.textContent = "EXIT PROJECTOR";
 
         close.style.cssText = `
             position:absolute;
@@ -5517,46 +2372,20 @@
             font:10px Arial;
         `;
 
+        close.onclick = () => {
+            if (document.fullscreenElement) {
+                document
+                    .exitFullscreen()
+                    .catch(() => {});
+            }
 
-        close.onclick =
-            () => {
+            overlay.remove();
+        };
 
-                if (
-                    document.fullscreenElement
-                ) {
+        overlay.appendChild(close);
+        document.body.appendChild(overlay);
 
-                    document
-                        .exitFullscreen()
-                        .catch(
-                            () => {}
-                        );
-                }
-
-
-                overlay.remove();
-            };
-
-
-        overlay.appendChild(
-            close
-        );
-
-
-        document.body.appendChild(
-            overlay
-        );
-
-
-        if (
-            overlay.requestFullscreen
-        ) {
-
-            overlay
-                .requestFullscreen()
-                .catch(
-                    () => {}
-                );
-        }
+        overlay.requestFullscreen?.().catch(() => {});
     }
 
 
@@ -5565,10 +2394,7 @@
        ========================================================= */
 
     setupWorkspace();
-
-
     createExtraControls();
-
 
     generatedPalette =
         DEFAULT_PALETTE.slice(
@@ -5576,72 +2402,30 @@
             numberOfColors
         );
 
+    renderPalette(generatedPalette);
 
-    renderPalette(
-        generatedPalette
-    );
-
-
-    if (
-        contrastValue &&
-        contrastInput
-    ) {
-
+    if (contrastValue && contrastInput) {
         contrastValue.textContent =
             contrastInput.value;
     }
 
-
-    if (
-        brightnessValue &&
-        brightnessInput
-    ) {
-
+    if (brightnessValue && brightnessInput) {
         brightnessValue.textContent =
             brightnessInput.value;
     }
 
-
-    /*
-       Initial physical grid.
-    */
-
-    currentGrid =
-        calculatePhysicalGrid();
-
-
+    currentGrid = calculatePhysicalGrid();
     updateStats();
 
-
-    /*
-       Prevent accidental scrolling.
-    */
-
     if (rugCanvasWrap) {
-
-        rugCanvasWrap.scrollLeft =
-            0;
-
-
-        rugCanvasWrap.scrollTop =
-            0;
+        rugCanvasWrap.scrollLeft = 0;
+        rugCanvasWrap.scrollTop = 0;
     }
 
-
-    /*
-       First resize pass.
-    */
-
-    requestAnimationFrame(
-        () => {
-
-            if (
-                sourceImage
-            ) {
-
-                showLoadedImage();
-            }
+    requestAnimationFrame(() => {
+        if (sourceImage) {
+            showLoadedImage();
         }
-    );
+    });
 
 })();
