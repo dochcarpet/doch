@@ -274,23 +274,30 @@ function renderProduct(product) {
 
         <div class="product-actions">
 
-          <button
-            onclick="editProduct('${product.id}')"
-          >
-            РЕДАКТИРОВАТЬ
-          </button>
+  <button
+    onclick="editProduct('${product.id}')"
+  >
+    РЕДАКТИРОВАТЬ
+  </button>
 
-          <button
-            onclick="toggleVisibility('${product.id}', '${product.status}')"
-          >
-            ${
-              product.status === "hidden"
-                ? "ОПУБЛИКОВАТЬ"
-                : "СКРЫТЬ"
-            }
-          </button>
+  <button
+    onclick="toggleVisibility('${product.id}', '${product.status}')"
+  >
+    ${
+      product.status === "hidden"
+        ? "ОПУБЛИКОВАТЬ"
+        : "СКРЫТЬ"
+    }
+  </button>
 
-        </div>
+  <button
+    class="delete-product"
+    onclick="deleteProduct('${product.id}')"
+  >
+    УДАЛИТЬ
+  </button>
+
+</div>
 
       </div>
 
@@ -1398,6 +1405,116 @@ async function toggleVisibility(id, currentStatus) {
 
 }
 
+// =====================================================
+// DELETE PRODUCT
+// =====================================================
+
+async function deleteProduct(id) {
+
+  const confirmed =
+    confirm(
+      "Удалить этот ковер?\n\n" +
+      "Будет удален сам товар и все его фотографии.\n" +
+      "Это действие нельзя отменить."
+    );
+
+  if (!confirmed) {
+    return;
+  }
+
+
+
+  try {
+
+    // Get product first so we know which images
+    // belong to it.
+
+    const {
+      data: product,
+      error: fetchError
+    } = await db
+      .from("products")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (fetchError) {
+      throw fetchError;
+    }
+
+
+
+    // Collect all images
+
+    const images = [];
+
+    if (product.cover_image) {
+      images.push(product.cover_image);
+    }
+
+    if (product.interior_image) {
+      images.push(product.interior_image);
+    }
+
+    if (Array.isArray(product.gallery)) {
+      images.push(...product.gallery);
+    }
+
+
+
+    // Remove duplicates
+
+    const uniqueImages =
+      [...new Set(images)];
+
+
+
+    // Delete database record first
+
+    const {
+      error: deleteError
+    } = await db
+      .from("products")
+      .delete()
+      .eq("id", id);
+
+    if (deleteError) {
+      throw deleteError;
+    }
+
+
+
+    // Delete images from Storage
+
+    for (const imageUrl of uniqueImages) {
+
+      await deleteStorageImage(imageUrl);
+
+    }
+
+
+
+    // Refresh products
+
+    await loadProducts();
+
+
+
+  } catch (error) {
+
+    console.error(
+      "Could not delete product:",
+      error
+    );
+
+    alert(
+      error.message ||
+      "Не удалось удалить ковер."
+    );
+
+  }
+
+}
 
 
 // =====================================================
