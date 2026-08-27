@@ -1303,7 +1303,7 @@ footer {
     }
 
 
-    /* BRAND */
+    /* BRAND 
 
     .brand {
         padding: 100px 25px;
@@ -1333,6 +1333,9 @@ footer {
 }
 
 
+    *//
+
+    
 /* ================================
    CART
 ================================ */
@@ -1477,13 +1480,29 @@ footer {
     }
 
     .hero-title {
-        font-size: 19vw;
-        margin-top: 8vh;
+        position: relative;
+        z-index: 3;
+    
+        text-shadow:
+            0 2px 12px rgba(0,0,0,.28),
+            0 0 2px rgba(0,0,0,.18);
     }
 
     .hero-art {
-        width: 90vw;
-        top: 31%;
+        position: absolute;
+    
+        top: 18%;
+        left: 50%;
+    
+        width: min(50vw, 680px);
+        height: min(50vw, 680px);
+    
+        max-width: 68vh;
+        max-height: 68vh;
+    
+        transform: translateX(-50%);
+    
+        z-index: 1;
     }
 
     .hero-bottom p {
