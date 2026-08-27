@@ -87,8 +87,6 @@ const translations = {
         "manifesto.eyebrow": "01 / THE IDEA",
         "manifesto.title":
             "THE INTERNET<br>WAS NEVER<br><em>THIS SOFT.</em>",
-        "manifesto.text":
-            "We take the things you weren't supposed to put on the wall — and put them on the floor.",
         "manifesto.mono":
             "HANDMADE. WEIRD. UNNECESSARY.<br>EXACTLY AS IT SHOULD BE.",
 
@@ -249,8 +247,6 @@ const translations = {
         "manifesto.eyebrow": "01 / ИДЕЯ",
         "manifesto.title":
             "ИНТЕРНЕТ<br>ЕЩЁ НИКОГДА<br><em>НЕ БЫЛ ТАКИМ МЯГКИМ.</em>",
-        "manifesto.text":
-            "Мы берём вещи, которые не стоило вешать на стену — и кладём их на пол.",
         "manifesto.mono":
             "РУЧНАЯ РАБОТА. СТРАННО. БЕСПОЛЕЗНО.<br>ИМЕННО ТАК, КАК И ДОЛЖНО БЫТЬ.",
 
