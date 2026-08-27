@@ -116,7 +116,7 @@ const translations = {
         "process.title":
             "MADE BY<br><em>HAND.</em>",
         "process.subtitle":
-            "Not printed.<br>Not AI generated.<br>Not mass produced.",
+            "Not printed.<br>Not mass produced.",
 
         "process.design.title": "DESIGN",
         "process.design.text":
@@ -276,7 +276,7 @@ const translations = {
         "process.title":
             "СДЕЛАНО<br><em>ВРУЧНУЮ.</em>",
         "process.subtitle":
-            "Не напечатано.<br>Не сгенерировано ИИ.<br>Не массовое производство.",
+            "Не напечатано.<br>Не массовое производство.",
 
         "process.design.title": "ДИЗАЙН",
         "process.design.text":
