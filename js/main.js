@@ -1721,36 +1721,76 @@ loadProducts();
 // CUSTOM RUG REQUEST MODAL
 // =========================================================
 
-const customButton = document.getElementById("customButton");
-const customModal = document.getElementById("customModal");
-const customModalClose = document.getElementById("customModalClose");
+document.addEventListener("DOMContentLoaded", () => {
 
-if (customButton && customModal) {
+    const customButton = document.getElementById("customButton");
+    const customModal = document.getElementById("customModal");
+    const customModalClose = document.getElementById("customModalClose");
 
-    customButton.addEventListener("click", () => {
-        customModal.classList.add("active");
-        document.body.classList.add("no-scroll");
+    console.log("CUSTOM MODAL:", {
+        button: customButton,
+        modal: customModal,
+        close: customModalClose
     });
 
-}
 
-if (customModalClose && customModal) {
+    // OPEN
 
-    customModalClose.addEventListener("click", () => {
-        customModal.classList.remove("active");
-        document.body.classList.remove("no-scroll");
-    });
+    if (customButton && customModal) {
 
-}
+        customButton.addEventListener("click", () => {
+
+            console.log("MAKE MY RUG clicked");
+
+            customModal.classList.add("active");
+            document.body.classList.add("no-scroll");
+
+        });
+
+    }
 
 
-// Close by clicking outside the form
+    // CLOSE
 
-if (customModal) {
+    if (customModalClose && customModal) {
 
-    customModal.addEventListener("click", (event) => {
+        customModalClose.addEventListener("click", () => {
 
-        if (event.target === customModal) {
+            customModal.classList.remove("active");
+            document.body.classList.remove("no-scroll");
+
+        });
+
+    }
+
+
+    // CLOSE BY CLICKING OUTSIDE
+
+    if (customModal) {
+
+        customModal.addEventListener("click", (event) => {
+
+            if (event.target === customModal) {
+
+                customModal.classList.remove("active");
+                document.body.classList.remove("no-scroll");
+
+            }
+
+        });
+
+    }
+
+
+    // CLOSE WITH ESC
+
+    document.addEventListener("keydown", (event) => {
+
+        if (
+            event.key === "Escape" &&
+            customModal &&
+            customModal.classList.contains("active")
+        ) {
 
             customModal.classList.remove("active");
             document.body.classList.remove("no-scroll");
@@ -1758,19 +1798,5 @@ if (customModal) {
         }
 
     });
-
-}
-
-
-// Close with ESC
-
-document.addEventListener("keydown", (event) => {
-
-    if (event.key === "Escape" && customModal) {
-
-        customModal.classList.remove("active");
-        document.body.classList.remove("no-scroll");
-
-    }
 
 });
