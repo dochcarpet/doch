@@ -565,7 +565,195 @@ HEADER
 
 </section>
 
+<!-- ================================
+     CUSTOM REQUEST MODAL
+================================= -->
 
+<div
+    class="request-modal"
+    id="requestModal"
+    aria-hidden="true"
+>
+
+    <div class="request-overlay" id="requestOverlay"></div>
+
+    <div class="request-window">
+
+        <button
+            class="request-close"
+            id="requestClose"
+            type="button"
+            aria-label="Close"
+        >
+            ×
+        </button>
+
+
+        <div class="request-header">
+
+            <div class="eyebrow">
+                CUSTOM RUG
+            </div>
+
+            <h2>
+                MAKE YOUR<br>
+                <span>RUG.</span>
+            </h2>
+
+        </div>
+
+
+        <form id="rugRequestForm">
+
+            <div class="request-step">
+
+                <div class="request-step-label">
+                    01 / CONTACT
+                </div>
+
+                <div class="request-fields">
+
+                    <input
+                        type="text"
+                        id="requestName"
+                        name="name"
+                        placeholder="YOUR NAME"
+                        required
+                    >
+
+                    <input
+                        type="email"
+                        id="requestEmail"
+                        name="email"
+                        placeholder="EMAIL"
+                        required
+                    >
+
+                    <input
+                        type="text"
+                        id="requestTelegram"
+                        name="telegram"
+                        placeholder="TELEGRAM / INSTAGRAM"
+                    >
+
+                </div>
+
+            </div>
+
+
+            <div class="request-step">
+
+                <div class="request-step-label">
+                    02 / YOUR MEME
+                </div>
+
+                <textarea
+                    id="requestDescription"
+                    name="description"
+                    placeholder="TELL US ABOUT THE RUG..."
+                    rows="4"
+                ></textarea>
+
+            </div>
+
+
+            <div class="request-step">
+
+                <div class="request-step-label">
+                    03 / SIZE
+                </div>
+
+                <div class="size-options">
+
+                    <label>
+                        <input
+                            type="radio"
+                            name="size"
+                            value="small"
+                            required
+                        >
+                        <span>SMALL</span>
+                    </label>
+
+                    <label>
+                        <input
+                            type="radio"
+                            name="size"
+                            value="medium"
+                        >
+                        <span>MEDIUM</span>
+                    </label>
+
+                    <label>
+                        <input
+                            type="radio"
+                            name="size"
+                            value="large"
+                        >
+                        <span>LARGE</span>
+                    </label>
+
+                    <label>
+                        <input
+                            type="radio"
+                            name="size"
+                            value="custom"
+                        >
+                        <span>CUSTOM</span>
+                    </label>
+
+                </div>
+
+                <input
+                    type="text"
+                    id="customSize"
+                    name="custom_size"
+                    class="custom-size-input"
+                    placeholder="CUSTOM SIZE / CM"
+                >
+
+            </div>
+
+
+            <button
+                class="big-button request-submit"
+                type="submit"
+            >
+
+                <span>
+                    SEND REQUEST
+                </span>
+
+                <span>↗</span>
+
+            </button>
+
+        </form>
+
+
+        <div
+            class="request-success"
+            id="requestSuccess"
+        >
+
+            <div class="request-success-number">
+                REQUEST RECEIVED.
+            </div>
+
+            <h3>
+                WE'LL GET<br>
+                BACK TO YOU.
+            </h3>
+
+            <p>
+                Your request has been sent.
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
 
 
 
