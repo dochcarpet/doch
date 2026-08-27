@@ -1716,3 +1716,61 @@ function escapeHtml(value) {
 setLanguage("en");
 
 loadProducts();
+
+// =========================================================
+// CUSTOM RUG REQUEST MODAL
+// =========================================================
+
+const customButton = document.getElementById("customButton");
+const customModal = document.getElementById("customModal");
+const customModalClose = document.getElementById("customModalClose");
+
+if (customButton && customModal) {
+
+    customButton.addEventListener("click", () => {
+        customModal.classList.add("active");
+        document.body.classList.add("no-scroll");
+    });
+
+}
+
+if (customModalClose && customModal) {
+
+    customModalClose.addEventListener("click", () => {
+        customModal.classList.remove("active");
+        document.body.classList.remove("no-scroll");
+    });
+
+}
+
+
+// Close by clicking outside the form
+
+if (customModal) {
+
+    customModal.addEventListener("click", (event) => {
+
+        if (event.target === customModal) {
+
+            customModal.classList.remove("active");
+            document.body.classList.remove("no-scroll");
+
+        }
+
+    });
+
+}
+
+
+// Close with ESC
+
+document.addEventListener("keydown", (event) => {
+
+    if (event.key === "Escape" && customModal) {
+
+        customModal.classList.remove("active");
+        document.body.classList.remove("no-scroll");
+
+    }
+
+});
