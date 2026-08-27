@@ -1783,3 +1783,93 @@ footer {
 
     font: 10px var(--mono);
 }
+
+/* =========================================================
+   ABOUT DOCH — NEW BRAND MANIFESTO
+========================================================= */
+
+.brand-manifesto {
+    padding: 150px 7vw;
+    border-top: 1px solid var(--line);
+}
+
+.brand-manifesto-grid {
+    margin-top: 110px;
+
+    display: grid;
+    grid-template-columns: 1.3fr .7fr;
+
+    gap: 10vw;
+}
+
+.brand-manifesto h2 {
+    margin: 0;
+
+    font-size: clamp(55px, 8vw, 120px);
+    line-height: .83;
+    letter-spacing: -.07em;
+    font-weight: 900;
+}
+
+.brand-manifesto-copy {
+    align-self: end;
+}
+
+.brand-manifesto-copy .large-copy {
+    margin: 0 0 40px;
+
+    max-width: 800px;
+
+    font-size: clamp(28px, 4vw, 55px);
+    line-height: .95;
+    letter-spacing: -.05em;
+}
+
+.brand-manifesto-copy p:not(.large-copy) {
+    margin: 0;
+
+    color: var(--grey);
+
+    font-size: 14px;
+    line-height: 1.55;
+}
+
+.manifesto-signature {
+    display: block;
+
+    margin-top: 70px;
+
+    font: 10px/1.6 var(--mono);
+    color: var(--white);
+}
+
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width: 800px) {
+
+    .brand-manifesto {
+        padding: 100px 25px;
+    }
+
+    .brand-manifesto-grid {
+        display: block;
+        margin-top: 80px;
+    }
+
+    .brand-manifesto h2 {
+        margin-top: 60px;
+    }
+
+    .brand-manifesto-copy {
+        margin-top: 70px;
+    }
+
+    .brand-manifesto-copy .large-copy {
+        font-size: 30px;
+    }
+
+}
+
