@@ -151,8 +151,6 @@ const translations = {
         "about.link":
             "MEET THE ARTIST ↗",
 
-        "footer.title":
-            "SEE YOU<br>ON THE <em>FLOOR.</em>",
         "footer.tag":
             "HANDMADE INTERNET ART",
 
@@ -311,8 +309,6 @@ const translations = {
         "about.link":
             "ПОЗНАКОМИТЬСЯ С ХУДОЖНИЦЕЙ ↗",
 
-        "footer.title":
-            "УВИДИМСЯ<br>НА <em>ПОЛУ.</em>",
         "footer.tag":
             "РУЧНОЙ ИНТЕРНЕТ-АРТ",
 
