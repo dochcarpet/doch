@@ -1352,6 +1352,114 @@ id="cartOverlay"
 ></div>
 
 <script src="js/main.js"></script>
+<!-- ================================
+     CUSTOM REQUEST MODAL
+================================= -->
 
+<div class="custom-modal" id="customModal">
+
+    <div class="custom-modal-inner">
+
+        <button
+            class="custom-modal-close"
+            id="customModalClose"
+            aria-label="Close"
+        >
+            ×
+        </button>
+
+        <div class="eyebrow">
+            CUSTOM RUG REQUEST
+        </div>
+
+        <h2>
+            MAKE YOUR<br>
+            <span>RUG.</span>
+        </h2>
+
+        <form id="customRequestForm">
+
+            <div class="custom-form-group">
+                <label for="customerName">
+                    NAME
+                </label>
+
+                <input
+                    type="text"
+                    id="customerName"
+                    name="name"
+                    placeholder="Your name"
+                    required
+                >
+            </div>
+
+
+            <div class="custom-form-group">
+                <label for="customerContact">
+                    CONTACT
+                </label>
+
+                <input
+                    type="text"
+                    id="customerContact"
+                    name="contact"
+                    placeholder="Telegram / Instagram / Email"
+                    required
+                >
+            </div>
+
+
+            <div class="custom-form-group">
+                <label for="customerMessage">
+                    TELL US ABOUT YOUR RUG
+                </label>
+
+                <textarea
+                    id="customerMessage"
+                    name="message"
+                    rows="4"
+                    placeholder="Size, idea, anything we should know..."
+                ></textarea>
+            </div>
+
+
+            <div class="custom-form-group">
+
+                <label for="customerImage">
+                    MEME / IMAGE
+                </label>
+
+                <input
+                    type="file"
+                    id="customerImage"
+                    name="image"
+                    accept="image/*"
+                    required
+                >
+
+            </div>
+
+
+            <button
+                type="submit"
+                class="big-button custom-submit"
+            >
+                SEND REQUEST
+                <span>↗</span>
+            </button>
+
+        </form>
+
+        <div
+            class="custom-success"
+            id="customSuccess"
+        >
+            REQUEST SENT.<br>
+            WE'LL GET BACK TO YOU.
+        </div>
+
+    </div>
+
+</div>
 </body>
 </html>
