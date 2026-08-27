@@ -1496,28 +1496,6 @@ document
 
 
 /* =========================================================
-   CUSTOM BUTTON
-========================================================= */
-
-document
-    .getElementById("customButton")
-    .addEventListener(
-        "click",
-        () => {
-
-            const message =
-                currentLanguage === "ru"
-
-                    ? "КОВЁР НА ЗАКАЗ\n\nЗдесь появится форма заказа."
-
-                    : "CUSTOM RUG REQUEST\n\nThis will become the custom order form.";
-
-            alert(message);
-
-        }
-    );
-
-/* =========================================================
    ESC
 ========================================================= */
 
@@ -1708,6 +1686,73 @@ function escapeHtml(value) {
 
 }
 
+/* =========================================================
+   FAQ
+========================================================= */
+
+function initFAQ() {
+
+    const faqItems =
+        document.querySelectorAll(".faq-item");
+
+    faqItems.forEach(item => {
+
+        const summary =
+            item.querySelector("summary");
+
+        const answer =
+            item.querySelector(".faq-answer");
+
+        if (!summary || !answer) {
+            return;
+        }
+
+        summary.addEventListener("click", event => {
+
+            event.preventDefault();
+
+            const isOpen =
+                item.hasAttribute("open");
+
+            /*
+               Close all other FAQ items.
+            */
+
+            faqItems.forEach(otherItem => {
+
+                if (otherItem !== item) {
+
+                    otherItem.removeAttribute("open");
+
+                    otherItem.classList.remove("active");
+
+                }
+
+            });
+
+
+            /*
+               Toggle current item.
+            */
+
+            if (isOpen) {
+
+                item.removeAttribute("open");
+                item.classList.remove("active");
+
+            } else {
+
+                item.setAttribute("open", "");
+                item.classList.add("active");
+
+            }
+
+        });
+
+    });
+
+}
+
 
 /* =========================================================
    INITIALIZATION
@@ -1716,6 +1761,8 @@ function escapeHtml(value) {
 setLanguage("en");
 
 loadProducts();
+
+initFAQ();
 
 // =========================================================
 // CUSTOM RUG REQUEST MODAL
@@ -1800,3 +1847,5 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
 });
+
+
