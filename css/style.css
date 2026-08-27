@@ -232,7 +232,7 @@ button {
     top: 22%;
     left: 50%;
 
-    width: min(57vw, 800px);
+    width: min(57vw, 800px, 62svh);
     aspect-ratio: 1 / 1;
 
     transform: translateX(-50%);
