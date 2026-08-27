@@ -112,7 +112,7 @@ const translations = {
         "custom.side2": "YARN",
         "custom.side3": "YOUR RUG",
 
-        "process.eyebrow": "04 / THE PROCESS",
+        "process.eyebrow": "03 / THE PROCESS",
         "process.title":
             "MADE BY<br><em>HAND.</em>",
         "process.subtitle":
@@ -141,7 +141,7 @@ const translations = {
         "queue.note":
             "Every rug is made after the order is placed.",
 
-        "about.eyebrow": "06 / THE ARTIST",
+        "about.eyebrow": "07 / THE ARTIST",
         "about.title":
             "TOO MANY<br>MEMES.<br><em>NOT ENOUGH<br>RUGS.</em>",
         "about.large":
@@ -170,7 +170,7 @@ const translations = {
            FAQ
         ========================= */
 
-        "faq.eyebrow": "07 / FAQ",
+        "faq.eyebrow": "06 / FAQ",
         "faq.title":
             "QUESTIONS<br><em>YOU MIGHT HAVE.</em>",
 
@@ -198,27 +198,6 @@ const translations = {
             "WHY?",
         "faq.a5":
             "We don't know. We just felt the internet deserved to be slightly softer.",
-
-
-        /* =========================
-           BRAND / MANIFESTO
-        ========================= */
-
-        "brand.eyebrow": "08 / ABOUT DOCH",
-        "brand.title":
-            "A VERY<br><em>SERIOUS<br>RUG STUDIO.</em>",
-
-        "brand.large":
-            "DOCH makes handmade rugs for people who have already seen enough things online.",
-
-        "brand.text":
-            "We turn memes, internet artifacts and questionable visual decisions into physical objects. Every rug is tufted, carved and finished by hand. There is no algorithm involved in making the rug. There is, however, a questionable amount of internet involved in choosing what goes on it.",
-
-        "brand.mono":
-            "WE TAKE THE INTERNET<br>VERY SERIOUSLY.<br>JUST NOT TOO SERIOUSLY.",
-
-        "brand.link":
-            "MORE ABOUT THE STUDIO ↗"
 
     },
 
@@ -270,7 +249,7 @@ const translations = {
         "custom.side2": "ПРЯЖА",
         "custom.side3": "ТВОЙ КОВЁР",
 
-        "process.eyebrow": "04 / ПРОЦЕСС",
+        "process.eyebrow": "03 / ПРОЦЕСС",
         "process.title":
             "СДЕЛАНО<br><em>ВРУЧНУЮ.</em>",
         "process.subtitle":
@@ -299,7 +278,7 @@ const translations = {
         "queue.note":
             "Каждый ковёр начинает производиться после оформления заказа.",
 
-        "about.eyebrow": "06 / ХУДОЖНИЦА",
+        "about.eyebrow": "07 / O DOCH",
         "about.title":
             "СЛИШКОМ МНОГО<br>МЕМОВ.<br><em>СЛИШКОМ МАЛО<br>КОВРОВ.</em>",
         "about.large":
@@ -328,7 +307,7 @@ const translations = {
            FAQ
         ========================= */
 
-        "faq.eyebrow": "07 / FAQ",
+        "faq.eyebrow": "06 / FAQ",
         "faq.title":
             "ВОПРОСЫ,<br><em>КОТОРЫЕ МОГУТ<br>У ВАС ВОЗНИКНУТЬ.</em>",
 
@@ -356,27 +335,6 @@ const translations = {
             "ЗАЧЕМ?",
         "faq.a5":
             "Не знаем. Просто решили, что интернету иногда не помешает стать немного мягче.",
-
-
-        /* =========================
-           brand / MANIFESTO
-        ========================= */
-
-        "brand.eyebrow": "08 / О DOCH",
-        "brand.title":
-            "ОЧЕНЬ<br><em>СЕРЬЁЗНАЯ<br>СТУДИЯ КОВРОВ.</em>",
-
-        "brand.large":
-            "DOCH делает ковры ручной работы для людей, которые уже увидели в интернете достаточно всего.",
-
-        "brand.text":
-            "Мы превращаем мемы, интернет-артефакты и сомнительные визуальные решения в физические объекты. Каждый ковёр тафтится, карвится и доводится вручную. Алгоритмы в производстве ковра не участвуют. Зато интернета в выборе того, что на нём изображено, подозрительно много.",
-
-        "brand.mono":
-            "МЫ ОЧЕНЬ СЕРЬЁЗНО<br>ОТНОСИМСЯ К ИНТЕРНЕТУ.<br>ПРОСТО НЕ СЛИШКОМ СЕРЬЁЗНО.",
-
-        "brand.link":
-            "БОЛЬШЕ О СТУДИИ ↗"
 
     }
 
