@@ -134,7 +134,7 @@ const translations = {
         "process.ship.text":
             "Your rug leaves the studio and enters the wild.",
 
-        "queue.eyebrow": "05 / PRODUCTION QUEUE",
+        "queue.eyebrow": "06 / PRODUCTION QUEUE",
         "queue.title":
             "CURRENTLY<br><em>IN PRODUCTION</em>",
         "queue.live": "LIVE",
@@ -170,7 +170,7 @@ const translations = {
            FAQ
         ========================= */
 
-        "faq.eyebrow": "06 / FAQ",
+        "faq.eyebrow": "05 / FAQ",
         "faq.title":
             "QUESTIONS<br><em>YOU MIGHT HAVE.</em>",
 
@@ -271,7 +271,7 @@ const translations = {
         "process.ship.text":
             "Ковёр покидает студию и отправляется в мир.",
 
-        "queue.eyebrow": "05 / ОЧЕРЕДЬ ПРОИЗВОДСТВА",
+        "queue.eyebrow": "06 / ОЧЕРЕДЬ ПРОИЗВОДСТВА",
         "queue.title":
             "СЕЙЧАС<br><em>В ПРОИЗВОДСТВЕ</em>",
         "queue.live": "LIVE",
@@ -307,7 +307,7 @@ const translations = {
            FAQ
         ========================= */
 
-        "faq.eyebrow": "06 / FAQ",
+        "faq.eyebrow": "05 / FAQ",
         "faq.title":
             "ВОПРОСЫ,<br><em>КОТОРЫЕ МОГУТ<br>У ВАС ВОЗНИКНУТЬ.</em>",
 
