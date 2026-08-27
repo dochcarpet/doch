@@ -213,6 +213,8 @@ button {
 
     text-transform: uppercase;
     pointer-events: none;
+
+    text-shadow: 20px 13px 20px rgba(0, 0, 0, .65);
 }
 
 .hero-title .outline {
