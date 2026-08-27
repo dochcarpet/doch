@@ -2,1149 +2,1235 @@
 <html lang="en">
 <head>
 
-    <meta charset="UTF-8">
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta charset="UTF-8">
 
-    <meta
-        name="theme-color"
-        content="#0b0b0a"
-    >
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-    <title>DOCH — Handmade Internet Art</title>
+<meta
+    name="theme-color"
+    content="#0b0b0a"
+>
 
-    <meta
-        name="description"
-        content="Handmade rugs for people who spend too much time online."
-    >
+<title>DOCH — Handmade Internet Art</title>
 
-    <link
-        rel="preconnect"
-        href="https://fonts.googleapis.com"
-    >
+<meta
+    name="description"
+    content="Handmade rugs for people who spend too much time online."
+>
 
-    <link
-        rel="preconnect"
-        href="https://fonts.gstatic.com"
-        crossorigin
-    >
+<link
+    rel="preconnect"
+    href="https://fonts.googleapis.com"
+>
 
-    <link
-        href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600;700;800;900&display=swap"
-        rel="stylesheet"
-    >
+<link
+    rel="preconnect"
+    href="https://fonts.gstatic.com"
+    crossorigin
+>
 
-    <!-- FAVICON -->
+<link
+    href="https://fonts.googleapis.com/css2?family=DM+Mono\:wght@400;500\&family=Inter\:wght@400;500;600;700;800;900\&display=swap"
+    rel="stylesheet"
+>
 
-    <link
-        rel="apple-touch-icon"
-        href="images/apple-touch-icon.png"
-    >
+<!-- FAVICON -->
 
-    <link
-        rel="icon"
-        type="image/png"
-        sizes="32x32"
-        href="images/favicon-32x32.png"
-    >
+<link
+    rel="apple-touch-icon"
+    href="images/apple-touch-icon.png"
+>
 
-    <link
-        rel="icon"
-        type="image/png"
-        sizes="16x16"
-        href="images/favicon-16x16.png"
-    >
+<link
+    rel="icon"
+    type="image/png"
+    sizes="32x32"
+    href="images/favicon-32x32.png"
+>
 
-    <link
-        rel="icon"
-        href="images/favicon.ico"
-    >
+<link
+    rel="icon"
+    type="image/png"
+    sizes="16x16"
+    href="images/favicon-16x16.png"
+>
 
-    <link
-        rel="stylesheet"
-        href="css/style.css"
-    >
+<link
+    rel="icon"
+    href="images/favicon.ico"
+>
+
+<link
+    rel="stylesheet"
+    href="css/style.css"
+>
+
 
 </head>
-
 
 <body>
 
 <div class="noise"></div>
 
-
 <!-- ================================
-     HEADER
-================================ -->
+HEADER
+\================================ -->
 
 <header class="header">
 
+
+<a
+    href="#"
+    class="logo"
+>
+    DOCH<span>®</span>
+</a>
+
+
+
+<nav>
+
     <a
-        href="#"
-        class="logo"
+        href="#drop"
+        data-i18n="nav.drop"
     >
-        DOCH<span>®</span>
+        DROP
     </a>
 
+    <a
+        href="#custom"
+        data-i18n="nav.custom"
+    >
+        CUSTOM
+    </a>
 
-    <nav>
+    <a
+        href="#process"
+        data-i18n="nav.process"
+    >
+        PROCESS
+    </a>
 
-        <a
-            href="#drop"
-            data-i18n="nav.drop"
-        >
-            DROP
-        </a>
+    <a
+        href="#faq"
+        data-i18n="nav.faq"
+    >
+        FAQ
+    </a>
 
-        <a
-            href="#custom"
-            data-i18n="nav.custom"
-        >
-            CUSTOM
-        </a>
+    <a
+        href="#about"
+        data-i18n="nav.about"
+    >
+        ABOUT
+    </a>
 
-        <a
-            href="#process"
-            data-i18n="nav.process"
-        >
-            PROCESS
-        </a>
-
-        <a
-            href="#faq"
-            data-i18n="nav.faq"
-        >
-            FAQ
-        </a>
-
-        <a
-            href="#about"
-            data-i18n="nav.about"
-        >
-            ABOUT
-        </a>
-
-    </nav>
+</nav>
 
 
-    <div class="header-right">
 
-        <div class="language-switch">
+<div class="header-right">
 
-            <button
-                class="lang-button active"
-                data-lang="en"
-            >
-                EN
-            </button>
-
-            <span>/</span>
-
-            <button
-                class="lang-button"
-                data-lang="ru"
-            >
-                RU
-            </button>
-
-        </div>
-
+    <div class="language-switch">
 
         <button
-            class="cart-button"
-            id="cartButton"
+            class="lang-button active"
+            data-lang="en"
         >
+            EN
+        </button>
 
-            <span data-i18n="cart.label">
-                CART
-            </span>
+        <span>/</span>
 
-            <span id="cartCount">
-                0
-            </span>
-
+        <button
+            class="lang-button"
+            data-lang="ru"
+        >
+            RU
         </button>
 
     </div>
 
-</header>
 
-
-<main>
-
-
-    <!-- ================================
-         HERO
-    ================================= -->
-
-    <section class="hero">
-
-        <div class="hero-topline">
-
-            <span data-i18n="hero.top">
-                HANDMADE / INTERNET ART
-            </span>
-
-            <span>
-                EST. 2026
-            </span>
-
-        </div>
-
-
-        <div class="hero-title">
-
-            <div data-i18n="hero.title1">
-                MEMES.
-            </div>
-
-            <div
-                class="outline"
-                data-i18n="hero.title2"
-            >
-                MADE TO
-            </div>
-
-            <div data-i18n="hero.title3">
-                TOUCH.
-            </div>
-
-        </div>
-
-
-        <div class="hero-art">
-
-            <div class="glitch-rug">
-
-                <img
-                    src="assets/hero.jpeg"
-                    alt="DOCH handmade rug"
-                >
-
-            </div>
-
-        </div>
-
-
-        <div class="hero-bottom">
-
-            <p data-i18n="hero.description">
-                Internet culture, memes &amp; digital chaos —
-                translated into handmade rugs.
-            </p>
-
-
-            <a
-                href="#drop"
-                class="circle-button"
-                aria-label="Scroll to rugs"
-            >
-                ↓
-            </a>
-
-        </div>
-
-    </section>
-
-
-    <!-- ================================
-         MANIFESTO / IDEA
-    ================================= -->
-
-    <section class="manifesto">
-
-        <div
-            class="eyebrow"
-            data-i18n="manifesto.eyebrow"
-        >
-            01 / THE IDEA
-        </div>
-
-
-        <h2 data-i18n="manifesto.title">
-            THE INTERNET<br>
-            WAS NEVER<br>
-            <em>THIS SOFT.</em>
-        </h2>
-
-
-        <div class="manifesto-copy">
-
-            <p data-i18n="manifesto.text">
-            </p>
-
-
-            <p
-                class="mono"
-                data-i18n="manifesto.mono"
-            >
-                HANDMADE. WEIRD. UNNECESSARY.<br>
-                EXACTLY AS IT SHOULD BE.
-            </p>
-
-        </div>
-
-    </section>
-
-
-    <!-- ================================
-         DROP
-    ================================= -->
-
-    <section
-        class="drop"
-        id="drop"
-    >
-
-        <div class="section-header">
-
-            <div>
-
-                <div
-                    class="eyebrow"
-                    data-i18n="drop.eyebrow"
-                >
-                    02 / CURRENT DROP
-                </div>
-
-
-                <h2 data-i18n="drop.title">
-                    INTERNET<br>
-                    <em>RELICS</em>
-                </h2>
-
-            </div>
-
-
-            <div class="drop-meta">
-
-                <span>
-                    DROP 001
-                </span>
-
-                <span data-i18n="drop.objects">
-                    04 OBJECTS
-                </span>
-
-            </div>
-
-        </div>
-
-
-        <div class="products">
-            <!-- Products are loaded from Supabase -->
-        </div>
-
-    </section>
-
-
-    <!-- ================================
-         CUSTOM
-    ================================= -->
-
-    <section
-        class="custom"
-        id="custom"
-    >
-
-        <div class="custom-number">
-            03
-        </div>
-
-
-        <div class="custom-content">
-
-            <div
-                class="eyebrow"
-                data-i18n="custom.eyebrow"
-            >
-                CUSTOM RUGS
-            </div>
-
-
-            <h2 data-i18n="custom.title">
-                GOT A<br>
-                <span>MEME?</span>
-            </h2>
-
-
-            <p data-i18n="custom.text">
-                Send us the image. We'll put it on the floor.
-            </p>
-
-
-            <button
-                class="big-button"
-                id="customButton"
-            >
-
-                <span data-i18n="custom.button">
-                    MAKE MY RUG
-                </span>
-
-                <span>
-                    ↗
-                </span>
-
-            </button>
-
-        </div>
-
-
-        <div class="custom-side">
-
-            <div data-i18n="custom.side1">
-                YOUR IMAGE
-            </div>
-
-            <div>
-                ↓
-            </div>
-
-            <div data-i18n="custom.side2">
-                YARN
-            </div>
-
-            <div>
-                ↓
-            </div>
-
-            <div data-i18n="custom.side3">
-                YOUR RUG
-            </div>
-
-        </div>
-
-    </section>
-
-
-    <!-- ================================
-         PROCESS
-    ================================= -->
-
-    <section
-        class="process"
-        id="process"
-    >
-
-        <div class="section-header">
-
-            <div>
-
-                <div
-                    class="eyebrow"
-                    data-i18n="process.eyebrow"
-                >
-                    04 / THE PROCESS
-                </div>
-
-
-                <h2 data-i18n="process.title">
-                    MADE BY<br>
-                    <em>HAND.</em>
-                </h2>
-
-            </div>
-
-
-            <p data-i18n="process.subtitle">
-                Not printed.<br>
-                Not AI generated.<br>
-                Not mass produced.
-            </p>
-
-        </div>
-
-
-        <div class="process-grid">
-
-
-            <div class="process-card">
-
-                <span>
-                    01
-                </span>
-
-                <h3 data-i18n="process.design.title">
-                    DESIGN
-                </h3>
-
-                <p data-i18n="process.design.text">
-                    Meme → image → rug design.
-                    Every piece starts with an idea.
-                </p>
-
-            </div>
-
-
-            <div class="process-card">
-
-                <span>
-                    02
-                </span>
-
-                <h3 data-i18n="process.taft.title">
-                    TAFT
-                </h3>
-
-                <p data-i18n="process.taft.text">
-                    Hundreds of thousands of yarn
-                    loops, placed by hand.
-                </p>
-
-            </div>
-
-
-            <div class="process-card">
-
-                <span>
-                    03
-                </span>
-
-                <h3 data-i18n="process.carve.title">
-                    CARVE
-                </h3>
-
-                <p data-i18n="process.carve.text">
-                    Every surface is sculpted
-                    until the image comes alive.
-                </p>
-
-            </div>
-
-
-            <div class="process-card">
-
-                <span>
-                    04
-                </span>
-
-                <h3 data-i18n="process.ship.title">
-                    SHIP
-                </h3>
-
-                <p data-i18n="process.ship.text">
-                    Your rug leaves the studio
-                    and enters the wild.
-                </p>
-
-            </div>
-
-
-        </div>
-
-    </section>
-
-
-    <!-- ================================
-         FAQ
-    ================================= -->
-
-    <section
-        class="faq"
-        id="faq"
-    >
-
-        <div
-            class="eyebrow"
-            data-i18n="faq.eyebrow"
-        >
-            05 / FAQ
-        </div>
-
-
-        <div class="faq-header">
-
-            <h2 data-i18n="faq.title">
-                QUESTIONS<br>
-                <em>YOU MAY HAVE.</em>
-            </h2>
-
-
-            <p data-i18n="faq.subtitle">
-                Probably.
-            </p>
-
-        </div>
-
-
-        <div class="faq-list">
-
-
-            <details class="faq-item">
-
-                <summary>
-
-                    <span data-i18n="faq.q1">
-                        DO YOU ACTUALLY MAKE THESE BY HAND?
-                    </span>
-
-                    <span class="faq-plus">
-                        +
-                    </span>
-
-                </summary>
-
-
-                <div class="faq-answer">
-
-                    <p data-i18n="faq.a1">
-                        PLACEHOLDER ANSWER. THIS WILL EVENTUALLY
-                        CONTAIN A SUSPICIOUSLY HONEST EXPLANATION.
-                    </p>
-
-                </div>
-
-            </details>
-
-
-            <details class="faq-item">
-
-                <summary>
-
-                    <span data-i18n="faq.q2">
-                        HOW LONG DOES A RUG TAKE?
-                    </span>
-
-                    <span class="faq-plus">
-                        +
-                    </span>
-
-                </summary>
-
-
-                <div class="faq-answer">
-
-                    <p data-i18n="faq.a2">
-                        PLACEHOLDER ANSWER. SOMEWHERE BETWEEN
-                        "A WHILE" AND "WHY DID I ORDER THIS?"
-                    </p>
-
-                </div>
-
-            </details>
-
-
-            <details class="faq-item">
-
-                <summary>
-
-                    <span data-i18n="faq.q3">
-                        CAN I ORDER A CUSTOM RUG?
-                    </span>
-
-                    <span class="faq-plus">
-                        +
-                    </span>
-
-                </summary>
-
-
-                <div class="faq-answer">
-
-                    <p data-i18n="faq.a3">
-                        PLACEHOLDER ANSWER. SEND US YOUR MEME.
-                        WE'LL FIGURE OUT THE REST.
-                    </p>
-
-                </div>
-
-            </details>
-
-
-            <details class="faq-item">
-
-                <summary>
-
-                    <span data-i18n="faq.q4">
-                        DO YOU SHIP INTERNATIONALLY?
-                    </span>
-
-                    <span class="faq-plus">
-                        +
-                    </span>
-
-                </summary>
-
-
-                <div class="faq-answer">
-
-                    <p data-i18n="faq.a4">
-                        PLACEHOLDER ANSWER. YES, PROBABLY.
-                        SHIPPING DETAILS WILL LIVE HERE.
-                    </p>
-
-                </div>
-
-            </details>
-
-
-            <details class="faq-item">
-
-                <summary>
-
-                    <span data-i18n="faq.q5">
-                        WHAT IF I REGRET PUTTING A MEME ON MY FLOOR?
-                    </span>
-
-                    <span class="faq-plus">
-                        +
-                    </span>
-
-                </summary>
-
-
-                <div class="faq-answer">
-
-                    <p data-i18n="faq.a5">
-                        PLACEHOLDER ANSWER. THIS IS BETWEEN
-                        YOU, YOUR FLOOR, AND GOD.
-                    </p>
-
-                </div>
-
-            </details>
-
-
-        </div>
-
-    </section>
-
-
-    <!-- ================================
-         ABOUT / BRAND MANIFESTO
-    ================================= -->
-
-    <section
-        class="brand-manifesto"
-        id="about"
-    >
-
-        <div
-            class="eyebrow"
-            data-i18n="brand.eyebrow"
-        >
-            06 / ABOUT DOCH
-        </div>
-
-
-        <div class="brand-manifesto-grid">
-
-
-            <h2 data-i18n="brand.title">
-                WE MAKE<br>
-                RUGS FOR<br>
-                PEOPLE WHO<br>
-                <em>SHOULD KNOW BETTER.</em>
-            </h2>
-
-
-            <div class="brand-manifesto-copy">
-
-                <p
-                    class="large-copy"
-                    data-i18n="brand.large"
-                >
-                    PLACEHOLDER FOR THE DOCH MANIFESTO.
-                </p>
-
-
-                <p data-i18n="brand.text">
-                    This is where the unnecessary amount of sarcasm,
-                    internet culture, questionable decisions and
-                    extremely serious rug-making philosophy will live.
-                </p>
-
-
-                <span
-                    class="manifesto-signature"
-                    data-i18n="brand.mono"
-                >
-                    — DOCH
-                </span>
-
-            </div>
-
-        </div>
-
-    </section>
-
-
-    <!-- ================================
-         PRODUCTION QUEUE
-    ================================= -->
-
-    <section class="queue">
-
-        <div
-            class="eyebrow"
-            data-i18n="queue.eyebrow"
-        >
-            07 / PRODUCTION QUEUE
-        </div>
-
-
-        <div class="queue-title">
-
-            <h2 data-i18n="queue.title">
-                CURRENTLY<br>
-                <em>IN PRODUCTION</em>
-            </h2>
-
-
-            <span data-i18n="queue.live">
-                LIVE / 04
-            </span>
-
-        </div>
-
-
-        <div class="queue-list">
-
-
-            <div class="queue-item">
-
-                <span>
-                    001
-                </span>
-
-                <strong>
-                    СВИДЕТЕЛЬ ИЗ ФРЯЗИНО
-                </strong>
-
-                <div class="progress">
-                    <i style="width:82%"></i>
-                </div>
-
-                <span>
-                    82%
-                </span>
-
-            </div>
-
-
-            <div class="queue-item">
-
-                <span>
-                    002
-                </span>
-
-                <strong>
-                    CRYING CAT
-                </strong>
-
-                <div class="progress">
-                    <i style="width:47%"></i>
-                </div>
-
-                <span>
-                    47%
-                </span>
-
-            </div>
-
-
-            <div class="queue-item">
-
-                <span>
-                    003
-                </span>
-
-                <strong>
-                    CUSTOM #027
-                </strong>
-
-                <div class="progress">
-                    <i style="width:21%"></i>
-                </div>
-
-                <span>
-                    21%
-                </span>
-
-            </div>
-
-
-        </div>
-
-
-        <p
-            class="queue-note"
-            data-i18n="queue.note"
-        >
-            Every rug is made after the order is placed.
-        </p>
-
-    </section>
-
-
-    <!-- ================================
-         ARTIST
-    ================================= -->
-
-    <section
-        class="about"
-        id="artist"
-    >
-
-        <div
-            class="eyebrow"
-            data-i18n="about.eyebrow"
-        >
-            08 / THE ARTIST
-        </div>
-
-
-        <div class="about-grid">
-
-
-            <h2 data-i18n="about.title">
-                TOO MANY<br>
-                MEMES.<br>
-                <em>NOT ENOUGH<br>RUGS.</em>
-            </h2>
-
-
-            <div>
-
-                <p
-                    class="large-copy"
-                    data-i18n="about.large"
-                >
-                    DOCH is a handmade rug studio turning
-                    internet culture into physical objects.
-                </p>
-
-
-                <p data-i18n="about.text">
-                    Every rug is made by hand, one piece at a time.
-                    Some are funny. Some are stupid.
-                    Some are genuinely beautiful.
-                    We like all three.
-                </p>
-
-
-                <a
-                    href="#"
-                    class="text-link"
-                    data-i18n="about.link"
-                >
-                    MEET THE ARTIST ↗
-                </a>
-
-            </div>
-
-        </div>
-
-    </section>
-
-
-</main>
-
-
-<!-- ================================
-     FOOTER
-================================ -->
-
-<footer>
-
-    <div
-        class="footer-big"
-        data-i18n="footer.title"
-    >
-        SEE YOU<br>
-        ON THE <em>FLOOR.</em>
-    </div>
-
-
-    <div class="footer-bottom">
-
-        <span>
-            DOCH® 2026
-        </span>
-
-
-        <div>
-
-            <a href="#">
-                INSTAGRAM
-            </a>
-
-            <a href="#">
-                TIKTOK
-            </a>
-
-            <a href="#">
-                PINTEREST
-            </a>
-
-        </div>
-
-
-        <span data-i18n="footer.tag">
-            HANDMADE INTERNET ART
-        </span>
-
-    </div>
-
-</footer>
-
-
-<!-- ================================
-     PRODUCT MODAL
-================================ -->
-
-<div
-    class="modal"
-    id="productModal"
->
 
     <button
-        class="modal-close"
-        id="modalClose"
+        class="cart-button"
+        id="cartButton"
     >
-        ×
-    </button>
 
-
-    <div
-        class="modal-image"
-        id="modalImage"
-    >
-        <!-- Gallery is inserted by JS -->
-    </div>
-
-
-    <div class="modal-content">
-
-        <span
-            class="eyebrow"
-            data-i18n="modal.eyebrow"
-        >
-            INTERNET RELIC
+        <span data-i18n="cart.label">
+            CART
         </span>
 
+        <span id="cartCount">
+            0
+        </span>
 
-        <h2 id="modalTitle">
-            Свидетель из Фрязино
-        </h2>
-
-
-        <div class="modal-details">
-
-            <span id="modalSize">
-                180 CM
-            </span>
-
-
-            <strong id="modalPrice">
-                €690
-            </strong>
-
-        </div>
-
-
-        <p data-i18n="modal.text">
-            Handmade to order. Production begins after payment.
-        </p>
-
-
-        <button
-            class="big-button add-cart"
-            id="addCart"
-        >
-
-            <span data-i18n="modal.add">
-                ADD TO CART
-            </span>
-
-            <span>
-                +
-            </span>
-
-        </button>
-
-    </div>
+    </button>
 
 </div>
 
 
+</header>
+
+<main>
+
+
 <!-- ================================
-     CART
-================================ -->
+     HERO
+\================================= -->
 
-<aside
-    class="cart-drawer"
-    id="cartDrawer"
->
+<section class="hero">
 
-    <div class="cart-header">
+    <div class="hero-topline">
 
-        <span data-i18n="cart.your">
-            YOUR CART
+        <span data-i18n="hero.top">
+            HANDMADE / INTERNET ART
         </span>
 
-
-        <button id="cartClose">
-            ×
-        </button>
+        <span>
+            EST. 2026
+        </span>
 
     </div>
 
 
+
+    <div class="hero-title">
+
+        <div data-i18n="hero.title1">
+            MEMES.
+        </div>
+
+        <div
+            class="outline"
+            data-i18n="hero.title2"
+        >
+            MADE TO
+        </div>
+
+        <div data-i18n="hero.title3">
+            TOUCH.
+        </div>
+
+    </div>
+
+
+
+    <div class="hero-art">
+
+        <div class="glitch-rug">
+
+            <img
+                src="assets/hero.jpeg"
+                alt="DOCH handmade rug"
+            >
+
+        </div>
+
+    </div>
+
+
+
+    <div class="hero-bottom">
+
+        <p data-i18n="hero.description">
+            Internet culture, memes &amp; digital chaos —
+            translated into handmade rugs.
+        </p>
+
+
+
+        <a
+            href="#drop"
+            class="circle-button"
+            aria-label="Scroll to rugs"
+        >
+            ↓
+        </a>
+
+    </div>
+
+</section>
+
+
+
+<!-- ================================
+     MANIFESTO / IDEA
+\================================= -->
+
+<section class="manifesto">
+
     <div
-        class="cart-items"
-        id="cartItems"
+        class="eyebrow"
+        data-i18n="manifesto.eyebrow"
     >
+        01 / THE IDEA
+    </div>
+
+
+
+    <h2 data-i18n="manifesto.title">
+        THE INTERNET<br>
+        WAS NEVER<br>
+        <em>THIS SOFT.</em>
+    </h2>
+
+
+
+    <div class="manifesto-copy">
+
+        <p data-i18n="manifesto.text">
+        </p>
+
+
 
         <p
-            class="empty-cart"
-            data-i18n="cart.empty"
+            class="mono"
+            data-i18n="manifesto.mono"
         >
-            Nothing here yet.
+            HANDMADE. WEIRD. UNNECESSARY.<br>
+            EXACTLY AS IT SHOULD BE.
+        </p>
+
+    </div>
+
+</section>
+
+
+
+<!-- ================================
+     DROP
+\================================= -->
+
+<section
+    class="drop"
+    id="drop"
+>
+
+    <div class="section-header">
+
+        <div>
+
+            <div
+                class="eyebrow"
+                data-i18n="drop.eyebrow"
+            >
+                02 / CURRENT DROP
+            </div>
+
+
+
+            <h2 data-i18n="drop.title">
+                INTERNET<br>
+                <em>RELICS</em>
+            </h2>
+
+        </div>
+
+
+
+        <div class="drop-meta">
+
+            <span>
+                DROP 001
+            </span>
+
+            <span data-i18n="drop.objects">
+                04 OBJECTS
+            </span>
+
+        </div>
+
+    </div>
+
+
+
+    <div class="products">
+        <!-- Products are loaded from Supabase -->
+    </div>
+
+</section>
+
+
+
+<!-- ================================
+     PROCESS
+\================================= -->
+
+<section
+    class="process"
+    id="process"
+>
+
+    <div class="section-header">
+
+        <div>
+
+            <div
+                class="eyebrow"
+                data-i18n="process.eyebrow"
+            >
+                03 / THE PROCESS
+            </div>
+
+
+
+            <h2 data-i18n="process.title">
+                MADE BY<br>
+                <em>HAND.</em>
+            </h2>
+
+        </div>
+
+
+
+        <p data-i18n="process.subtitle">
+            Not printed.<br>
+            Not AI generated.<br>
+            Not mass produced.
         </p>
 
     </div>
 
 
-    <div class="cart-footer">
 
-        <div>
+    <div class="process-grid">
 
-            <span data-i18n="cart.total">
-                TOTAL
+
+
+        <div class="process-card">
+
+            <span>
+                01
             </span>
 
+            <h3 data-i18n="process.design.title">
+                DESIGN
+            </h3>
 
-            <strong id="cartTotal">
-                €0
-            </strong>
+            <p data-i18n="process.design.text">
+                Meme → image → rug design.
+                Every piece starts with an idea.
+            </p>
 
         </div>
 
 
-        <button class="big-button">
 
-            <span data-i18n="cart.checkout">
-                CHECKOUT
+        <div class="process-card">
+
+            <span>
+                02
+            </span>
+
+            <h3 data-i18n="process.taft.title">
+                TAFT
+            </h3>
+
+            <p data-i18n="process.taft.text">
+                Hundreds of thousands of yarn
+                loops, placed by hand.
+            </p>
+
+        </div>
+
+
+
+        <div class="process-card">
+
+            <span>
+                03
+            </span>
+
+            <h3 data-i18n="process.carve.title">
+                CARVE
+            </h3>
+
+            <p data-i18n="process.carve.text">
+                Every surface is sculpted
+                until the image comes alive.
+            </p>
+
+        </div>
+
+
+
+        <div class="process-card">
+
+            <span>
+                04
+            </span>
+
+            <h3 data-i18n="process.ship.title">
+                SHIP
+            </h3>
+
+            <p data-i18n="process.ship.text">
+                Your rug leaves the studio
+                and enters the wild.
+            </p>
+
+        </div>
+
+
+
+    </div>
+
+</section>
+
+
+<!-- ================================
+     CUSTOM
+\================================= -->
+
+<section
+    class="custom"
+    id="custom"
+>
+
+    <div class="custom-number">
+        04
+    </div>
+
+
+
+    <div class="custom-content">
+
+        <div
+            class="eyebrow"
+            data-i18n="custom.eyebrow"
+        >
+            CUSTOM RUGS
+        </div>
+
+
+
+        <h2 data-i18n="custom.title">
+            GOT A<br>
+            <span>MEME?</span>
+        </h2>
+
+
+
+        <p data-i18n="custom.text">
+            Send us the image. We'll put it on the floor.
+        </p>
+
+
+
+        <button
+            class="big-button"
+            id="customButton"
+        >
+
+            <span data-i18n="custom.button">
+                MAKE MY RUG
             </span>
 
             <span>
-                →
+                ↗
             </span>
 
         </button>
 
     </div>
 
-</aside>
+
+
+    <div class="custom-side">
+
+        <div data-i18n="custom.side1">
+            YOUR IMAGE
+        </div>
+
+        <div>
+            ↓
+        </div>
+
+        <div data-i18n="custom.side2">
+            YARN
+        </div>
+
+        <div>
+            ↓
+        </div>
+
+        <div data-i18n="custom.side3">
+            YOUR RUG
+        </div>
+
+    </div>
+
+</section>
+
+
+
+
+
+
+
+<!-- ================================
+     FAQ
+\================================= -->
+
+<section
+    class="faq"
+    id="faq"
+>
+
+    <div
+        class="eyebrow"
+        data-i18n="faq.eyebrow"
+    >
+        05 / FAQ
+    </div>
+
+
+
+    <div class="faq-header">
+
+        <h2 data-i18n="faq.title">
+            QUESTIONS<br>
+            <em>YOU MAY HAVE.</em>
+        </h2>
+
+
+
+        <p data-i18n="faq.subtitle">
+            Probably.
+        </p>
+
+    </div>
+
+
+
+    <div class="faq-list">
+
+
+
+        <details class="faq-item">
+
+            <summary>
+
+                <span data-i18n="faq.q1">
+                    DO YOU ACTUALLY MAKE THESE BY HAND?
+                </span>
+
+                <span class="faq-plus">
+                    \+
+                </span>
+
+            </summary>
+
+
+
+            <div class="faq-answer">
+
+                <p data-i18n="faq.a1">
+                    PLACEHOLDER ANSWER. THIS WILL EVENTUALLY
+                    CONTAIN A SUSPICIOUSLY HONEST EXPLANATION.
+                </p>
+
+            </div>
+
+        </details>
+
+
+
+        <details class="faq-item">
+
+            <summary>
+
+                <span data-i18n="faq.q2">
+                    HOW LONG DOES A RUG TAKE?
+                </span>
+
+                <span class="faq-plus">
+                    \+
+                </span>
+
+            </summary>
+
+
+
+            <div class="faq-answer">
+
+                <p data-i18n="faq.a2">
+                    PLACEHOLDER ANSWER. SOMEWHERE BETWEEN
+                    "A WHILE" AND "WHY DID I ORDER THIS?"
+                </p>
+
+            </div>
+
+        </details>
+
+
+
+        <details class="faq-item">
+
+            <summary>
+
+                <span data-i18n="faq.q3">
+                    CAN I ORDER A CUSTOM RUG?
+                </span>
+
+                <span class="faq-plus">
+                    \+
+                </span>
+
+            </summary>
+
+
+
+            <div class="faq-answer">
+
+                <p data-i18n="faq.a3">
+                    PLACEHOLDER ANSWER. SEND US YOUR MEME.
+                    WE'LL FIGURE OUT THE REST.
+                </p>
+
+            </div>
+
+        </details>
+
+
+
+        <details class="faq-item">
+
+            <summary>
+
+                <span data-i18n="faq.q4">
+                    DO YOU SHIP INTERNATIONALLY?
+                </span>
+
+                <span class="faq-plus">
+                    \+
+                </span>
+
+            </summary>
+
+
+
+            <div class="faq-answer">
+
+                <p data-i18n="faq.a4">
+                    PLACEHOLDER ANSWER. YES, PROBABLY.
+                    SHIPPING DETAILS WILL LIVE HERE.
+                </p>
+
+            </div>
+
+        </details>
+
+
+
+        <details class="faq-item">
+
+            <summary>
+
+                <span data-i18n="faq.q5">
+                    WHAT IF I REGRET PUTTING A MEME ON MY FLOOR?
+                </span>
+
+                <span class="faq-plus">
+                    \+
+                </span>
+
+            </summary>
+
+
+
+            <div class="faq-answer">
+
+                <p data-i18n="faq.a5">
+                    PLACEHOLDER ANSWER. THIS IS BETWEEN
+                    YOU, YOUR FLOOR, AND GOD.
+                </p>
+
+            </div>
+
+        </details>
+
+
+
+    </div>
+
+</section>
+
+
+
+<!-- ================================
+     ABOUT / BRAND MANIFESTO
+\================================= -->
+
+<section
+    class="brand-manifesto"
+    id="about"
+>
+
+    <div
+        class="eyebrow"
+        data-i18n="brand.eyebrow"
+    >
+        06 / ABOUT DOCH
+    </div>
+
+
+
+    <div class="brand-manifesto-grid">
+
+
+
+        <h2 data-i18n="brand.title">
+            WE MAKE<br>
+            RUGS FOR<br>
+            PEOPLE WHO<br>
+            <em>SHOULD KNOW BETTER.</em>
+        </h2>
+
+
+
+        <div class="brand-manifesto-copy">
+
+            <p
+                class="large-copy"
+                data-i18n="brand.large"
+            >
+                PLACEHOLDER FOR THE DOCH MANIFESTO.
+            </p>
+
+
+
+            <p data-i18n="brand.text">
+                This is where the unnecessary amount of sarcasm,
+                internet culture, questionable decisions and
+                extremely serious rug-making philosophy will live.
+            </p>
+
+
+
+            <span
+                class="manifesto-signature"
+                data-i18n="brand.mono"
+            >
+                — DOCH
+            </span>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- ================================
+     PRODUCTION QUEUE
+\================================= -->
+
+<section class="queue">
+
+    <div
+        class="eyebrow"
+        data-i18n="queue.eyebrow"
+    >
+        07 / PRODUCTION QUEUE
+    </div>
+
+
+
+    <div class="queue-title">
+
+        <h2 data-i18n="queue.title">
+            CURRENTLY<br>
+            <em>IN PRODUCTION</em>
+        </h2>
+
+
+
+        <span data-i18n="queue.live">
+            LIVE / 04
+        </span>
+
+    </div>
+
+
+
+    <div class="queue-list">
+
+
+
+        <div class="queue-item">
+
+            <span>
+                001
+            </span>
+
+            <strong>
+                СВИДЕТЕЛЬ ИЗ ФРЯЗИНО
+            </strong>
+
+            <div class="progress">
+                <i style="width:82%"></i>
+            </div>
+
+            <span>
+                82%
+            </span>
+
+        </div>
+
+
+
+        <div class="queue-item">
+
+            <span>
+                002
+            </span>
+
+            <strong>
+                CRYING CAT
+            </strong>
+
+            <div class="progress">
+                <i style="width:47%"></i>
+            </div>
+
+            <span>
+                47%
+            </span>
+
+        </div>
+
+
+
+        <div class="queue-item">
+
+            <span>
+                003
+            </span>
+
+            <strong>
+                CUSTOM #027
+            </strong>
+
+            <div class="progress">
+                <i style="width:21%"></i>
+            </div>
+
+            <span>
+                21%
+            </span>
+
+        </div>
+
+
+
+    </div>
+
+
+
+    <p
+        class="queue-note"
+        data-i18n="queue.note"
+    >
+        Every rug is made after the order is placed.
+    </p>
+
+</section>
+
+
+
+<!-- ================================
+     ARTIST
+\================================= -->
+
+<section
+    class="about"
+    id="artist"
+>
+
+    <div
+        class="eyebrow"
+        data-i18n="about.eyebrow"
+    >
+        08 / THE ARTIST
+    </div>
+
+
+
+    <div class="about-grid">
+
+
+
+        <h2 data-i18n="about.title">
+            TOO MANY<br>
+            MEMES.<br>
+            <em>NOT ENOUGH<br>RUGS.</em>
+        </h2>
+
+
+
+        <div>
+
+            <p
+                class="large-copy"
+                data-i18n="about.large"
+            >
+                DOCH is a handmade rug studio turning
+                internet culture into physical objects.
+            </p>
+
+
+
+            <p data-i18n="about.text">
+                Every rug is made by hand, one piece at a time.
+                Some are funny. Some are stupid.
+                Some are genuinely beautiful.
+                We like all three.
+            </p>
+
+
+
+            <a
+                href="#"
+                class="text-link"
+                data-i18n="about.link"
+            >
+                MEET THE ARTIST ↗
+            </a>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+</main>
+
+<!-- ================================
+FOOTER
+\================================ -->
+
+<footer>
 
 
 <div
-    class="cart-overlay"
-    id="cartOverlay"
-></div>
+    class="footer-big"
+    data-i18n="footer.title"
+>
+    SEE YOU<br>
+    ON THE <em>FLOOR.</em>
+</div>
 
+
+
+<div class="footer-bottom">
+
+    <span>
+        DOCH® 2026
+    </span>
+
+
+
+    <div>
+
+        <a href="#">
+            INSTAGRAM
+        </a>
+
+        <a href="#">
+            TIKTOK
+        </a>
+
+        <a href="#">
+            PINTEREST
+        </a>
+
+    </div>
+
+
+
+    <span data-i18n="footer.tag">
+        HANDMADE INTERNET ART
+    </span>
+
+</div>
+
+
+</footer>
+
+<!-- ================================
+PRODUCT MODAL
+\================================ -->
+
+<div
+class="modal"
+id="productModal"
+>
+
+
+<button
+    class="modal-close"
+    id="modalClose"
+>
+    ×
+</button>
+
+
+
+<div
+    class="modal-image"
+    id="modalImage"
+>
+    <!-- Gallery is inserted by JS -->
+</div>
+
+
+
+<div class="modal-content">
+
+    <span
+        class="eyebrow"
+        data-i18n="modal.eyebrow"
+    >
+        INTERNET RELIC
+    </span>
+
+
+
+    <h2 id="modalTitle">
+        Свидетель из Фрязино
+    </h2>
+
+
+
+    <div class="modal-details">
+
+        <span id="modalSize">
+            180 CM
+        </span>
+
+
+
+        <strong id="modalPrice">
+            €690
+        </strong>
+
+    </div>
+
+
+
+    <p data-i18n="modal.text">
+        Handmade to order. Production begins after payment.
+    </p>
+
+
+
+    <button
+        class="big-button add-cart"
+        id="addCart"
+    >
+
+        <span data-i18n="modal.add">
+            ADD TO CART
+        </span>
+
+        <span>
+            \+
+        </span>
+
+    </button>
+
+</div>
+
+
+</div>
+
+<!-- ================================
+CART
+\================================ -->
+
+<aside
+class="cart-drawer"
+id="cartDrawer"
+>
+
+
+<div class="cart-header">
+
+    <span data-i18n="cart.your">
+        YOUR CART
+    </span>
+
+
+
+    <button id="cartClose">
+        ×
+    </button>
+
+</div>
+
+
+
+<div
+    class="cart-items"
+    id="cartItems"
+>
+
+    <p
+        class="empty-cart"
+        data-i18n="cart.empty"
+    >
+        Nothing here yet.
+    </p>
+
+</div>
+
+
+
+<div class="cart-footer">
+
+    <div>
+
+        <span data-i18n="cart.total">
+            TOTAL
+        </span>
+
+
+
+        <strong id="cartTotal">
+            €0
+        </strong>
+
+    </div>
+
+
+
+    <button class="big-button">
+
+        <span data-i18n="cart.checkout">
+            CHECKOUT
+        </span>
+
+        <span>
+            →
+        </span>
+
+    </button>
+
+</div>
+
+
+</aside>
+
+<div
+class="cart-overlay"
+id="cartOverlay"
+></div>
 
 <script src="js/main.js"></script>
 
