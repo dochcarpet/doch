@@ -246,7 +246,7 @@ const translations = {
             "СДЕЛАТЬ МОЙ КОВЁР",
 
         "custom.side1": "ТВОЯ КАРТИНКА",
-        "custom.side2": "ПРЯЖА",
+        "custom.side2": "НАША РАБОТА",
         "custom.side3": "ТВОЙ КОВЁР",
 
         "process.eyebrow": "03 / ПРОЦЕСС",
