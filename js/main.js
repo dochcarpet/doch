@@ -5,8 +5,16 @@
 import {
     initProducts,
     setProductsLanguage,
-    getProducts
+    getProducts,
+    closeProductModal
 } from "./products.js";
+
+import {
+    addToCart,
+    openCart,
+    closeCart,
+    setCartLanguage
+} from "./cart.js";
 
 import {
     translations
@@ -69,15 +77,16 @@ function setLanguage(language) {
         return;
     }
 
-    currentLanguage = language;
+    currentLanguage =
+        language;
 
     document.documentElement.lang =
         language;
 
 
-    /*
-       Regular translated elements
-    */
+    /* -----------------------------------------
+       REGULAR TRANSLATED ELEMENTS
+    ----------------------------------------- */
 
     document
         .querySelectorAll("[data-i18n]")
@@ -99,9 +108,9 @@ function setLanguage(language) {
         });
 
 
-    /*
-       Placeholders
-    */
+    /* -----------------------------------------
+       PLACEHOLDERS
+    ----------------------------------------- */
 
     document
         .querySelectorAll(
@@ -125,9 +134,9 @@ function setLanguage(language) {
         });
 
 
-    /*
-       Language buttons
-    */
+    /* -----------------------------------------
+       LANGUAGE BUTTONS
+    ----------------------------------------- */
 
     document
         .querySelectorAll(".lang-button")
@@ -141,42 +150,22 @@ function setLanguage(language) {
         });
 
 
-    /*
-       Tell products module to rerender
-       itself in the new language.
-    */
+    /* -----------------------------------------
+       PRODUCTS
+    ----------------------------------------- */
 
-    setProductsLanguage(language);
-
-
-    /*
-       Tell cart.js about language.
-
-       cart.js is currently a classic script,
-       so we expose the current language
-       through window.
-    */
-
-    window.currentLanguage =
-        language;
-
-    window.translations =
-        translations;
+    setProductsLanguage(
+        language
+    );
 
 
-    /*
-       If cart.js exposes updateCart,
-       refresh it after language change.
-    */
+    /* -----------------------------------------
+       CART
+    ----------------------------------------- */
 
-    if (
-        typeof window.updateCart ===
-        "function"
-    ) {
-
-        window.updateCart();
-
-    }
+    setCartLanguage(
+        language
+    );
 
 }
 
@@ -217,25 +206,6 @@ if (modalClose) {
 }
 
 
-function closeProductModal() {
-
-    if (!modal) {
-        return;
-    }
-
-    modal.classList.remove(
-        "active"
-    );
-
-    delete modal.dataset.product;
-
-    document.body.classList.remove(
-        "no-scroll"
-    );
-
-}
-
-
 /* =========================================================
    ADD PRODUCT TO CART
 ========================================================= */
@@ -257,6 +227,7 @@ if (addCartButton) {
             const products =
                 getProducts();
 
+
             const product =
                 products.find(
                     item =>
@@ -271,36 +242,25 @@ if (addCartButton) {
 
 
             /*
-               cart.js currently lives as a
-               classic script.
-
-               Its functions are therefore
-               available through window.
+               Do not add sold products.
             */
 
             if (
-                typeof window.addToCart ===
-                "function"
+                product.status === "sold"
             ) {
-
-                window.addToCart(
-                    product
-                );
-
+                return;
             }
+
+
+            addToCart(
+                product
+            );
 
 
             closeProductModal();
 
 
-            if (
-                typeof window.openCart ===
-                "function"
-            ) {
-
-                window.openCart();
-
-            }
+            openCart();
 
         }
     );
@@ -317,16 +277,15 @@ document.addEventListener(
     event => {
 
         if (
-            event.key !==
-            "Escape"
+            event.key !== "Escape"
         ) {
             return;
         }
 
 
-        /*
-           Product modal
-        */
+        /* -----------------------------------------
+           PRODUCT MODAL
+        ----------------------------------------- */
 
         if (
             modal?.classList.contains(
@@ -339,9 +298,9 @@ document.addEventListener(
         }
 
 
-        /*
-           Custom modal
-        */
+        /* -----------------------------------------
+           CUSTOM MODAL
+        ----------------------------------------- */
 
         if (
             customModal?.classList.contains(
@@ -354,18 +313,11 @@ document.addEventListener(
         }
 
 
-        /*
-           Cart
-        */
+        /* -----------------------------------------
+           CART
+        ----------------------------------------- */
 
-        if (
-            typeof window.closeCart ===
-            "function"
-        ) {
-
-            window.closeCart();
-
-        }
+        closeCart();
 
     }
 );
@@ -439,23 +391,25 @@ function initScrollReveal() {
                 ".about-grid"
             ].join(",")
         )
-        .forEach(element => {
+        .forEach(
+            element => {
 
-            element.style.opacity =
-                "0";
+                element.style.opacity =
+                    "0";
 
-            element.style.transform =
-                "translateY(35px)";
+                element.style.transform =
+                    "translateY(35px)";
 
-            element.style.transition =
-                "opacity .8s ease, transform .8s cubic-bezier(.2,.7,.2,1)";
+                element.style.transition =
+                    "opacity .8s ease, transform .8s cubic-bezier(.2,.7,.2,1)";
 
 
-            scrollObserver.observe(
-                element
-            );
+                scrollObserver.observe(
+                    element
+                );
 
-        });
+            }
+        );
 
 }
 
@@ -472,89 +426,93 @@ function initFAQ() {
         );
 
 
-    faqItems.forEach(item => {
+    faqItems.forEach(
+        item => {
 
-        const summary =
-            item.querySelector(
-                "summary"
-            );
-
-        if (!summary) {
-            return;
-        }
+            const summary =
+                item.querySelector(
+                    "summary"
+                );
 
 
-        summary.addEventListener(
-            "click",
-            event => {
-
-                event.preventDefault();
+            if (!summary) {
+                return;
+            }
 
 
-                const isOpen =
-                    item.hasAttribute(
-                        "open"
-                    );
+            summary.addEventListener(
+                "click",
+                event => {
+
+                    event.preventDefault();
 
 
-                /*
-                   Close everything else.
-                */
-
-                faqItems.forEach(
-                    otherItem => {
-
-                        if (
-                            otherItem ===
-                            item
-                        ) {
-                            return;
-                        }
-
-
-                        otherItem.removeAttribute(
+                    const isOpen =
+                        item.hasAttribute(
                             "open"
                         );
 
-                        otherItem.classList.remove(
+
+                    /*
+                       Close everything else.
+                    */
+
+                    faqItems.forEach(
+                        otherItem => {
+
+                            if (
+                                otherItem ===
+                                item
+                            ) {
+                                return;
+                            }
+
+
+                            otherItem.removeAttribute(
+                                "open"
+                            );
+
+
+                            otherItem.classList.remove(
+                                "active"
+                            );
+
+                        }
+                    );
+
+
+                    /*
+                       Toggle current item.
+                    */
+
+                    if (isOpen) {
+
+                        item.removeAttribute(
+                            "open"
+                        );
+
+                        item.classList.remove(
+                            "active"
+                        );
+
+                    } else {
+
+                        item.setAttribute(
+                            "open",
+                            ""
+                        );
+
+                        item.classList.add(
                             "active"
                         );
 
                     }
-                );
-
-
-                /*
-                   Toggle current item.
-                */
-
-                if (isOpen) {
-
-                    item.removeAttribute(
-                        "open"
-                    );
-
-                    item.classList.remove(
-                        "active"
-                    );
-
-                } else {
-
-                    item.setAttribute(
-                        "open",
-                        ""
-                    );
-
-                    item.classList.add(
-                        "active"
-                    );
 
                 }
+            );
 
-            }
-        );
-
-    });
+        }
+    );
 
 }
 
@@ -569,9 +527,11 @@ function openCustomModal() {
         return;
     }
 
+
     customModal.classList.add(
         "active"
     );
+
 
     document.body.classList.add(
         "no-scroll"
@@ -586,9 +546,11 @@ function closeCustomModal() {
         return;
     }
 
+
     customModal.classList.remove(
         "active"
     );
+
 
     document.body.classList.remove(
         "no-scroll"
@@ -596,6 +558,10 @@ function closeCustomModal() {
 
 }
 
+
+/* =========================================================
+   CUSTOM MODAL EVENTS
+========================================================= */
 
 if (customButton) {
 
@@ -692,11 +658,14 @@ async function submitCustomRugRequest(
         null;
 
 
-    /* -----------------------------------------
+    /* =================================================
        VALIDATION
-    ----------------------------------------- */
+    ================================================= */
 
-    if (!name || !contact) {
+    if (
+        !name ||
+        !contact
+    ) {
 
         alert(
             currentLanguage === "ru"
@@ -742,9 +711,9 @@ async function submitCustomRugRequest(
     }
 
 
-    /* -----------------------------------------
+    /* =================================================
        BUTTON STATE
-    ----------------------------------------- */
+    ================================================= */
 
     const originalButtonHTML =
         customSubmit?.innerHTML ||
@@ -1071,7 +1040,7 @@ async function init() {
 
     /*
        Make translation data available
-       to the existing classic cart.js.
+       globally as a compatibility layer.
     */
 
     window.translations =
@@ -1081,25 +1050,25 @@ async function init() {
         currentLanguage;
 
 
-    /*
-       Initial language.
-    */
+    /* -----------------------------------------
+       INITIAL LANGUAGE
+    ----------------------------------------- */
 
     setLanguage(
         currentLanguage
     );
 
 
-    /*
-       Products are owned by products.js.
-    */
+    /* -----------------------------------------
+       PRODUCTS
+    ----------------------------------------- */
 
     await initProducts();
 
 
-    /*
-       UI behaviour.
-    */
+    /* -----------------------------------------
+       UI
+    ----------------------------------------- */
 
     initFAQ();
 
