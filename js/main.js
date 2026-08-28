@@ -112,6 +112,38 @@ const translations = {
         "custom.side2": "YARN",
         "custom.side3": "YOUR RUG",
 
+        "customModal.eyebrow": "CUSTOM RUG REQUEST",
+
+"customModal.title":
+    "MAKE YOUR<br><span>RUG.</span>",
+
+"customModal.name":
+    "NAME",
+
+         "customModal.namePlaceholder":
+             "Your name",
+         
+         "customModal.contact":
+             "CONTACT",
+         
+         "customModal.contactPlaceholder":
+             "Telegram / Instagram / Email",
+         
+         "customModal.message":
+             "TELL US ABOUT YOUR RUG",
+         
+         "customModal.messagePlaceholder":
+             "Size, idea, anything we should know...",
+         
+         "customModal.image":
+             "MEME / IMAGE",
+         
+         "customModal.submit":
+             "SEND REQUEST",
+         
+         "customModal.success":
+             "REQUEST SENT.<br>WE'LL GET BACK TO YOU.",
+
         "process.eyebrow": "03 / THE PROCESS",
         "process.title":
             "MADE BY<br><em>HAND.</em>",
@@ -248,6 +280,38 @@ const translations = {
         "custom.side1": "ТВОЯ КАРТИНКА",
         "custom.side2": "НАША РАБОТА",
         "custom.side3": "ТВОЙ КОВЁР",
+
+        "customModal.eyebrow": "ЗАПРОС НА КОВЁР",
+
+         "customModal.title":
+             "СДЕЛАТЬ СВОЙ<br><span>КОВЁР.</span>",
+         
+         "customModal.name":
+             "ИМЯ",
+         
+         "customModal.namePlaceholder":
+             "Ваше имя",
+         
+         "customModal.contact":
+             "КОНТАКТ",
+         
+         "customModal.contactPlaceholder":
+             "Telegram / Instagram / Email",
+         
+         "customModal.message":
+             "РАССКАЖИТЕ О КОВРЕ",
+         
+         "customModal.messagePlaceholder":
+             "Размер, идея, всё, что нам стоит знать...",
+         
+         "customModal.image":
+             "МЕМ / КАРТИНКА",
+         
+         "customModal.submit":
+             "ОТПРАВИТЬ ЗАПРОС",
+         
+         "customModal.success":
+             "ЗАПРОС ОТПРАВЛЕН.<br>МЫ С ВАМИ СВЯЖЕМСЯ.",
 
         "process.eyebrow": "03 / ПРОЦЕСС",
         "process.title":
