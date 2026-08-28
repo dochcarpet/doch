@@ -875,6 +875,32 @@ async function submitCustomRugRequest(
         const orderResponse =
     await fetch(
         `${SUPABASE_URL}/rest/v1/rpc/create_custom_rug_order`,
+       console.log("RPC STATUS:", orderResponse.status);
+
+const rawResponse = await orderResponse.text();
+
+console.log("RPC RAW RESPONSE:", rawResponse);
+
+if (!orderResponse.ok) {
+    throw new Error(
+        `Order creation failed: ${orderResponse.status} ${rawResponse}`
+    );
+}
+
+let createdOrder;
+
+try {
+    createdOrder = JSON.parse(rawResponse);
+} catch (error) {
+    throw new Error(
+        `Invalid RPC response: ${rawResponse}`
+    );
+}
+
+console.log(
+    "DOCH CUSTOM ORDER:",
+    createdOrder
+);
         {
             method: "POST",
 
@@ -919,10 +945,6 @@ async function submitCustomRugRequest(
             );
 
         }
-
-
-        const createdOrder =
-            await orderResponse.json();
 
 
         console.log(
