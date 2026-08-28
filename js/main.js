@@ -1117,10 +1117,6 @@ if (
     return;
 
 }
-
-    return;
-
-}
        if (
     !estimatedPrice
 ) {
