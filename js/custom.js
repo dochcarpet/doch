@@ -8,7 +8,6 @@ import {
 } from "./config.js";
 
 
-
 /* =========================================================
    STATE
 ========================================================= */
@@ -813,13 +812,13 @@ async function submitCustomRugRequest(
                 {
                     method: "POST",
 
-                  headers: {
-                      "apikey":
-                          SUPABASE_KEY,
-                  
-                      "Authorization":
-                          `Bearer ${SUPABASE_KEY}`
-                  },
+                    headers: {
+                        "apikey":
+                            SUPABASE_KEY,
+
+                        "Authorization":
+                            `Bearer ${SUPABASE_KEY}`
+                    },
 
                     body:
                         file
@@ -851,97 +850,157 @@ async function submitCustomRugRequest(
             `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${filePath}`;
 
 
-        /* =================================================
-           6. ORDER DATA
-        ================================================= */
+        console.log(
+            "DOCH IMAGE URL:",
+            imageUrl
+        );
 
 
         /* =================================================
-           7. CREATE DATABASE RECORD
+           6. CREATE DATABASE RECORD
         ================================================= */
 
-         console.log("DOCH SUPABASE URL:", SUPABASE_URL);
-         console.log(
-             "DOCH KEY TYPE:",
-             SUPABASE_KEY?.startsWith("sb_publishable_")
-                 ? "publishable"
-                 : "NOT publishable"
-         );
-         console.log(
-             "DOCH KEY LENGTH:",
-             SUPABASE_KEY?.length
-         );
+        console.log(
+            "DOCH SUPABASE URL:",
+            SUPABASE_URL
+        );
+
+
+        console.log(
+            "DOCH KEY TYPE:",
+            SUPABASE_KEY?.startsWith(
+                "sb_publishable_"
+            )
+                ? "publishable"
+                : "NOT publishable"
+        );
+
+
+        console.log(
+            "DOCH KEY LENGTH:",
+            SUPABASE_KEY?.length
+        );
+
 
         const orderResponse =
-    await fetch(
-        `${SUPABASE_URL}/rest/v1/rpc/create_custom_rug_order`,
-       console.log("RPC STATUS:", orderResponse.status);
+            await fetch(
+                `${SUPABASE_URL}/rest/v1/rpc/create_custom_rug_order`,
+                {
+                    method: "POST",
 
-const rawResponse = await orderResponse.text();
+                    headers: {
+                        "apikey":
+                            SUPABASE_KEY,
 
-console.log("RPC RAW RESPONSE:", rawResponse);
+                        "Authorization":
+                            `Bearer ${SUPABASE_KEY}`,
 
-if (!orderResponse.ok) {
-    throw new Error(
-        `Order creation failed: ${orderResponse.status} ${rawResponse}`
-    );
-}
+                        "Content-Type":
+                            "application/json"
+                    },
 
-let createdOrder;
+                    body:
+                        JSON.stringify({
 
-try {
-    createdOrder = JSON.parse(rawResponse);
-} catch (error) {
-    throw new Error(
-        `Invalid RPC response: ${rawResponse}`
-    );
-}
+                            p_name:
+                                name,
 
-console.log(
-    "DOCH CUSTOM ORDER:",
-    createdOrder
-);
-        {
-            method: "POST",
+                            p_email:
+                                email,
 
-            headers: {
-                "apikey":
-                    SUPABASE_KEY,
+                            p_image_url:
+                                imageUrl,
 
-                "Authorization":
-                    `Bearer ${SUPABASE_KEY}`,
+                            p_description:
+                                message,
 
-                "Content-Type":
-                    "application/json"
-            },
+                            p_width:
+                                width,
 
-            body:
-                JSON.stringify({
-                    p_name: name,
-                    p_email: email,
-                    p_image_url: imageUrl,
-                    p_description: message,
-                    p_width: width,
-                    p_height: height,
-                    p_shape: shape,
-                    p_surface: surface,
-                    p_quantity: quantity,
-                    p_estimated_price: estimatedPrice
-                })
-        }
-    );
+                            p_height:
+                                height,
+
+                            p_shape:
+                                shape,
+
+                            p_surface:
+                                surface,
+
+                            p_quantity:
+                                quantity,
+
+                            p_estimated_price:
+                                estimatedPrice
+
+                        })
+
+                }
+            );
+
+
+        console.log(
+            "RPC STATUS:",
+            orderResponse.status
+        );
+
+
+        const rawResponse =
+            await orderResponse.text();
+
+
+        console.log(
+            "RPC RAW RESPONSE:",
+            rawResponse
+        );
 
 
         if (
             !orderResponse.ok
         ) {
 
-            const errorText =
-                await orderResponse.text();
+            throw new Error(
+                `Order creation failed: ${orderResponse.status} ${rawResponse}`
+            );
 
+        }
+
+
+        /* =================================================
+           7. PARSE CREATED ORDER
+        ================================================= */
+
+        let createdOrder;
+
+        try {
+
+            createdOrder =
+                JSON.parse(
+                    rawResponse
+                );
+
+        } catch (error) {
 
             throw new Error(
-                `Order creation failed: ${orderResponse.status} ${errorText}`
+                `Invalid RPC response: ${rawResponse}`
+            );
+
+        }
+
+
+        const order =
+            Array.isArray(
+                createdOrder
+            )
+                ? createdOrder[0]
+                : createdOrder;
+
+
+        if (
+            !order?.id
+        ) {
+
+            throw new Error(
+                "Order was created but no order ID was returned."
             );
 
         }
@@ -949,12 +1008,95 @@ console.log(
 
         console.log(
             "DOCH CUSTOM ORDER:",
-            createdOrder
+            order
         );
 
 
         /* =================================================
-           8. SUCCESS
+           8. SEND ORDER TO TELEGRAM
+        ================================================= */
+
+        try {
+
+            console.log(
+                "DOCH: sending order to Telegram..."
+            );
+
+
+            const telegramResponse =
+                await fetch(
+                    `${SUPABASE_URL}/functions/v1/rapid-endpoint`,
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json",
+
+                            "apikey":
+                                SUPABASE_KEY,
+
+                            "Authorization":
+                                `Bearer ${SUPABASE_KEY}`
+                        },
+
+                        body:
+                            JSON.stringify({
+                                record:
+                                    order
+                            })
+
+                    }
+                );
+
+
+            const telegramRaw =
+                await telegramResponse.text();
+
+
+            console.log(
+                "DOCH TELEGRAM STATUS:",
+                telegramResponse.status
+            );
+
+
+            console.log(
+                "DOCH TELEGRAM RESPONSE:",
+                telegramRaw
+            );
+
+
+            if (
+                !telegramResponse.ok
+            ) {
+
+                console.error(
+                    "DOCH TELEGRAM NOTIFICATION FAILED:",
+                    telegramRaw
+                );
+
+            } else {
+
+                console.log(
+                    "DOCH TELEGRAM SENT SUCCESSFULLY"
+                );
+
+            }
+
+        } catch (
+            telegramError
+        ) {
+
+            console.error(
+                "DOCH TELEGRAM ERROR:",
+                telegramError
+            );
+
+        }
+
+
+        /* =================================================
+           9. SUCCESS
         ================================================= */
 
         customForm.style.display =
