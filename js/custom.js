@@ -817,9 +817,12 @@ async function submitCustomRugRequest(
                     method: "POST",
 
                   headers: {
-                   "apikey":
-                       SUPABASE_KEY
-               },
+                      "apikey":
+                          SUPABASE_KEY,
+                  
+                      "Authorization":
+                          `Bearer ${SUPABASE_KEY}`
+                  },
 
                     body:
                         file
