@@ -1136,25 +1136,46 @@ id="cartOverlay"
 
         <form id="customRequestForm">
 
-            <div class="custom-form-group">
+<div class="custom-form-group">
 
-                <label
-                    for="customerName"
-                    data-i18n="customModal.name"
-                >
-                    NAME
-                </label>
+    <label
+        for="contactType"
+        data-i18n="customModal.contactType"
+    >
+        CONTACT TYPE
+    </label>
 
-                <input
-                    type="text"
-                    id="customerName"
-                    name="name"
-                    data-i18n-placeholder="customModal.namePlaceholder"
-                    placeholder="Your name"
-                    required
-                >
+    <select
+        id="contactType"
+        name="contactType"
+        required
+    >
+        <option value="telegram">Telegram</option>
+        <option value="instagram">Instagram</option>
+        <option value="email">Email</option>
+    </select>
 
-            </div>
+        </div>
+        
+        
+        <div class="custom-form-group">
+        
+            <label
+                for="customerContact"
+                data-i18n="customModal.contact"
+            >
+                CONTACT
+            </label>
+        
+            <input
+                type="text"
+                id="customerContact"
+                name="contact"
+                placeholder="@username"
+                required
+            >
+        
+        </div>
 
 
             <div class="custom-form-group">
