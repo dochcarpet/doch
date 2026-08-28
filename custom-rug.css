@@ -1008,11 +1008,11 @@ button {
 .preview-upload-button {
     position: absolute;
 
-    top: 18px;
-    right: 18px;
+    inset: 50% auto auto 50%;
+    transform: translate(-50%, -50%);
 
-    width: 42px;
-    height: 42px;
+    width: 62px;
+    height: 62px;
     min-height: 0;
 
     padding: 0;
@@ -1023,7 +1023,19 @@ button {
     background: var(--white);
     color: var(--black);
 
+    border: 1px solid var(--line);
+    cursor: pointer;
+
     z-index: 5;
+}
+
+.preview-upload-button span {
+    font: 24px var(--mono);
+    line-height: 1;
+}
+
+.preview-upload-button:hover {
+    background: var(--green);
 }
 
 .preview-upload-button span {
