@@ -66,6 +66,43 @@ const customSubmit =
         ? customForm.querySelector(".custom-submit")
         : null;
 
+/* =========================================================
+   CUSTOM RUG OPTIONS
+========================================================= */
+
+const rugWidthInput =
+    document.getElementById("rugWidth");
+
+const rugHeightInput =
+    document.getElementById("rugHeight");
+
+const rugShapeInput =
+    document.getElementById("rugShape");
+
+const rugSurfaceInput =
+    document.getElementById("rugSurface");
+
+const rugQuantityInput =
+    document.getElementById("rugQuantity");
+
+const rugEstimatePrice =
+    document.getElementById("rugEstimatePrice");
+
+const rugShapeOptions =
+    document.querySelectorAll(
+        ".rug-shape-option"
+    );
+
+const rugSurfaceOptions =
+    document.querySelectorAll(
+        ".rug-surface-option"
+    );
+
+const quantityMinus =
+    document.getElementById("quantityMinus");
+
+const quantityPlus =
+    document.getElementById("quantityPlus");
 
 /* =========================================================
    LANGUAGE
@@ -558,6 +595,367 @@ function closeCustomModal() {
 
 }
 
+/* =========================================================
+   CUSTOM RUG PRICE CALCULATOR
+========================================================= */
+
+/*
+   Base price per 100 cm².
+
+   Change this ONE number when we finalize
+   the actual DOCH pricing model.
+*/
+
+const CUSTOM_RUG_PRICE_PER_100CM2 = 1.5;
+
+
+/*
+   Shape multipliers.
+
+   Rectangle is the base price.
+*/
+
+const CUSTOM_RUG_SHAPE_MULTIPLIERS = {
+
+    rectangle: 1,
+
+    square: 1,
+
+    round: 1.10,
+
+    organic: 1.20
+
+};
+
+
+/*
+   Surface multipliers.
+
+   Carving costs more because it requires
+   additional manual work.
+
+*/
+
+const CUSTOM_RUG_SURFACE_MULTIPLIERS = {
+
+    flat: 1,
+
+    carved: 1.20
+
+};
+
+
+function calculateCustomRugPrice() {
+
+    const width =
+        Number(
+            rugWidthInput?.value
+        );
+
+    const height =
+        Number(
+            rugHeightInput?.value
+        );
+
+    const quantity =
+        Math.max(
+            1,
+            Number(
+                rugQuantityInput?.value
+            ) || 1
+        );
+
+    const shape =
+        rugShapeInput?.value ||
+        "rectangle";
+
+    const surface =
+        rugSurfaceInput?.value ||
+        "flat";
+
+
+    if (
+        !width ||
+        !height ||
+        width < 40 ||
+        height < 40
+    ) {
+
+        if (rugEstimatePrice) {
+
+            rugEstimatePrice.textContent =
+                "€ —";
+
+        }
+
+        return null;
+
+    }
+
+
+    const area =
+        width * height;
+
+
+    const basePrice =
+        (
+            area / 100
+        ) *
+        CUSTOM_RUG_PRICE_PER_100CM2;
+
+
+    const shapeMultiplier =
+        CUSTOM_RUG_SHAPE_MULTIPLIERS[
+            shape
+        ] || 1;
+
+
+    const surfaceMultiplier =
+        CUSTOM_RUG_SURFACE_MULTIPLIERS[
+            surface
+        ] || 1;
+
+
+    const price =
+        basePrice *
+        shapeMultiplier *
+        surfaceMultiplier *
+        quantity;
+
+
+    const roundedPrice =
+        Math.ceil(
+            price / 5
+        ) * 5;
+
+
+    if (rugEstimatePrice) {
+
+        rugEstimatePrice.textContent =
+            `€${roundedPrice}`;
+
+    }
+
+
+    return roundedPrice;
+
+}
+
+/* =========================================================
+   SHAPE OPTIONS
+========================================================= */
+
+rugShapeOptions.forEach(
+    button => {
+
+        button.addEventListener(
+            "click",
+            () => {
+
+                rugShapeOptions.forEach(
+                    item => {
+
+                        item.classList.remove(
+                            "active"
+                        );
+
+                    }
+                );
+
+
+                button.classList.add(
+                    "active"
+                );
+
+
+                const shape =
+                    button.dataset.shape;
+
+
+                if (rugShapeInput) {
+
+                    rugShapeInput.value =
+                        shape;
+
+                }
+
+
+                calculateCustomRugPrice();
+
+            }
+        );
+
+    }
+);
+
+/* =========================================================
+   SURFACE OPTIONS
+========================================================= */
+
+rugSurfaceOptions.forEach(
+    button => {
+
+        button.addEventListener(
+            "click",
+            () => {
+
+                rugSurfaceOptions.forEach(
+                    item => {
+
+                        item.classList.remove(
+                            "active"
+                        );
+
+                    }
+                );
+
+
+                button.classList.add(
+                    "active"
+                );
+
+
+                const surface =
+                    button.dataset.surface;
+
+
+                if (rugSurfaceInput) {
+
+                    rugSurfaceInput.value =
+                        surface;
+
+                }
+
+
+                calculateCustomRugPrice();
+
+            }
+        );
+
+    }
+);
+
+/* =========================================================
+   SIZE → PRICE
+========================================================= */
+
+[
+    rugWidthInput,
+    rugHeightInput
+].forEach(
+    input => {
+
+        if (!input) {
+            return;
+        }
+
+
+        input.addEventListener(
+            "input",
+            calculateCustomRugPrice
+        );
+
+    }
+);
+
+/* =========================================================
+   QUANTITY
+========================================================= */
+
+if (rugQuantityInput) {
+
+    rugQuantityInput.addEventListener(
+        "input",
+        () => {
+
+            let quantity =
+                Number(
+                    rugQuantityInput.value
+                ) || 1;
+
+
+            quantity =
+                Math.min(
+                    10,
+                    Math.max(
+                        1,
+                        quantity
+                    )
+                );
+
+
+            rugQuantityInput.value =
+                quantity;
+
+
+            calculateCustomRugPrice();
+
+        }
+    );
+
+}
+
+
+if (quantityMinus) {
+
+    quantityMinus.addEventListener(
+        "click",
+        () => {
+
+            const current =
+                Number(
+                    rugQuantityInput?.value
+                ) || 1;
+
+
+            if (rugQuantityInput) {
+
+                rugQuantityInput.value =
+                    Math.max(
+                        1,
+                        current - 1
+                    );
+
+            }
+
+
+            calculateCustomRugPrice();
+
+        }
+    );
+
+}
+
+
+if (quantityPlus) {
+
+    quantityPlus.addEventListener(
+        "click",
+        () => {
+
+            const current =
+                Number(
+                    rugQuantityInput?.value
+                ) || 1;
+
+
+            if (rugQuantityInput) {
+
+                rugQuantityInput.value =
+                    Math.min(
+                        10,
+                        current + 1
+                    );
+
+            }
+
+
+            calculateCustomRugPrice();
+
+        }
+    );
+
+}
 
 /* =========================================================
    CUSTOM MODAL EVENTS
@@ -656,7 +1054,33 @@ async function submitCustomRugRequest(
     const file =
         imageInput?.files?.[0] ||
         null;
+   
+    const width =
+    Number(
+        rugWidthInput?.value
+    ) || 0;
 
+      const height =
+          Number(
+              rugHeightInput?.value
+          ) || 0;
+      
+      const shape =
+          rugShapeInput?.value ||
+          "rectangle";
+      
+      const surface =
+          rugSurfaceInput?.value ||
+          "flat";
+   
+      const quantity =
+          Number(
+              rugQuantityInput?.value
+          ) || 1;
+      
+      const estimatedPrice =
+          calculateCustomRugPrice();
+      
 
     /* =================================================
        VALIDATION
@@ -666,6 +1090,36 @@ async function submitCustomRugRequest(
         !name ||
         !contact
     ) {
+
+       if (
+    width < 40 ||
+    height < 40 ||
+    width > 170 ||
+    height > 200
+) {
+
+    alert(
+        currentLanguage === "ru"
+            ? "Укажите размер ковра в допустимом диапазоне."
+            : "Please enter a rug size within the available range."
+    );
+
+    return;
+
+}
+       if (
+    !estimatedPrice
+) {
+
+    alert(
+        currentLanguage === "ru"
+            ? "Пожалуйста, укажите размер ковра."
+            : "Please enter the rug size."
+    );
+
+    return;
+
+}
 
         alert(
             currentLanguage === "ru"
@@ -829,30 +1283,48 @@ async function submitCustomRugRequest(
            3. CONTACT DETECTION
         ================================================= */
 
-        const order = {
-
-            name:
-                name,
-
-            email:
-                null,
-
-            telegram:
-                null,
-
-            instagram:
-                null,
-
-            image_url:
-                imageUrl,
-
-            description:
-                message,
-
-            status:
-                "new"
-
-        };
+      const order = {
+      
+          name:
+              name,
+      
+          email:
+              null,
+      
+          telegram:
+              null,
+      
+          instagram:
+              null,
+      
+          image_url:
+              imageUrl,
+      
+          description:
+              message,
+      
+          width:
+              width,
+      
+          height:
+              height,
+      
+          shape:
+              shape,
+      
+          surface:
+              surface,
+      
+          quantity:
+              quantity,
+      
+          estimated_price:
+              estimatedPrice,
+      
+          status:
+              "new"
+      
+      };
 
 
         const normalizedContact =
