@@ -1335,6 +1335,8 @@ async function init() {
 
     initCursorLens();
 
+    initProductDistortion();
+
 
     console.log(
         "DOCH MAIN INITIALIZED"
