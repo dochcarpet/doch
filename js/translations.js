@@ -30,9 +30,11 @@ export const translations = {
         ========================= */
 
         "hero.top": "HANDMADE / INTERNET ART",
+
         "hero.title1": "MEMES.",
         "hero.title2": "MADE TO",
         "hero.title3": "TOUCH.",
+
         "hero.description":
             "Internet culture, memes & digital chaos — translated into handmade rugs.",
 
@@ -134,41 +136,54 @@ export const translations = {
         "customModal.success":
             "REQUEST SENT.<br>WE'LL GET BACK TO YOU.",
 
-                "customModal.size":
+        "customModal.size":
             "RUG SIZE",
-        
+
         "customModal.customSize":
             "CUSTOM SIZE",
-        
+
         "customModal.width":
             "WIDTH / CM",
-        
+
         "customModal.height":
             "HEIGHT / CM",
-        
+
         "customModal.shape":
             "SHAPE",
-        
+
         "customModal.rectangle":
             "RECTANGLE",
-        
+
+        "customModal.square":
+            "SQUARE",
+
         "customModal.round":
             "ROUND",
-        
+
         "customModal.organic":
             "ORGANIC",
-        
+
+        "customModal.surface":
+            "SURFACE",
+
+        "customModal.flat":
+            "FLAT",
+
+        "customModal.carved":
+            "CARVED",
+
         "customModal.quantity":
             "QUANTITY",
-        
+
         "customModal.estimate":
             "PRELIMINARY ESTIMATE",
-        
+
         "customModal.estimateNote":
             "FINAL PRICE AFTER DESIGN REVIEW",
-        
+
         "customModal.currency":
             "EUR",
+
 
         /* =========================
            PROCESS
@@ -494,42 +509,54 @@ export const translations = {
 
         "customModal.success":
             "ЗАПРОС ОТПРАВЛЕН.<br>МЫ С ВАМИ СВЯЖЕМСЯ.",
-        
+
         "customModal.size":
             "РАЗМЕР КОВРА",
 
         "customModal.customSize":
             "СВОЙ РАЗМЕР",
-        
+
         "customModal.width":
             "ШИРИНА / СМ",
-        
+
         "customModal.height":
             "ВЫСОТА / СМ",
-        
+
         "customModal.shape":
             "ФОРМА",
-        
+
         "customModal.rectangle":
             "ПРЯМОУГОЛЬНИК",
-        
+
+        "customModal.square":
+            "КВАДРАТ",
+
         "customModal.round":
             "КРУГ",
-        
+
         "customModal.organic":
             "ОРГАНИЧЕСКАЯ",
-        
+
+        "customModal.surface":
+            "ПОВЕРХНОСТЬ",
+
+        "customModal.flat":
+            "ПЛОСКАЯ",
+
+        "customModal.carved":
+            "РЕЛЬЕФНАЯ",
+
         "customModal.quantity":
             "КОЛИЧЕСТВО",
-        
+
         "customModal.estimate":
             "ПРЕДВАРИТЕЛЬНЫЙ РАСЧЁТ",
-        
+
         "customModal.estimateNote":
             "ФИНАЛЬНАЯ ЦЕНА ПОСЛЕ СОГЛАСОВАНИЯ ДИЗАЙНА",
-        
+
         "customModal.currency":
-            "RUB",
+            "EUR",
 
 
         /* =========================
