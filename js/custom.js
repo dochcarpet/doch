@@ -816,28 +816,18 @@ async function submitCustomRugRequest(
                 {
                     method: "POST",
 
-                    headers: {
-
-                        /*
-                           IMPORTANT:
-                           sb_publishable_ key goes into
-                           apikey only.
-
-                           Do NOT send it as
-                           Authorization: Bearer.
-                        */
-
-                        "apikey":
-                            SUPABASE_KEY,
-
-                        "Content-Type":
-                            file.type ||
-                            "application/octet-stream",
-
-                        "x-upsert":
-                            "false"
-
-                    },
+                  headers: {
+                  
+                      "apikey":
+                          SUPABASE_KEY,
+                  
+                      "Content-Type":
+                          "application/json",
+                  
+                      "Prefer":
+                          "return=representation"
+                  
+                  },
 
                     body:
                         file
