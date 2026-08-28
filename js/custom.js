@@ -7,9 +7,6 @@ import {
     SUPABASE_KEY
 } from "./config.js";
 
-import {
-    translations
-} from "./translations.js";
 
 
 /* =========================================================
@@ -858,49 +855,6 @@ async function submitCustomRugRequest(
            6. ORDER DATA
         ================================================= */
 
-        const order = {
-
-            name:
-                name,
-
-            email:
-                email,
-
-            image_url:
-                imageUrl,
-
-            description:
-                message,
-
-            width:
-                width,
-
-            height:
-                height,
-
-            shape:
-                shape,
-
-            surface:
-                surface,
-
-            quantity:
-                quantity,
-
-            estimated_price:
-                estimatedPrice,
-
-            status:
-                "new"
-
-        };
-
-
-        console.log(
-            "DOCH ORDER DATA:",
-            order
-        );
-
 
         /* =================================================
            7. CREATE DATABASE RECORD
@@ -918,30 +872,38 @@ async function submitCustomRugRequest(
              SUPABASE_KEY?.length
          );
 
-       const orderResponse =
-       await fetch(
-           `${SUPABASE_URL}/rest/v1/orders`,
-           {
-               method: "POST",
-   
-               headers: {
-                   "apikey":
-                       SUPABASE_KEY,
-   
-                   "Authorization":
-                       `Bearer ${SUPABASE_KEY}`,
-   
-                   "Content-Type":
-                       "application/json",
-   
-                   "Prefer":
-                       "return=representation"
-               },
-   
-               body:
-                   JSON.stringify(order)
-           }
-       );
+        const orderResponse =
+    await fetch(
+        `${SUPABASE_URL}/rest/v1/rpc/create_custom_rug_order`,
+        {
+            method: "POST",
+
+            headers: {
+                "apikey":
+                    SUPABASE_KEY,
+
+                "Authorization":
+                    `Bearer ${SUPABASE_KEY}`,
+
+                "Content-Type":
+                    "application/json"
+            },
+
+            body:
+                JSON.stringify({
+                    p_name: name,
+                    p_email: email,
+                    p_image_url: imageUrl,
+                    p_description: message,
+                    p_width: width,
+                    p_height: height,
+                    p_shape: shape,
+                    p_surface: surface,
+                    p_quantity: quantity,
+                    p_estimated_price: estimatedPrice
+                })
+        }
+    );
 
 
         if (
