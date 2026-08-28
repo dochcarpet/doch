@@ -838,22 +838,18 @@ async function submitCustomRugRequest(
                 {
                     method: "POST",
 
-                    headers: {
-
-                        "apikey":
-                            SUPABASE_KEY,
-
-                        "Authorization":
-                            `Bearer ${SUPABASE_KEY}`,
-
-                        "Content-Type":
-                            file.type ||
-                            "application/octet-stream",
-
-                        "x-upsert":
-                            "false"
-
-                    },
+                     headers: {
+                     
+                         "apikey":
+                             SUPABASE_KEY,
+                     
+                         "Content-Type":
+                             "application/json",
+                     
+                         "Prefer":
+                             "return=representation"
+                     
+                     },
 
                     body:
                         file
