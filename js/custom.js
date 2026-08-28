@@ -817,17 +817,9 @@ async function submitCustomRugRequest(
                     method: "POST",
 
                   headers: {
-                  
-                      "apikey":
-                          SUPABASE_KEY,
-                  
-                      "Content-Type":
-                          "application/json",
-                  
-                      "Prefer":
-                          "return=representation"
-                  
-                  },
+                   "apikey":
+                       SUPABASE_KEY
+               },
 
                     body:
                         file
@@ -910,6 +902,18 @@ async function submitCustomRugRequest(
         /* =================================================
            7. CREATE DATABASE RECORD
         ================================================= */
+
+         console.log("DOCH SUPABASE URL:", SUPABASE_URL);
+         console.log(
+             "DOCH KEY TYPE:",
+             SUPABASE_KEY?.startsWith("sb_publishable_")
+                 ? "publishable"
+                 : "NOT publishable"
+         );
+         console.log(
+             "DOCH KEY LENGTH:",
+             SUPABASE_KEY?.length
+         );
 
         const orderResponse =
             await fetch(
