@@ -461,7 +461,7 @@ function renderProducts() {
    PRODUCT MODAL
 ========================================================= */
 
-function openProduct(product) {
+export function openProduct(product) {
 
     if (!product) {
         return;
