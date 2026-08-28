@@ -4,7 +4,7 @@
 
 import {
     SUPABASE_URL,
-    SUPABASE_KEY
+    SUPABASE_KEY,
 } from "./config.js";
 
 import {
