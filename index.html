@@ -1177,6 +1177,202 @@ id="cartOverlay"
 
             </div>
 
+            <!-- SIZE -->
+
+<div class="custom-form-group">
+
+    <label data-i18n="customModal.size">
+        RUG SIZE
+    </label>
+
+    <div class="rug-size-inputs">
+
+        <input
+            type="number"
+            id="rugWidth"
+            name="width"
+            min="40"
+            max="170"
+            placeholder="WIDTH / CM"
+            required
+        >
+
+        <span>×</span>
+
+        <input
+            type="number"
+            id="rugHeight"
+            name="height"
+            min="40"
+            max="200"
+            placeholder="HEIGHT / CM"
+            required
+        >
+
+    </div>
+
+    <div class="custom-form-hint">
+        40 × 90 CM — 170 × 100 CM
+    </div>
+
+</div>
+
+
+<!-- SHAPE -->
+
+<div class="custom-form-group">
+
+    <label data-i18n="customModal.shape">
+        SHAPE
+    </label>
+
+    <div class="rug-shape-options">
+
+        <button
+            type="button"
+            class="rug-shape-option active"
+            data-shape="rectangle"
+        >
+            RECTANGLE
+        </button>
+
+        <button
+            type="button"
+            class="rug-shape-option"
+            data-shape="square"
+        >
+            SQUARE
+        </button>
+
+        <button
+            type="button"
+            class="rug-shape-option"
+            data-shape="round"
+        >
+            ROUND
+        </button>
+
+        <button
+            type="button"
+            class="rug-shape-option"
+            data-shape="organic"
+        >
+            ORGANIC
+        </button>
+
+    </div>
+
+    <input
+        type="hidden"
+        id="rugShape"
+        name="shape"
+        value="rectangle"
+    >
+
+        </div>
+        
+        
+        <!-- SURFACE -->
+        
+        <div class="custom-form-group">
+        
+            <label data-i18n="customModal.surface">
+                SURFACE
+            </label>
+        
+            <div class="rug-surface-options">
+        
+                <button
+                    type="button"
+                    class="rug-surface-option active"
+                    data-surface="flat"
+                >
+                    FLAT
+                </button>
+        
+                <button
+                    type="button"
+                    class="rug-surface-option"
+                    data-surface="carved"
+                >
+                    CARVED
+                </button>
+        
+            </div>
+        
+            <input
+                type="hidden"
+                id="rugSurface"
+                name="surface"
+                value="flat"
+            >
+        
+        </div>
+        
+        
+        <!-- QUANTITY -->
+        
+        <div class="custom-form-group">
+        
+            <label
+                for="rugQuantity"
+                data-i18n="customModal.quantity"
+            >
+                QUANTITY
+            </label>
+        
+            <div class="quantity-control">
+        
+                <button
+                    type="button"
+                    id="quantityMinus"
+                >
+                    −
+                </button>
+        
+                <input
+                    type="number"
+                    id="rugQuantity"
+                    name="quantity"
+                    min="1"
+                    max="10"
+                    value="1"
+                    required
+                >
+        
+                <button
+                    type="button"
+                    id="quantityPlus"
+                >
+                    +
+                </button>
+        
+            </div>
+        
+        </div>
+        
+        
+        <!-- ESTIMATE -->
+        
+        <div class="rug-estimate">
+        
+            <div class="rug-estimate-label">
+                PRELIMINARY ESTIMATE
+            </div>
+        
+            <div
+                class="rug-estimate-price"
+                id="rugEstimatePrice"
+            >
+                €100
+            </div>
+        
+            <div class="rug-estimate-note">
+                FINAL PRICE AFTER DESIGN REVIEW
+            </div>
+        
+        </div>
+
 
             <div class="custom-form-group">
 
