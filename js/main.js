@@ -1279,99 +1279,63 @@ async function submitCustomRugRequest(
             `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${filePath}`;
 
 
-        /* =================================================
-           3. CONTACT DETECTION
-        ================================================= */
+/* =================================================
+   3. CONTACT
+================================================= */
 
-      const order = {
-      
-          name:
-              name,
-      
-          email:
-              null,
-      
-          telegram:
-              null,
-      
-          instagram:
-              null,
-      
-          image_url:
-              imageUrl,
-      
-          description:
-              message,
-      
-          width:
-              width,
-      
-          height:
-              height,
-      
-          shape:
-              shape,
-      
-          surface:
-              surface,
-      
-          quantity:
-              quantity,
-      
-          estimated_price:
-              estimatedPrice,
-      
-          status:
-              "new"
-      
-      };
+const contactType =
+    document.getElementById("contactType")?.value ||
+    "telegram";
 
 
-        const normalizedContact =
-            contact.toLowerCase();
+const order = {
 
+    name:
+        name,
 
-        if (
-            normalizedContact.includes("@") &&
-            normalizedContact.includes(".")
-        ) {
+    email:
+        contactType === "email"
+            ? contact
+            : null,
 
-            order.email =
-                contact;
+    telegram:
+        contactType === "telegram"
+            ? contact
+            : null,
 
-        } else if (
-            normalizedContact.includes(
-                "telegram"
-            ) ||
-            normalizedContact.startsWith("@")
-        ) {
+    instagram:
+        contactType === "instagram"
+            ? contact
+            : null,
 
-            order.telegram =
-                contact;
+    image_url:
+        imageUrl,
 
-        } else if (
-            normalizedContact.includes(
-                "instagram"
-            )
-        ) {
+    description:
+        message,
 
-            order.instagram =
-                contact;
+    width:
+        width,
 
-        } else {
+    height:
+        height,
 
-            /*
-               Unknown contact type.
-               Keep it in telegram field
-               for compatibility with the
-               current orders schema.
-            */
+    shape:
+        shape,
 
-            order.telegram =
-                contact;
+    surface:
+        surface,
 
-        }
+    quantity:
+        quantity,
 
+    estimated_price:
+        estimatedPrice,
+
+    status:
+        "new"
+
+}; 
 
         /* =================================================
            4. CREATE ORDER
