@@ -45,9 +45,9 @@ button {
 }
 
 
-/* ================================
+/* =========================================================
    NOISE
-================================ */
+========================================================= */
 
 .noise {
     position: fixed;
@@ -60,9 +60,9 @@ button {
 }
 
 
-/* ================================
+/* =========================================================
    HEADER
-================================ */
+========================================================= */
 
 .header {
     position: fixed;
@@ -111,11 +111,6 @@ button {
 .cart-button:hover {
     opacity: .5;
 }
-
-
-/* ================================
-   HEADER RIGHT
-================================ */
 
 .header-right {
     display: flex;
@@ -176,9 +171,9 @@ button {
 }
 
 
-/* ================================
+/* =========================================================
    HERO
-================================ */
+========================================================= */
 
 .hero {
     min-height: 100svh;
@@ -284,7 +279,6 @@ button {
 }
 
 @keyframes rugFloat {
-
     0%, 100% {
         transform: rotate(-7deg) translateY(0);
     }
@@ -292,7 +286,6 @@ button {
     50% {
         transform: rotate(-4deg) translateY(-15px);
     }
-
 }
 
 .hero-bottom {
@@ -314,9 +307,10 @@ button {
     line-height: 1.4;
 }
 
-/* ================================
+
+/* =========================================================
    GENERAL
-================================ */
+========================================================= */
 
 .manifesto {
     min-height: 90vh;
@@ -375,9 +369,9 @@ em {
 }
 
 
-/* ================================
+/* =========================================================
    DROP
-================================ */
+========================================================= */
 
 .drop {
     padding: 130px 32px;
@@ -415,9 +409,9 @@ em {
 }
 
 
-/* ================================
+/* =========================================================
    RUG PLACEHOLDERS
-================================ */
+========================================================= */
 
 .rug-one {
     background:
@@ -533,9 +527,10 @@ em {
     color: var(--white);
 }
 
-/* ================================
-   PRODUCT IMAGE — DISTORTION
-================================ */
+
+/* =========================================================
+   PRODUCT IMAGE
+========================================================= */
 
 .product-image {
     position: relative;
@@ -558,11 +553,6 @@ em {
     aspect-ratio: 2 / 1;
 }
 
-
-/*
-   Three.js canvas
-*/
-
 .product-image canvas {
     position: absolute;
 
@@ -576,12 +566,6 @@ em {
     pointer-events: none;
 }
 
-
-/*
-   Hide normal image because
-   Three.js uses it as texture.
-*/
-
 .product-image img {
     display: block;
 
@@ -591,15 +575,15 @@ em {
     object-fit: cover;
 }
 
-
 .product:hover .product-image {
     box-shadow:
         0 0 45px rgba(200,255,0,.08);
 }
 
-/* ================================
+
+/* =========================================================
    CUSTOM
-================================ */
+========================================================= */
 
 .custom {
     min-height: 90vh;
@@ -701,9 +685,9 @@ em {
 }
 
 
-/* ================================
+/* =========================================================
    PROCESS
-================================ */
+========================================================= */
 
 .process {
     padding: 140px 32px;
@@ -756,9 +740,9 @@ em {
 }
 
 
-/* ================================
+/* =========================================================
    QUEUE
-================================ */
+========================================================= */
 
 .queue {
     padding: 130px 7vw;
@@ -833,9 +817,9 @@ em {
 }
 
 
-/* ================================
+/* =========================================================
    ABOUT
-================================ */
+========================================================= */
 
 .about {
     padding: 150px 7vw;
@@ -874,9 +858,145 @@ em {
 }
 
 
-/* ================================
+/* =========================================================
+   BRAND
+========================================================= */
+
+.brand {
+    padding: 150px 7vw;
+    border-top: 1px solid var(--line);
+}
+
+.brand-header {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 40px;
+}
+
+.brand h2 {
+    margin: 0;
+
+    font-size: clamp(55px, 8vw, 120px);
+    line-height: .83;
+    letter-spacing: -.07em;
+    font-weight: 900;
+}
+
+.brand-grid {
+    margin-top: 110px;
+
+    display: grid;
+    grid-template-columns: 1.3fr .7fr;
+
+    gap: 10vw;
+}
+
+.brand-large {
+    margin: 0;
+
+    max-width: 800px;
+
+    font-size: clamp(28px, 4vw, 55px);
+    line-height: .95;
+    letter-spacing: -.05em;
+}
+
+.brand-copy {
+    align-self: end;
+}
+
+.brand-copy p {
+    margin: 0;
+
+    color: var(--grey);
+
+    font-size: 14px;
+    line-height: 1.55;
+}
+
+.brand-mono {
+    margin-top: 70px !important;
+
+    font: 10px/1.6 var(--mono) !important;
+    color: var(--white) !important;
+}
+
+.brand-link {
+    display: inline-block;
+
+    margin-top: 45px;
+
+    padding-bottom: 8px;
+
+    border-bottom: 1px solid var(--white);
+
+    font: 10px var(--mono);
+}
+
+
+/* =========================================================
+   BRAND MANIFESTO
+========================================================= */
+
+.brand-manifesto {
+    padding: 150px 7vw;
+    border-top: 1px solid var(--line);
+}
+
+.brand-manifesto-grid {
+    margin-top: 110px;
+
+    display: grid;
+    grid-template-columns: 1.3fr .7fr;
+
+    gap: 10vw;
+}
+
+.brand-manifesto h2 {
+    margin: 0;
+
+    font-size: clamp(55px, 8vw, 120px);
+    line-height: .83;
+    letter-spacing: -.07em;
+    font-weight: 900;
+}
+
+.brand-manifesto-copy {
+    align-self: end;
+}
+
+.brand-manifesto-copy .large-copy {
+    margin: 0 0 40px;
+
+    max-width: 800px;
+
+    font-size: clamp(28px, 4vw, 55px);
+    line-height: .95;
+    letter-spacing: -.05em;
+}
+
+.brand-manifesto-copy p:not(.large-copy) {
+    margin: 0;
+
+    color: var(--grey);
+
+    font-size: 14px;
+    line-height: 1.55;
+}
+
+.manifesto-signature {
+    display: block;
+
+    margin-top: 70px;
+
+    font: 10px/1.6 var(--mono);
+    color: var(--white);
+}
+
+
+/* =========================================================
    FOOTER
-================================ */
+========================================================= */
 
 footer {
     padding: 100px 32px 30px;
@@ -907,9 +1027,10 @@ footer {
     gap: 25px;
 }
 
-/* ================================
-   MODAL
-================================ */
+
+/* =========================================================
+   PRODUCT MODAL
+========================================================= */
 
 .modal {
     position: fixed;
@@ -940,9 +1061,6 @@ footer {
     visibility: visible;
 }
 
-
-/* CLOSE */
-
 .modal-close {
     position: absolute;
 
@@ -963,11 +1081,6 @@ footer {
     cursor: pointer;
 }
 
-
-/* ================================
-   MODAL IMAGE AREA
-================================ */
-
 .modal-image {
     position: relative;
 
@@ -982,15 +1095,6 @@ footer {
     background: #f1eee7;
 }
 
-
-/*
-   IMPORTANT
-
-   The image itself must stay inside
-   the left area and never push
-   the product information.
-*/
-
 .modal-image img {
     display: block;
 
@@ -1004,10 +1108,6 @@ footer {
 
     object-position: center;
 }
-
-/* ================================
-   MODAL GALLERY
-================================ */
 
 .modal-gallery {
     position: relative;
@@ -1041,9 +1141,9 @@ footer {
 }
 
 
-/* ================================
+/* =========================================================
    GALLERY ARROWS
-================================ */
+========================================================= */
 
 .gallery-arrow {
     position: absolute;
@@ -1087,11 +1187,6 @@ footer {
 .gallery-next {
     right: 22px;
 }
-
-
-/* ================================
-   GALLERY DOTS
-================================ */
 
 .gallery-dots {
     position: absolute;
@@ -1146,9 +1241,10 @@ footer {
     transform: scale(1.25);
 }
 
-/* ================================
+
+/* =========================================================
    MODAL CONTENT
-================================ */
+========================================================= */
 
 .modal-content {
     min-width: 0;
@@ -1166,7 +1262,6 @@ footer {
     border-left: 1px solid var(--line);
 }
 
-
 .modal-content h2 {
     font-size: clamp(45px, 5vw, 90px);
 
@@ -1175,7 +1270,6 @@ footer {
 
     margin: 30px 0;
 }
-
 
 .modal-details {
     display: flex;
@@ -1189,7 +1283,6 @@ footer {
     font: 10px var(--mono);
 }
 
-
 .modal-content p {
     color: var(--grey);
 
@@ -1200,179 +1293,9 @@ footer {
 }
 
 
-/* ================================
-   MODAL MOBILE
-================================ */
-
-@media (max-width: 800px) {
-
-    .modal {
-        grid-template-columns: 1fr;
-        grid-template-rows: minmax(300px, 48vh) auto;
-
-        overflow-y: auto;
-        overflow-x: hidden;
-    }
-
-    .modal-image {
-        width: 100%;
-        height: 100%;
-
-        min-height: 300px;
-    }
-
-    .modal-content {
-        height: auto;
-
-        min-height: 52vh;
-
-        padding: 45px 25px 60px;
-
-        border-left: 0;
-        border-top: 1px solid var(--line);
-
-        justify-content: flex-start;
-    }
-
-    .modal-content h2 {
-        font-size: clamp(40px, 12vw, 65px);
-    }
-
-}
-
-        /* =========================================================
-   FAQ
-========================================================= */
-
-.faq {
-    padding: 150px 7vw;
-    border-top: 1px solid var(--line);
-}
-
-.faq-header {
-    display: grid;
-    grid-template-columns: 1fr 2fr;
-    gap: 40px;
-
-    margin-bottom: 100px;
-}
-
-.faq h2 {
-    margin: 0;
-
-    font-size: clamp(55px, 8vw, 120px);
-    line-height: .83;
-    letter-spacing: -.07em;
-    font-weight: 900;
-}
-
-.faq-list {
-    border-top: 1px solid var(--line);
-}
-
-.faq-item {
-    border-bottom: 1px solid var(--line);
-}
-
-.faq-item summary {
-    padding: 28px 0;
-
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-
-    cursor: pointer;
-
-    list-style: none;
-
-    font: 12px var(--mono);
-    letter-spacing: .06em;
-}
-
-.faq-item summary::-webkit-details-marker {
-    display: none;
-}
-
-.faq-item summary::marker {
-    display: none;
-}
-
-.faq-plus {
-    flex-shrink: 0;
-
-    width: 30px;
-    height: 30px;
-
-    border: 1px solid currentColor;
-    border-radius: 50%;
-
-    display: grid;
-    place-items: center;
-
-    font-size: 16px;
-
-    transition:
-        transform .3s,
-        background .3s,
-        color .3s;
-}
-
-.faq-answer {
-    max-width: 650px;
-
-    padding: 0 50px 30px 0;
-}
-
-.faq-answer p {
-    margin: 0;
-
-    color: var(--grey);
-
-    font-size: 14px;
-    line-height: 1.5;
-}
-
-.faq-item[open] .faq-plus {
-    transform: rotate(45deg);
-
-    background: var(--accent);
-    color: var(--black);
-}
-
-
-    /* BRAND */
-
-    .brand {
-        padding: 100px 25px;
-    }
-
-    .brand-header {
-        display: block;
-    }
-
-    .brand h2 {
-        margin-top: 60px;
-    }
-
-    .brand-grid {
-        display: block;
-        margin-top: 80px;
-    }
-
-    .brand-large {
-        font-size: 30px;
-    }
-
-    .brand-copy {
-        margin-top: 70px;
-    }
-
-}
-
-    
-/* ================================
+/* =========================================================
    CART
-================================ */
+========================================================= */
 
 .cart-overlay {
     position: fixed;
@@ -1486,189 +1409,66 @@ footer {
     color: var(--black);
 }
 
+.remove-item {
+    appearance: none;
+    -webkit-appearance: none;
 
-/* ================================
-   MOBILE
-================================ */
+    display: inline-block;
 
-@media (max-width: 800px) {
+    margin-top: 8px;
+    padding: 0;
 
-    .header {
-        padding: 0 18px;
-    }
+    border: 0;
+    background: transparent;
 
-    .header nav {
-        display: none;
-    }
+    font-family: var(--mono);
+    font-size: 9px;
+    line-height: 1;
 
-    .header-right {
-        gap: 12px;
-    }
+    letter-spacing: .08em;
+    text-transform: uppercase;
 
-    .language-switch {
-        font-size: 8px;
-    }
+    color: var(--grey);
 
-    .hero {
-        padding: 100px 18px 25px;
-    }
+    cursor: pointer;
 
-    .hero-title {
-        position: relative;
-        z-index: 3;
-    
-        text-shadow:
-            0 2px 12px rgba(0,0,0,.28),
-            0 0 2px rgba(0,0,0,.18);
-    }
+    transition:
+        color .2s ease,
+        opacity .2s ease;
+}
 
-     .hero-art {
-        width: 90vw;
-        top: 31%;
-    }
+.remove-item:hover {
+    color: var(--black);
+}
 
+.remove-item:active {
+    opacity: .5;
+}
 
-    .hero-art .glitch-rug {
-        width: 100%;
-    }
-
-    .hero-art img {
-        width: 100%;
-    }
-
-    .hero-bottom p {
-        max-width: 220px;
-    }
-
-    .manifesto {
-        display: block;
-        padding: 100px 25px;
-    }
-
-    .manifesto h2 {
-        margin-top: 60px;
-    }
-
-    .manifesto-copy {
-        margin-top: 80px;
-    }
-
-    .products {
-        grid-template-columns: 1fr;
-        gap: 60px;
-    }
-
-    .product-large {
-        grid-column: span 1;
-    }
-
-    .product-large .product-image {
-        aspect-ratio: 1;
-    }
-
-    .drop,
-    .process,
-    footer {
-        padding-left: 18px;
-        padding-right: 18px;
-    }
-
-    .section-header {
-        display: block;
-    }
-
-    .drop-meta {
-        margin-top: 30px;
-    }
-
-    .custom {
-        padding: 100px 25px;
-    }
-
-    .custom-side {
-        display: none;
-    }
-
-    .process-grid {
-        grid-template-columns: 1fr 1fr;
-    }
-
-    .process-card {
-        min-height: 250px;
-    }
-
-    .queue {
-        padding: 100px 25px;
-    }
-
-    .queue-item {
-        grid-template-columns: 30px 1fr;
-        gap: 8px;
-        padding: 20px 0;
-    }
-
-    .queue-item .progress {
-        grid-column: 2;
-    }
-
-    .queue-item > span:last-child {
-        display: none;
-    }
-
-    .about {
-        padding: 100px 25px;
-    }
-
-    .about-grid {
-        display: block;
-    }
-
-    .about-grid > div {
-        margin-top: 70px;
-    }
-
-    .footer-bottom {
-        margin-top: 100px;
-
-        display: grid;
-
-        gap: 25px;
-    }
-
-    .footer-bottom div {
-        flex-wrap: wrap;
-    }
-
-    .modal {
-        grid-template-columns: 1fr;
-        grid-template-rows: 45% 55%;
-
-        overflow-y: auto;
-    }
-
-    .modal-content {
-        padding: 40px 25px;
-    }
-
+.remove-item:focus-visible {
+    outline: 1px solid currentColor;
+    outline-offset: 4px;
 }
 
 
 /* =========================================================
-   brand / MANIFESTO
+   FAQ
 ========================================================= */
 
-.brand {
+.faq {
     padding: 150px 7vw;
     border-top: 1px solid var(--line);
 }
 
-.brand-header {
+.faq-header {
     display: grid;
     grid-template-columns: 1fr 2fr;
     gap: 40px;
+
+    margin-bottom: 100px;
 }
 
-.brand h2 {
+.faq h2 {
     margin: 0;
 
     font-size: clamp(55px, 8vw, 120px);
@@ -1677,145 +1477,80 @@ footer {
     font-weight: 900;
 }
 
-.brand-grid {
-    margin-top: 110px;
-
-    display: grid;
-    grid-template-columns: 1.3fr .7fr;
-
-    gap: 10vw;
-}
-
-.brand-large {
-    margin: 0;
-
-    max-width: 800px;
-
-    font-size: clamp(28px, 4vw, 55px);
-    line-height: .95;
-    letter-spacing: -.05em;
-}
-
-.brand-copy {
-    align-self: end;
-}
-
-.brand-copy p {
-    margin: 0;
-
-    color: var(--grey);
-
-    font-size: 14px;
-    line-height: 1.55;
-}
-
-.brand-mono {
-    margin-top: 70px !important;
-
-    font: 10px/1.6 var(--mono) !important;
-    color: var(--white) !important;
-}
-
-.brand-link {
-    display: inline-block;
-
-    margin-top: 45px;
-
-    padding-bottom: 8px;
-
-    border-bottom: 1px solid var(--white);
-
-    font: 10px var(--mono);
-}
-
-/* =========================================================
-   ABOUT DOCH — NEW BRAND MANIFESTO
-========================================================= */
-
-.brand-manifesto {
-    padding: 150px 7vw;
+.faq-list {
     border-top: 1px solid var(--line);
 }
 
-.brand-manifesto-grid {
-    margin-top: 110px;
+.faq-item {
+    border-bottom: 1px solid var(--line);
+}
+
+.faq-item summary {
+    padding: 28px 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    cursor: pointer;
+
+    list-style: none;
+
+    font: 12px var(--mono);
+    letter-spacing: .06em;
+}
+
+.faq-item summary::-webkit-details-marker {
+    display: none;
+}
+
+.faq-item summary::marker {
+    display: none;
+}
+
+.faq-plus {
+    flex-shrink: 0;
+
+    width: 30px;
+    height: 30px;
+
+    border: 1px solid currentColor;
+    border-radius: 50%;
 
     display: grid;
-    grid-template-columns: 1.3fr .7fr;
+    place-items: center;
 
-    gap: 10vw;
+    font-size: 16px;
+
+    transition:
+        transform .3s,
+        background .3s,
+        color .3s;
 }
 
-.brand-manifesto h2 {
-    margin: 0;
+.faq-answer {
+    max-width: 650px;
 
-    font-size: clamp(55px, 8vw, 120px);
-    line-height: .83;
-    letter-spacing: -.07em;
-    font-weight: 900;
+    padding: 0 50px 30px 0;
 }
 
-.brand-manifesto-copy {
-    align-self: end;
-}
-
-.brand-manifesto-copy .large-copy {
-    margin: 0 0 40px;
-
-    max-width: 800px;
-
-    font-size: clamp(28px, 4vw, 55px);
-    line-height: .95;
-    letter-spacing: -.05em;
-}
-
-.brand-manifesto-copy p:not(.large-copy) {
+.faq-answer p {
     margin: 0;
 
     color: var(--grey);
 
     font-size: 14px;
-    line-height: 1.55;
+    line-height: 1.5;
 }
 
-.manifesto-signature {
-    display: block;
+.faq-item[open] .faq-plus {
+    transform: rotate(45deg);
 
-    margin-top: 70px;
-
-    font: 10px/1.6 var(--mono);
-    color: var(--white);
+    background: var(--accent);
+    color: var(--black);
 }
 
 
-/* =========================
-   MOBILE
-========================= */
-
-@media (max-width: 800px) {
-
-    .brand-manifesto {
-        padding: 100px 25px;
-    }
-
-    .brand-manifesto-grid {
-        display: block;
-        margin-top: 80px;
-    }
-
-    .brand-manifesto h2 {
-        margin-top: 60px;
-    }
-
-    .brand-manifesto-copy {
-        margin-top: 70px;
-    }
-
-    .brand-manifesto-copy .large-copy {
-        font-size: 30px;
-    }
-
-}
 /* =========================================================
    CUSTOM REQUEST MODAL
 ========================================================= */
@@ -1849,11 +1584,6 @@ footer {
     pointer-events: auto;
 }
 
-
-/* =========================================================
-   WINDOW
-========================================================= */
-
 .custom-modal-inner {
     position: relative;
     z-index: 2;
@@ -1879,6 +1609,8 @@ footer {
 
     transition:
         transform .35s cubic-bezier(.2,.7,.2,1);
+
+    overscroll-behavior: contain;
 }
 
 .custom-modal.active .custom-modal-inner {
@@ -1887,7 +1619,7 @@ footer {
 
 
 /* =========================================================
-   CLOSE
+   CUSTOM MODAL CLOSE
 ========================================================= */
 
 .custom-modal-close {
@@ -1925,7 +1657,7 @@ footer {
 
 
 /* =========================================================
-   HEADER
+   CUSTOM MODAL HEADER
 ========================================================= */
 
 .custom-modal-inner h2 {
@@ -1947,7 +1679,7 @@ footer {
 
 
 /* =========================================================
-   FORM
+   CUSTOM FORM
 ========================================================= */
 
 .custom-form-group {
@@ -1964,11 +1696,6 @@ footer {
 
     color: var(--grey);
 }
-
-
-/* =========================================================
-   INPUTS
-========================================================= */
 
 .custom-form-group input,
 .custom-form-group textarea {
@@ -2008,7 +1735,7 @@ footer {
 
 
 /* =========================================================
-   NAME + EMAIL
+   NAME + CONTACT
 ========================================================= */
 
 .custom-form-row {
@@ -2046,7 +1773,7 @@ footer {
 
 
 /* =========================================================
-   SHAPE / SURFACE OPTIONS
+   SHAPE / SURFACE
 ========================================================= */
 
 .rug-shape-options,
@@ -2308,28 +2035,318 @@ footer {
 
 
 /* =========================================================
-   MOBILE
+   MOBILE — GLOBAL
 ========================================================= */
 
 @media (max-width: 800px) {
 
+    .header {
+        height: 64px;
+        padding: 0 18px;
+    }
+
+    .header nav {
+        display: none;
+    }
+
+    .header-right {
+        gap: 12px;
+    }
+
+    .language-switch {
+        font-size: 8px;
+    }
+
+    .hero {
+        padding: 90px 18px 25px;
+    }
+
+    .hero-title {
+        position: relative;
+        z-index: 3;
+
+        text-shadow:
+            0 2px 12px rgba(0,0,0,.28),
+            0 0 2px rgba(0,0,0,.18);
+    }
+
+    .hero-art {
+        width: 90vw;
+        top: 31%;
+    }
+
+    .hero-art .glitch-rug,
+    .hero-art img {
+        width: 100%;
+    }
+
+    .hero-bottom p {
+        max-width: 220px;
+    }
+
+    .manifesto {
+        display: block;
+        padding: 100px 25px;
+    }
+
+    .manifesto h2 {
+        margin-top: 60px;
+    }
+
+    .manifesto-copy {
+        margin-top: 80px;
+    }
+
+    .products {
+        grid-template-columns: 1fr;
+        gap: 60px;
+    }
+
+    .product-large {
+        grid-column: span 1;
+    }
+
+    .product-large .product-image {
+        aspect-ratio: 1;
+    }
+
+    .drop,
+    .process,
+    footer {
+        padding-left: 18px;
+        padding-right: 18px;
+    }
+
+    .section-header {
+        display: block;
+    }
+
+    .drop-meta {
+        margin-top: 30px;
+    }
+
+    .custom {
+        padding: 100px 25px;
+    }
+
+    .custom-side {
+        display: none;
+    }
+
+    .process-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .process-card {
+        min-height: 250px;
+    }
+
+    .queue {
+        padding: 100px 25px;
+    }
+
+    .queue-item {
+        grid-template-columns: 30px 1fr;
+        gap: 8px;
+        padding: 20px 0;
+    }
+
+    .queue-item .progress {
+        grid-column: 2;
+    }
+
+    .queue-item > span:last-child {
+        display: none;
+    }
+
+    .about {
+        padding: 100px 25px;
+    }
+
+    .about-grid {
+        display: block;
+    }
+
+    .about-grid > div {
+        margin-top: 70px;
+    }
+
+    .footer-bottom {
+        margin-top: 100px;
+
+        display: grid;
+
+        gap: 25px;
+    }
+
+    .footer-bottom div {
+        flex-wrap: wrap;
+    }
+
+    .brand {
+        padding: 100px 25px;
+    }
+
+    .brand-header {
+        display: block;
+    }
+
+    .brand h2 {
+        margin-top: 60px;
+    }
+
+    .brand-grid {
+        display: block;
+        margin-top: 80px;
+    }
+
+    .brand-large {
+        font-size: 30px;
+    }
+
+    .brand-copy {
+        margin-top: 70px;
+    }
+
+    .brand-manifesto {
+        padding: 100px 25px;
+    }
+
+    .brand-manifesto-grid {
+        display: block;
+        margin-top: 80px;
+    }
+
+    .brand-manifesto h2 {
+        margin-top: 60px;
+    }
+
+    .brand-manifesto-copy {
+        margin-top: 70px;
+    }
+
+    .brand-manifesto-copy .large-copy {
+        font-size: 30px;
+    }
+
+    /* PRODUCT MODAL */
+
+    .modal {
+        grid-template-columns: 1fr;
+        grid-template-rows: minmax(300px, 45svh) auto;
+
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    .modal-image {
+        min-height: 300px;
+    }
+
+    .modal-content {
+        height: auto;
+        min-height: 55svh;
+
+        padding: 40px 25px 60px;
+
+        border-left: 0;
+        border-top: 1px solid var(--line);
+
+        justify-content: flex-start;
+    }
+
+    .modal-content h2 {
+        font-size: clamp(40px, 12vw, 65px);
+    }
+
+    /* FAQ */
+
+    .faq {
+        padding: 100px 25px;
+    }
+
+    .faq-header {
+        display: block;
+        margin-bottom: 70px;
+    }
+
+    .faq h2 {
+        margin-top: 60px;
+    }
+
+    /* CART */
+
+    .cart-drawer {
+        width: 100%;
+        padding: 22px 18px;
+    }
+
+
+    /* =====================================================
+       CUSTOM MODAL — MOBILE
+    ===================================================== */
+
     .custom-modal {
-        padding: 10px;
+        align-items: flex-end;
+
+        padding: 0;
+
+        background: rgba(11, 11, 10, .78);
     }
 
     .custom-modal-inner {
         width: 100%;
 
-        max-height: calc(100svh - 20px);
+        max-height: 94svh;
 
-        padding: 38px 20px 28px;
+        padding:
+            28px
+            20px
+            max(28px, env(safe-area-inset-bottom));
+
+        border-left: 0;
+        border-right: 0;
+        border-bottom: 0;
+
+        border-radius: 18px 18px 0 0;
+
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+
+        box-shadow:
+            0 -20px 80px rgba(0,0,0,.55),
+            0 -5px 30px rgba(200,255,0,.04);
+
+        transform: translateY(100%);
+    }
+
+    .custom-modal.active .custom-modal-inner {
+        transform: translateY(0);
+    }
+
+    .custom-modal-close {
+        top: 13px;
+        right: 14px;
+
+        width: 40px;
+        height: 40px;
+
+        font-size: 25px;
     }
 
     .custom-modal-inner h2 {
-        margin: 5px 0 28px;
+        margin:
+            8px
+            42px
+            30px
+            0;
 
-        font-size: clamp(48px, 15vw, 72px);
+        font-size: clamp(43px, 14vw, 68px);
+
+        line-height: .8;
     }
+
+    /* NAME + CONTACT */
 
     .custom-form-row {
         grid-template-columns: 1fr;
@@ -2338,69 +2355,148 @@ footer {
     }
 
     .custom-form-group {
-        margin-bottom: 17px;
+        margin-bottom: 18px;
     }
+
+    /* INPUTS */
+
+    .custom-form-group input,
+    .custom-form-group textarea {
+        min-height: 40px;
+
+        padding: 8px 0;
+
+        font-size: 15px;
+    }
+
+    .custom-form-group textarea {
+        min-height: 90px;
+    }
+
+    /* SIZE */
+
+    .custom-size-row {
+        grid-template-columns:
+            minmax(0, 1fr)
+            20px
+            minmax(0, 1fr);
+
+        gap: 8px;
+    }
+
+    .custom-size-row input {
+        min-width: 0;
+    }
+
+    /* SHAPE */
 
     .rug-shape-options {
         grid-template-columns: repeat(2, 1fr);
+
+        gap: 7px;
     }
 
     .rug-surface-options {
         grid-template-columns: repeat(2, 1fr);
+
+        gap: 7px;
     }
 
-    .custom-size-row {
-        grid-template-columns: 1fr 16px 1fr;
+    .rug-shape-option,
+    .rug-surface-option {
+        min-height: 46px;
+
+        padding: 10px 7px;
+
+        font-size: 9px;
     }
+
+    /* QUANTITY */
+
+    .custom-quantity-controls {
+        height: 42px;
+    }
+
+    .custom-quantity-controls button {
+        width: 42px;
+        height: 40px;
+
+        font-size: 16px;
+    }
+
+    .custom-quantity-controls input {
+        width: 48px !important;
+        height: 40px;
+
+        font-size: 13px !important;
+    }
+
+    /* PRICE */
+
+    .custom-price {
+        padding: 16px 0;
+
+        gap: 15px;
+    }
+
+    .custom-price strong {
+        font-size: 18px;
+        white-space: nowrap;
+    }
+
+    /* FILE */
+
+    .custom-form-group input[type="file"] {
+        min-height: 42px;
+
+        padding: 8px 0;
+
+        font-size: 10px;
+    }
+
+    .custom-form-group input[type="file"]::file-selector-button {
+        min-height: 36px;
+
+        padding: 8px 11px;
+
+        font-size: 9px;
+    }
+
+    /* SUBMIT */
 
     .custom-submit {
-        padding: 14px;
-    }
+        min-height: 50px;
 
+        margin-top: 12px;
+
+        padding: 15px;
+
+        font-size: 10px;
+    }
 }
 
 
 /* =========================================================
-   CART — REMOVE BUTTON
+   VERY SMALL PHONES
 ========================================================= */
 
-.remove-item {
-    appearance: none;
-    -webkit-appearance: none;
+@media (max-width: 380px) {
 
-    display: inline-block;
+    .custom-modal-inner {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
 
-    margin-top: 8px;
-    padding: 0;
+    .custom-modal-inner h2 {
+        font-size: 43px;
+    }
 
-    border: 0;
-    background: transparent;
+    .custom-form-group label {
+        font-size: 7px;
+    }
 
-    font-family: var(--mono);
-    font-size: 9px;
-    line-height: 1;
-
-    letter-spacing: .08em;
-    text-transform: uppercase;
-
-    color: var(--grey);
-
-    cursor: pointer;
-
-    transition:
-        color .2s ease,
-        opacity .2s ease;
-}
-
-.remove-item:hover {
-    color: var(--black);
-}
-
-.remove-item:active {
-    opacity: .5;
-}
-
-.remove-item:focus-visible {
-    outline: 1px solid currentColor;
-    outline-offset: 4px;
+    .rug-shape-option,
+    .rug-surface-option {
+        font-size: 8px;
+    }
 }
