@@ -3,14 +3,18 @@
 ========================================================= */
 
 import {
-    translations
-} from "./translations.js";
-
-import {
     SUPABASE_URL,
     SUPABASE_KEY
 } from "./config.js";
 
+import {
+    translations
+} from "./translations.js";
+
+
+/* =========================================================
+   STATE
+========================================================= */
 
 let currentLanguage = "en";
 
@@ -41,7 +45,7 @@ const customSubmit =
 
 
 /* =========================================================
-   CUSTOM RUG OPTIONS
+   INPUTS
 ========================================================= */
 
 const rugWidthInput =
@@ -62,6 +66,11 @@ const rugQuantityInput =
 const rugEstimatePrice =
     document.getElementById("rugEstimatePrice");
 
+
+/* =========================================================
+   OPTIONS
+========================================================= */
+
 const rugShapeOptions =
     document.querySelectorAll(
         ".rug-shape-option"
@@ -72,6 +81,11 @@ const rugSurfaceOptions =
         ".rug-surface-option"
     );
 
+
+/* =========================================================
+   QUANTITY BUTTONS
+========================================================= */
+
 const quantityMinus =
     document.getElementById("quantityMinus");
 
@@ -80,10 +94,123 @@ const quantityPlus =
 
 
 /* =========================================================
-   CUSTOM RUG PRICE CALCULATOR
+   LANGUAGE
 ========================================================= */
 
+export function setCustomLanguage(language) {
+
+    if (!translations[language]) {
+        return;
+    }
+
+    currentLanguage =
+        language;
+
+}
+
+
+/* =========================================================
+   CUSTOM MODAL
+========================================================= */
+
+function openCustomModal() {
+
+    if (!customModal) {
+        return;
+    }
+
+    customModal.classList.add(
+        "active"
+    );
+
+    document.body.classList.add(
+        "no-scroll"
+    );
+
+    calculateCustomRugPrice();
+
+}
+
+
+function closeCustomModal() {
+
+    if (!customModal) {
+        return;
+    }
+
+    customModal.classList.remove(
+        "active"
+    );
+
+    document.body.classList.remove(
+        "no-scroll"
+    );
+
+}
+
+
+/* =========================================================
+   OPEN / CLOSE EVENTS
+========================================================= */
+
+if (customButton) {
+
+    customButton.addEventListener(
+        "click",
+        openCustomModal
+    );
+
+}
+
+
+if (customModalClose) {
+
+    customModalClose.addEventListener(
+        "click",
+        closeCustomModal
+    );
+
+}
+
+
+if (customModal) {
+
+    customModal.addEventListener(
+        "click",
+        event => {
+
+            if (
+                event.target ===
+                customModal
+            ) {
+
+                closeCustomModal();
+
+            }
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   PRICE CALCULATOR
+========================================================= */
+
+/*
+   Base price per 100 cm².
+
+   Change this ONE number when
+   the final DOCH pricing model is ready.
+*/
+
 const CUSTOM_RUG_PRICE_PER_100CM2 = 1.5;
+
+
+/*
+   Shape multipliers.
+*/
 
 const CUSTOM_RUG_SHAPE_MULTIPLIERS = {
 
@@ -96,6 +223,11 @@ const CUSTOM_RUG_SHAPE_MULTIPLIERS = {
     organic: 1.20
 
 };
+
+
+/*
+   Surface multipliers.
+*/
 
 const CUSTOM_RUG_SURFACE_MULTIPLIERS = {
 
@@ -134,6 +266,10 @@ function calculateCustomRugPrice() {
         rugSurfaceInput?.value ||
         "flat";
 
+
+    /*
+       No valid dimensions yet.
+    */
 
     if (
         !width ||
@@ -184,6 +320,10 @@ function calculateCustomRugPrice() {
         quantity;
 
 
+    /*
+       Round up to nearest €5.
+    */
+
     const roundedPrice =
         Math.ceil(
             price / 5
@@ -201,6 +341,7 @@ function calculateCustomRugPrice() {
     return roundedPrice;
 
 }
+
 
 /* =========================================================
    SHAPE OPTIONS
@@ -248,3 +389,785 @@ rugShapeOptions.forEach(
 
     }
 );
+
+
+/* =========================================================
+   SURFACE OPTIONS
+========================================================= */
+
+rugSurfaceOptions.forEach(
+    button => {
+
+        button.addEventListener(
+            "click",
+            () => {
+
+                rugSurfaceOptions.forEach(
+                    item => {
+
+                        item.classList.remove(
+                            "active"
+                        );
+
+                    }
+                );
+
+
+                button.classList.add(
+                    "active"
+                );
+
+
+                const surface =
+                    button.dataset.surface;
+
+
+                if (rugSurfaceInput) {
+
+                    rugSurfaceInput.value =
+                        surface;
+
+                }
+
+
+                calculateCustomRugPrice();
+
+            }
+        );
+
+    }
+);
+
+
+/* =========================================================
+   SIZE → PRICE
+========================================================= */
+
+[
+    rugWidthInput,
+    rugHeightInput
+].forEach(
+    input => {
+
+        if (!input) {
+            return;
+        }
+
+
+        input.addEventListener(
+            "input",
+            calculateCustomRugPrice
+        );
+
+    }
+);
+
+
+/* =========================================================
+   QUANTITY INPUT
+========================================================= */
+
+if (rugQuantityInput) {
+
+    rugQuantityInput.addEventListener(
+        "input",
+        () => {
+
+            let quantity =
+                Number(
+                    rugQuantityInput.value
+                ) || 1;
+
+
+            quantity =
+                Math.min(
+                    10,
+                    Math.max(
+                        1,
+                        quantity
+                    )
+                );
+
+
+            rugQuantityInput.value =
+                quantity;
+
+
+            calculateCustomRugPrice();
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   QUANTITY MINUS
+========================================================= */
+
+if (quantityMinus) {
+
+    quantityMinus.addEventListener(
+        "click",
+        () => {
+
+            const current =
+                Number(
+                    rugQuantityInput?.value
+                ) || 1;
+
+
+            if (rugQuantityInput) {
+
+                rugQuantityInput.value =
+                    Math.max(
+                        1,
+                        current - 1
+                    );
+
+            }
+
+
+            calculateCustomRugPrice();
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   QUANTITY PLUS
+========================================================= */
+
+if (quantityPlus) {
+
+    quantityPlus.addEventListener(
+        "click",
+        () => {
+
+            const current =
+                Number(
+                    rugQuantityInput?.value
+                ) || 1;
+
+
+            if (rugQuantityInput) {
+
+                rugQuantityInput.value =
+                    Math.min(
+                        10,
+                        current + 1
+                    );
+
+            }
+
+
+            calculateCustomRugPrice();
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   SUBMIT CUSTOM RUG
+========================================================= */
+
+async function submitCustomRugRequest(
+    event
+) {
+
+    event.preventDefault();
+
+
+    if (!customForm) {
+        return;
+    }
+
+
+    /* =================================================
+       INPUTS
+    ================================================= */
+
+    const nameInput =
+        document.getElementById(
+            "customerName"
+        );
+
+
+    const emailInput =
+        document.getElementById(
+            "customerEmail"
+        );
+
+
+    const messageInput =
+        document.getElementById(
+            "customerMessage"
+        );
+
+
+    const imageInput =
+        document.getElementById(
+            "customerImage"
+        );
+
+
+    /* =================================================
+       VALUES
+    ================================================= */
+
+    const name =
+        nameInput?.value.trim() ||
+        "";
+
+
+    const email =
+        emailInput?.value.trim() ||
+        "";
+
+
+    const message =
+        messageInput?.value.trim() ||
+        "";
+
+
+    const file =
+        imageInput?.files?.[0] ||
+        null;
+
+
+    const width =
+        Number(
+            rugWidthInput?.value
+        ) || 0;
+
+
+    const height =
+        Number(
+            rugHeightInput?.value
+        ) || 0;
+
+
+    const shape =
+        rugShapeInput?.value ||
+        "rectangle";
+
+
+    const surface =
+        rugSurfaceInput?.value ||
+        "flat";
+
+
+    const quantity =
+        Number(
+            rugQuantityInput?.value
+        ) || 1;
+
+
+    const estimatedPrice =
+        calculateCustomRugPrice();
+
+
+    /* =================================================
+       VALIDATION
+    ================================================= */
+
+    if (
+        !name ||
+        !email
+    ) {
+
+        alert(
+            currentLanguage === "ru"
+                ? "Пожалуйста, укажите имя и email."
+                : "Please enter your name and email."
+        );
+
+        return;
+
+    }
+
+
+    if (
+        width < 40 ||
+        height < 40 ||
+        width > 170 ||
+        height > 200
+    ) {
+
+        alert(
+            currentLanguage === "ru"
+                ? "Укажите размер ковра в допустимом диапазоне."
+                : "Please enter a rug size within the available range."
+        );
+
+        return;
+
+    }
+
+
+    if (!estimatedPrice) {
+
+        alert(
+            currentLanguage === "ru"
+                ? "Пожалуйста, укажите размер ковра."
+                : "Please enter the rug size."
+        );
+
+        return;
+
+    }
+
+
+    if (!file) {
+
+        alert(
+            currentLanguage === "ru"
+                ? "Пожалуйста, выберите изображение."
+                : "Please choose an image."
+        );
+
+        return;
+
+    }
+
+
+    /* =================================================
+       FILE SIZE
+    ================================================= */
+
+    const maxFileSize =
+        10 * 1024 * 1024;
+
+
+    if (
+        file.size >
+        maxFileSize
+    ) {
+
+        alert(
+            currentLanguage === "ru"
+                ? "Изображение должно быть меньше 10 MB."
+                : "Image must be smaller than 10 MB."
+        );
+
+        return;
+
+    }
+
+
+    /* =================================================
+       BUTTON STATE
+    ================================================= */
+
+    const originalButtonHTML =
+        customSubmit?.innerHTML ||
+        "";
+
+
+    if (customSubmit) {
+
+        customSubmit.disabled =
+            true;
+
+        customSubmit.style.opacity =
+            "0.5";
+
+        customSubmit.style.pointerEvents =
+            "none";
+
+        customSubmit.innerHTML =
+            currentLanguage === "ru"
+                ? "ОТПРАВЛЯЕМ... ↗"
+                : "SENDING... ↗";
+
+    }
+
+
+    try {
+
+        /* =================================================
+           1. FILE EXTENSION
+        ================================================= */
+
+        const extension =
+            file.name
+                .split(".")
+                .pop()
+                .toLowerCase();
+
+
+        const safeExtension =
+            /^[a-z0-9]+$/.test(
+                extension
+            )
+                ? extension
+                : "jpg";
+
+
+        /* =================================================
+           2. UNIQUE FILE NAME
+        ================================================= */
+
+        const fileName =
+            `${Date.now()}-${crypto.randomUUID()}.${safeExtension}`;
+
+
+        const filePath =
+            `custom/${fileName}`;
+
+
+        /* =================================================
+           3. STORAGE BUCKET
+        ================================================= */
+
+        const bucket =
+            "custom-rugs";
+
+
+        /* =================================================
+           4. UPLOAD IMAGE
+        ================================================= */
+
+        const uploadResponse =
+            await fetch(
+                `${SUPABASE_URL}/storage/v1/object/${bucket}/${filePath}`,
+                {
+                    method: "POST",
+
+                    headers: {
+
+                        "apikey":
+                            SUPABASE_KEY,
+
+                        "Authorization":
+                            `Bearer ${SUPABASE_KEY}`,
+
+                        "Content-Type":
+                            file.type ||
+                            "application/octet-stream",
+
+                        "x-upsert":
+                            "false"
+
+                    },
+
+                    body:
+                        file
+
+                }
+            );
+
+
+        if (
+            !uploadResponse.ok
+        ) {
+
+            const errorText =
+                await uploadResponse.text();
+
+
+            throw new Error(
+                `Storage upload failed: ${uploadResponse.status} ${errorText}`
+            );
+
+        }
+
+
+        /* =================================================
+           5. PUBLIC IMAGE URL
+        ================================================= */
+
+        const imageUrl =
+            `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${filePath}`;
+
+
+        /* =================================================
+           6. ORDER DATA
+        ================================================= */
+
+        /*
+           IMPORTANT:
+           These column names match the current
+           custom_rugs table.
+        */
+
+        const order = {
+
+            name:
+                name,
+
+            email:
+                email,
+
+            width:
+                width,
+
+            height:
+                height,
+
+            shape:
+                shape,
+
+            surface:
+                surface,
+
+            quantity:
+                quantity,
+
+            estimate:
+                estimatedPrice,
+
+            message:
+                message,
+
+            image_url:
+                imageUrl,
+
+            status:
+                "new"
+
+        };
+
+
+        /* =================================================
+           7. CREATE DATABASE RECORD
+        ================================================= */
+
+        const orderResponse =
+            await fetch(
+                `${SUPABASE_URL}/rest/v1/custom_rugs`,
+                {
+                    method: "POST",
+
+                    headers: {
+
+                        "apikey":
+                            SUPABASE_KEY,
+
+                        "Authorization":
+                            `Bearer ${SUPABASE_KEY`,
+
+                        "Content-Type":
+                            "application/json",
+
+                        "Prefer":
+                            "return=representation"
+
+                    },
+
+                    body:
+                        JSON.stringify(
+                            order
+                        )
+
+                }
+            );
+
+
+        if (
+            !orderResponse.ok
+        ) {
+
+            const errorText =
+                await orderResponse.text();
+
+
+            throw new Error(
+                `Order creation failed: ${orderResponse.status} ${errorText}`
+            );
+
+        }
+
+
+        const createdOrder =
+            await orderResponse.json();
+
+
+        console.log(
+            "DOCH CUSTOM ORDER:",
+            createdOrder
+        );
+
+
+        /* =================================================
+           8. SUCCESS
+        ================================================= */
+
+        customForm.style.display =
+            "none";
+
+
+        if (customSuccess) {
+
+            customSuccess.innerHTML =
+                translations[
+                    currentLanguage
+                ]["customModal.success"];
+
+
+            customSuccess.style.display =
+                "block";
+
+        }
+
+
+        customForm.reset();
+
+
+        /*
+           Restore default selections after reset.
+        */
+
+        if (rugShapeInput) {
+
+            rugShapeInput.value =
+                "rectangle";
+
+        }
+
+
+        if (rugSurfaceInput) {
+
+            rugSurfaceInput.value =
+                "flat";
+
+        }
+
+
+        rugShapeOptions.forEach(
+            button => {
+
+                button.classList.toggle(
+                    "active",
+                    button.dataset.shape ===
+                    "rectangle"
+                );
+
+            }
+        );
+
+
+        rugSurfaceOptions.forEach(
+            button => {
+
+                button.classList.toggle(
+                    "active",
+                    button.dataset.surface ===
+                    "flat"
+                );
+
+            }
+        );
+
+
+        if (rugQuantityInput) {
+
+            rugQuantityInput.value =
+                1;
+
+        }
+
+
+        calculateCustomRugPrice();
+
+    } catch (error) {
+
+        console.error(
+            "DOCH CUSTOM RUG ERROR:",
+            error
+        );
+
+
+        alert(
+            error?.message ||
+            (
+                currentLanguage === "ru"
+                    ? "Не удалось отправить запрос."
+                    : "Could not send your request."
+            )
+        );
+
+
+    } finally {
+
+        if (customSubmit) {
+
+            customSubmit.disabled =
+                false;
+
+            customSubmit.style.opacity =
+                "";
+
+            customSubmit.style.pointerEvents =
+                "";
+
+            customSubmit.innerHTML =
+                originalButtonHTML;
+
+        }
+
+    }
+
+}
+
+
+/* =========================================================
+   FORM EVENT
+========================================================= */
+
+if (customForm) {
+
+    customForm.addEventListener(
+        "submit",
+        submitCustomRugRequest
+    );
+
+}
+
+
+/* =========================================================
+   ESCAPE
+========================================================= */
+
+document.addEventListener(
+    "keydown",
+    event => {
+
+        if (
+            event.key !== "Escape"
+        ) {
+            return;
+        }
+
+
+        if (
+            customModal?.classList.contains(
+                "active"
+            )
+        ) {
+
+            closeCustomModal();
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   INITIALIZATION
+========================================================= */
+
+export function initCustom() {
+
+    calculateCustomRugPrice();
+
+    console.log(
+        "DOCH CUSTOM INITIALIZED"
+    );
+
+}
