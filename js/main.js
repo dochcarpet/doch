@@ -1357,54 +1357,38 @@ init();
 
 function initProductDistortion() {
 
-    if (
-        typeof THREE === "undefined"
-    ) {
-        console.warn(
-            "Three.js not loaded"
-        );
-
+    if (typeof THREE === "undefined") {
+        console.warn("Three.js not loaded");
         return;
     }
 
-
     const images =
-        document.querySelectorAll(
-            ".product-image img"
-        );
-
+        document.querySelectorAll(".product-image img");
 
     images.forEach(img => {
 
-        const container =
-            img.parentElement;
-
+        const container = img.parentElement;
 
         if (!container) {
             return;
         }
 
-
         /*
            Prevent duplicate initialization.
         */
 
-        if (
-            container.dataset.threeReady
-        ) {
+        if (container.dataset.threeReady) {
             return;
         }
 
-        container.dataset.threeReady =
-            "true";
+        container.dataset.threeReady = "true";
 
 
         /* =================================================
            SCENE
         ================================================= */
 
-        const scene =
-            new THREE.Scene();
+        const scene = new THREE.Scene();
 
 
         /* =================================================
@@ -1432,7 +1416,6 @@ function initProductDistortion() {
                 alpha: true
             });
 
-
         renderer.setPixelRatio(
             Math.min(
                 window.devicePixelRatio,
@@ -1440,18 +1423,15 @@ function initProductDistortion() {
             )
         );
 
-
         renderer.setSize(
             container.clientWidth,
             container.clientHeight,
             false
         );
 
-
         renderer.domElement.classList.add(
             "distortion-canvas"
         );
-
 
         container.appendChild(
             renderer.domElement
@@ -1463,19 +1443,15 @@ function initProductDistortion() {
         ================================================= */
 
         const texture =
-            new THREE.TextureLoader()
-                .load(
-                    img.currentSrc ||
-                    img.src
-                );
-
+            new THREE.TextureLoader().load(
+                img.currentSrc || img.src
+            );
 
         texture.minFilter =
             THREE.LinearFilter;
 
         texture.magFilter =
             THREE.LinearFilter;
-
 
         texture.wrapS =
             THREE.ClampToEdgeWrapping;
@@ -1496,21 +1472,19 @@ function initProductDistortion() {
 
             uMouse: {
                 value:
-                    new THREE.Vector2(
-                        .5,
-                        .5
-                    )
+                    new THREE.Vector2(.5, .5)
             },
 
             uTargetMouse: {
                 value:
-                    new THREE.Vector2(
-                        .5,
-                        .5
-                    )
+                    new THREE.Vector2(.5, .5)
             },
 
             uHover: {
+                value: 0
+            },
+
+            uTargetHover: {
                 value: 0
             },
 
@@ -1550,8 +1524,6 @@ function initProductDistortion() {
 
                     uniform vec2 uMouse;
 
-                    uniform vec2 uTargetMouse;
-
                     uniform float uHover;
 
                     uniform float uTime;
@@ -1568,8 +1540,7 @@ function initProductDistortion() {
                            Mouse position.
                         */
 
-                        vec2 mouse =
-                            uTargetMouse;
+                        vec2 mouse = uMouse;
 
 
                         /*
@@ -1584,17 +1555,10 @@ function initProductDistortion() {
 
 
                         /*
-                           Lens radius.
-
-                           This is the important part.
-
-                           We want a BIG,
-                           soft distortion —
-                           not a tiny circle.
+                           Large soft lens.
                         */
 
-                        float radius =
-                            .48;
+                        float radius = .48;
 
 
                         /*
@@ -1611,12 +1575,7 @@ function initProductDistortion() {
 
 
                         /*
-                           Organic bulge.
-
-                           Instead of simply
-                           scaling the image,
-                           we push UVs away
-                           from the cursor.
+                           Direction from cursor.
                         */
 
                         vec2 direction =
@@ -1624,7 +1583,10 @@ function initProductDistortion() {
 
 
                         /*
-                           Fish-eye displacement.
+                           Main fish-eye distortion.
+
+                           Hover controls the
+                           intensity smoothly.
                         */
 
                         float distortion =
@@ -1639,8 +1601,7 @@ function initProductDistortion() {
 
 
                         /*
-                           Additional subtle
-                           wave distortion.
+                           Subtle organic wave.
                         */
 
                         float wave =
@@ -1661,21 +1622,12 @@ function initProductDistortion() {
 
 
                         /*
-                           Slight zoom while hovering.
+                           IMPORTANT:
+                           No zoom here.
+
+                           The image stays at
+                           exactly 100% scale.
                         */
-
-                        vec2 centered =
-                            uv - .5;
-
-
-                        uv =
-                            .5 +
-                            centered *
-                            (
-                                1.0 -
-                                uHover *
-                                .045
-                            );
 
 
                         /*
@@ -1718,7 +1670,6 @@ function initProductDistortion() {
                 material
             );
 
-
         scene.add(mesh);
 
 
@@ -1737,14 +1688,12 @@ function initProductDistortion() {
                 const rect =
                     container.getBoundingClientRect();
 
-
                 mouseX =
                     (
                         event.clientX -
                         rect.left
                     ) /
                     rect.width;
-
 
                 mouseY =
                     1 -
@@ -1754,12 +1703,10 @@ function initProductDistortion() {
                     ) /
                     rect.height;
 
-
-                uniforms.uTargetMouse.value
-                    .set(
-                        mouseX,
-                        mouseY
-                    );
+                uniforms.uTargetMouse.value.set(
+                    mouseX,
+                    mouseY
+                );
 
             }
         );
@@ -1769,8 +1716,7 @@ function initProductDistortion() {
             "mouseenter",
             () => {
 
-                uniforms.uHover.value =
-                    1;
+                uniforms.uTargetHover.value = 1;
 
             }
         );
@@ -1780,14 +1726,12 @@ function initProductDistortion() {
             "mouseleave",
             () => {
 
-                uniforms.uHover.value =
-                    0;
+                uniforms.uTargetHover.value = 0;
 
-                uniforms.uTargetMouse.value
-                    .set(
-                        .5,
-                        .5
-                    );
+                uniforms.uTargetMouse.value.set(
+                    .5,
+                    .5
+                );
 
             }
         );
@@ -1797,9 +1741,7 @@ function initProductDistortion() {
            ANIMATION
         ================================================= */
 
-        function animate(
-            time
-        ) {
+        function animate(time) {
 
             requestAnimationFrame(
                 animate
@@ -1821,12 +1763,23 @@ function initProductDistortion() {
 
 
             /*
-               Make shader use the
-               smoothed mouse position.
+               Smooth hover intensity.
+
+               This is the important fix.
+
+               Instead of:
+                   0 → 1 instantly
+
+               we get:
+                   0 → 1 smoothly
             */
 
-            uniforms.uTargetMouse.value =
-                uniforms.uMouse.value;
+            uniforms.uHover.value +=
+                (
+                    uniforms.uTargetHover.value -
+                    uniforms.uHover.value
+                ) *
+                .08;
 
 
             renderer.render(
@@ -1856,14 +1809,9 @@ function initProductDistortion() {
                     const height =
                         container.clientHeight;
 
-
-                    if (
-                        !width ||
-                        !height
-                    ) {
+                    if (!width || !height) {
                         return;
                     }
-
 
                     renderer.setSize(
                         width,
