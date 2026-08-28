@@ -1032,241 +1032,6 @@ if (customForm) {
 }
 
 /* =========================================================
-   CURSOR LENS
-========================================================= */
-
-function initCursorLens() {
-
-    /*
-       Disable on touch devices.
-    */
-
-    if (
-        window.matchMedia("(hover: none)").matches ||
-        window.innerWidth <= 800
-    ) {
-        return;
-    }
-
-
-    const products =
-        document.querySelectorAll(
-            ".product-image"
-        );
-
-
-    products.forEach(imageContainer => {
-
-        const image =
-            imageContainer.querySelector("img");
-
-
-        if (!image) {
-            return;
-        }
-
-
-        let targetX = 0;
-        let targetY = 0;
-
-        let currentX = 0;
-        let currentY = 0;
-
-        let hovering = false;
-
-
-        /*
-           Lens strength.
-
-           Increase these if you want
-           the effect more insane.
-        */
-
-        const MAX_SHIFT = 28;
-        const MAX_SCALE = 1.18;
-
-
-        /* -----------------------------------------
-           MOUSE ENTER
-        ----------------------------------------- */
-
-        imageContainer.addEventListener(
-            "mouseenter",
-            () => {
-
-                hovering = true;
-
-            }
-        );
-
-
-        /* -----------------------------------------
-           MOUSE MOVE
-        ----------------------------------------- */
-
-        imageContainer.addEventListener(
-            "mousemove",
-            event => {
-
-                const rect =
-                    imageContainer.getBoundingClientRect();
-
-
-                /*
-                   Cursor position inside image
-                   from -1 to +1.
-                */
-
-                const x =
-                    (
-                        event.clientX -
-                        rect.left
-                    ) /
-                    rect.width;
-
-
-                const y =
-                    (
-                        event.clientY -
-                        rect.top
-                    ) /
-                    rect.height;
-
-
-                const normalizedX =
-                    x * 2 - 1;
-
-
-                const normalizedY =
-                    y * 2 - 1;
-
-
-                /*
-                   Move the image slightly
-                   opposite to cursor.
-
-                   This creates the feeling
-                   that the lens is inspecting
-                   the surface.
-                */
-
-                targetX =
-                    -normalizedX *
-                    MAX_SHIFT;
-
-
-                targetY =
-                    -normalizedY *
-                    MAX_SHIFT;
-
-
-                /*
-                   Strong zoom when cursor
-                   approaches the center.
-                */
-
-                const distance =
-                    Math.sqrt(
-                        normalizedX *
-                        normalizedX +
-                        normalizedY *
-                        normalizedY
-                    );
-
-
-                const lensStrength =
-                    Math.max(
-                        0,
-                        1 - distance
-                    );
-
-
-                const scale =
-                    1 +
-                    (
-                        (MAX_SCALE - 1) *
-                        lensStrength
-                    );
-
-
-                image.style.setProperty(
-                    "--lens-scale",
-                    scale
-                );
-
-            }
-        );
-
-
-        /* -----------------------------------------
-           MOUSE LEAVE
-        ----------------------------------------- */
-
-        imageContainer.addEventListener(
-            "mouseleave",
-            () => {
-
-                hovering = false;
-
-                targetX = 0;
-                targetY = 0;
-
-                image.style.setProperty(
-                    "--lens-scale",
-                    "1"
-                );
-
-            }
-        );
-
-
-        /* -----------------------------------------
-           SMOOTH MOTION
-        ----------------------------------------- */
-
-function animate(time) {
-
-    requestAnimationFrame(animate);
-
-    const rect =
-        container.getBoundingClientRect();
-
-    const visible =
-        rect.bottom > 0 &&
-        rect.top < window.innerHeight;
-
-    if (!visible) {
-        return;
-    }
-
-    uniforms.uTime.value =
-        time * .001;
-
-    uniforms.uMouse.value.lerp(
-        uniforms.uTargetMouse.value,
-        .12
-    );
-
-    uniforms.uHover.value +=
-        (
-            uniforms.uTargetHover.value -
-            uniforms.uHover.value
-        ) * .08;
-
-    renderer.render(
-        scene,
-        camera
-    );
-}
-
-
-        animate();
-
-    });
-
-}
-
-/* =========================================================
    INITIALIZATION
 ========================================================= */
 
@@ -1307,8 +1072,6 @@ async function init() {
     initFAQ();
 
     initScrollReveal();
-
-    initCursorLens();
 
     initProductDistortion();
 
@@ -1742,72 +1505,46 @@ function initProductDistortion() {
         /* =================================================
            ANIMATION
         ================================================= */
+/* =================================================
+   ANIMATION
+========================================================= */
 
-        function animate(time) {
+function animate(time) {
 
-            requestAnimationFrame(
-                animate
-            );
-
-
-            /*
-               Don't render hidden/offscreen
-               product cards.
-
-               Saves laptop CPU/GPU.
-            */
-
-            const rect =
-                container.getBoundingClientRect();
+    requestAnimationFrame(
+        animate
+    );
 
 
-            const visible =
-                rect.bottom > 0 &&
-                rect.top < window.innerHeight;
+    uniforms.uTime.value =
+        time * 0.001;
 
 
-            if (!visible) {
-                return;
-            }
+    uniforms.uMouse.value.lerp(
+        uniforms.uTargetMouse.value,
+        0.12
+    );
 
 
-            uniforms.uTime.value =
-                time * 0.001;
+    uniforms.uHover.value +=
+        (
+            uniforms.uTargetHover.value -
+            uniforms.uHover.value
+        ) * 0.08;
 
 
-            /*
-               Smooth cursor.
-            */
+    renderer.render(
+        scene,
+        camera
+    );
 
-            uniforms.uMouse.value.lerp(
-                uniforms.uTargetMouse.value,
-                0.12
-            );
+}
 
 
-            /*
-               Smooth hover.
-            */
-
-            uniforms.uHover.value +=
-                (
-                    uniforms.uTargetHover.value -
-                    uniforms.uHover.value
-                ) *
-                0.08;
-
-
-            renderer.render(
-                scene,
-                camera
-            );
-
-        }
-
-
-        requestAnimationFrame(
-            animate
-        );
+requestAnimationFrame(
+    animate
+);
+   
 
 
         /* =================================================
