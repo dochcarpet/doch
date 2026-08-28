@@ -14,6 +14,11 @@
     --mono: "DM Mono", monospace;
 }
 
+
+/* =========================================================
+   RESET / GLOBAL
+========================================================= */
+
 * {
     box-sizing: border-box;
 }
@@ -24,9 +29,12 @@ html {
 
 body {
     margin: 0;
+
     background: var(--black);
     color: var(--white);
+
     font-family: var(--sans);
+
     overflow-x: hidden;
 }
 
@@ -45,33 +53,39 @@ button {
 }
 
 
-/* ================================
+/* =========================================================
    NOISE
-================================ */
+========================================================= */
 
 .noise {
     position: fixed;
     inset: 0;
+
     pointer-events: none;
+
     z-index: 1000;
+
     opacity: .035;
 
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.7'/%3E%3C/svg%3E");
+    background-image:
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.7'/%3E%3C/svg%3E");
 }
 
 
-/* ================================
+/* =========================================================
    HEADER
-================================ */
+========================================================= */
 
 .header {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
+
     z-index: 100;
 
     height: 76px;
+
     padding: 0 32px;
 
     display: flex;
@@ -113,19 +127,21 @@ button {
 }
 
 
-/* ================================
+/* =========================================================
    HEADER RIGHT
-================================ */
+========================================================= */
 
 .header-right {
     display: flex;
     align-items: center;
+
     gap: 22px;
 }
 
 .language-switch {
     display: flex;
     align-items: center;
+
     gap: 5px;
 
     font: 9px var(--mono);
@@ -134,10 +150,14 @@ button {
 
 .lang-button {
     padding: 0;
+
     border: 0;
     background: transparent;
+
     cursor: pointer;
+
     opacity: .45;
+
     transition: opacity .2s;
 }
 
@@ -154,6 +174,7 @@ button {
 .cart-button {
     border: 0;
     background: transparent;
+
     cursor: pointer;
 
     font-family: var(--mono);
@@ -176,12 +197,13 @@ button {
 }
 
 
-/* ================================
+/* =========================================================
    HERO
-================================ */
+========================================================= */
 
 .hero {
     min-height: 100svh;
+
     padding: 110px 32px 30px;
 
     position: relative;
@@ -196,11 +218,13 @@ button {
 
     font: 10px var(--mono);
     letter-spacing: .12em;
+
     color: var(--grey);
 }
 
 .hero-title {
     position: relative;
+
     z-index: 3;
 
     margin-top: 5vh;
@@ -212,13 +236,16 @@ button {
     line-height: .76;
 
     text-transform: uppercase;
+
     pointer-events: none;
 
-    text-shadow: 20px 13px 20px rgba(0, 0, 0, .65);
+    text-shadow:
+        20px 13px 20px rgba(0,0,0,.65);
 }
 
 .hero-title .outline {
     color: transparent;
+
     -webkit-text-stroke: 1px var(--white);
 
     margin-left: 13vw;
@@ -235,6 +262,7 @@ button {
     left: 50%;
 
     width: min(57vw, 800px);
+
     aspect-ratio: 1 / 1;
 
     transform: translateX(-50%);
@@ -259,7 +287,6 @@ button {
             rgba(255,255,255,.08) 50%,
             transparent 51%
         ),
-
         repeating-linear-gradient(
             0deg,
             #b8b7b0 0px,
@@ -280,12 +307,14 @@ button {
     height: 100%;
 
     object-fit: cover;
+
     display: block;
 }
 
 @keyframes rugFloat {
 
-    0%, 100% {
+    0%,
+    100% {
         transform: rotate(-7deg) translateY(0);
     }
 
@@ -303,11 +332,13 @@ button {
     align-items: flex-end;
 
     position: relative;
+
     z-index: 5;
 }
 
 .hero-bottom p {
     max-width: 290px;
+
     margin: 0;
 
     font-size: 13px;
@@ -341,24 +372,14 @@ button {
 }
 
 
-/* ================================
+/* =========================================================
    GENERAL
-================================ */
-
-.manifesto {
-    min-height: 90vh;
-    padding: 160px 7vw;
-
-    display: grid;
-    grid-template-columns: 1fr 2fr;
-    gap: 40px;
-
-    border-top: 1px solid var(--line);
-}
+========================================================= */
 
 .eyebrow {
     font: 10px var(--mono);
     letter-spacing: .13em;
+
     color: var(--grey);
 }
 
@@ -378,14 +399,35 @@ button {
 
 em {
     font-style: normal;
+
     color: var(--accent);
 
     text-shadow:
         0 0 18px rgba(200,255,0,.15);
 }
 
+
+/* =========================================================
+   MANIFESTO
+========================================================= */
+
+.manifesto {
+    min-height: 90vh;
+
+    padding: 160px 7vw;
+
+    display: grid;
+
+    grid-template-columns: 1fr 2fr;
+
+    gap: 40px;
+
+    border-top: 1px solid var(--line);
+}
+
 .manifesto-copy {
     align-self: end;
+
     max-width: 420px;
 }
 
@@ -398,21 +440,24 @@ em {
     margin-top: 80px;
 
     font: 10px/1.6 var(--mono);
+
     color: var(--grey);
 }
 
 
-/* ================================
+/* =========================================================
    DROP
-================================ */
+========================================================= */
 
 .drop {
     padding: 130px 32px;
+
     border-top: 1px solid var(--line);
 }
 
 .section-header {
     display: flex;
+
     justify-content: space-between;
     align-items: flex-end;
 
@@ -421,15 +466,19 @@ em {
 
 .drop-meta {
     display: flex;
+
     gap: 25px;
 
     font: 10px var(--mono);
+
     color: var(--grey);
 }
 
 .products {
     display: grid;
+
     grid-template-columns: repeat(2, 1fr);
+
     gap: 80px 25px;
 }
 
@@ -442,9 +491,9 @@ em {
 }
 
 
-/* ================================
+/* =========================================================
    RUG PLACEHOLDERS
-================================ */
+========================================================= */
 
 .rug-one {
     background:
@@ -525,6 +574,7 @@ em {
 
 .product-info {
     display: flex;
+
     justify-content: space-between;
 
     padding-top: 18px;
@@ -532,6 +582,7 @@ em {
 
 .product-number {
     font: 9px var(--mono);
+
     color: var(--grey);
 }
 
@@ -539,7 +590,9 @@ em {
     margin: 8px 0 0;
 
     font-size: clamp(22px, 3vw, 38px);
+
     line-height: .9;
+
     letter-spacing: -.05em;
 }
 
@@ -550,6 +603,7 @@ em {
     text-align: right;
 
     font: 9px var(--mono);
+
     color: var(--grey);
 }
 
@@ -557,17 +611,20 @@ em {
     margin-top: 8px;
 
     font-size: 15px;
+
     color: var(--white);
 }
 
-/* ================================
-   PRODUCT IMAGE — DISTORTION
-================================ */
+
+/* =========================================================
+   PRODUCT IMAGE — THREE.JS DISTORTION
+========================================================= */
 
 .product-image {
     position: relative;
 
     width: 100%;
+
     aspect-ratio: 1.15;
 
     overflow: hidden;
@@ -578,17 +635,13 @@ em {
 
     cursor: crosshair;
 
-    transition: box-shadow .25s ease;
+    transition:
+        box-shadow .25s ease;
 }
 
 .product-large .product-image {
     aspect-ratio: 2 / 1;
 }
-
-
-/*
-   Three.js canvas
-*/
 
 .product-image canvas {
     position: absolute;
@@ -603,132 +656,23 @@ em {
     pointer-events: none;
 }
 
-
-/*
-   Hide normal image because
-   Three.js uses it as texture.
-*/
-
 .product-image img {
     display: none;
 }
-
 
 .product:hover .product-image {
     box-shadow:
         0 0 45px rgba(200,255,0,.08);
 }
 
-/* ================================
-   CUSTOM
-================================ */
 
-.custom {
-    min-height: 90vh;
-
-    background: var(--accent);
-    color: var(--black);
-
-    padding: 120px 7vw;
-
-    position: relative;
-    overflow: hidden;
-
-    box-shadow:
-        inset 0 1px 0 rgba(255,255,255,.1);
-}
-
-.custom .eyebrow {
-    color: rgba(0,0,0,.55);
-}
-
-.custom-number {
-    position: absolute;
-
-    top: 35px;
-    right: 40px;
-
-    font: 10px var(--mono);
-}
-
-.custom-content {
-    position: relative;
-    z-index: 2;
-}
-
-.custom h2 {
-    margin: 50px 0 30px;
-
-    font-size: clamp(80px, 14vw, 200px);
-    line-height: .73;
-
-    letter-spacing: -.09em;
-
-    font-weight: 900;
-}
-
-.custom h2 span {
-    color: transparent;
-    -webkit-text-stroke: 2px var(--black);
-}
-
-.custom p {
-    max-width: 350px;
-    font-size: 18px;
-}
-
-.custom-side {
-    position: absolute;
-
-    right: 7vw;
-    bottom: 100px;
-
-    font: 10px var(--mono);
-    text-align: center;
-
-    line-height: 4;
-
-    opacity: .55;
-}
-
-.big-button {
-    margin-top: 35px;
-
-    border: 1px solid currentColor;
-    background: transparent;
-
-    padding: 18px 22px;
-
-    cursor: pointer;
-
-    font: 10px var(--mono);
-    letter-spacing: .1em;
-
-    transition:
-        background .3s,
-        color .3s,
-        box-shadow .3s;
-}
-
-.big-button:hover {
-    background: var(--black);
-    color: var(--accent);
-
-    box-shadow:
-        0 0 25px rgba(200,255,0,.35);
-}
-
-.big-button span {
-    margin-left: 30px;
-}
-
-
-/* ================================
+/* =========================================================
    PROCESS
-================================ */
+========================================================= */
 
 .process {
     padding: 140px 32px;
+
     border-top: 1px solid var(--line);
 }
 
@@ -736,6 +680,7 @@ em {
     margin-top: 100px;
 
     display: grid;
+
     grid-template-columns: repeat(4, 1fr);
 
     border-top: 1px solid var(--line);
@@ -757,6 +702,7 @@ em {
 
 .process-card > span {
     font: 10px var(--mono);
+
     color: var(--accent);
 }
 
@@ -778,12 +724,270 @@ em {
 }
 
 
-/* ================================
+/* =========================================================
+   CUSTOM
+========================================================= */
+
+.custom {
+    min-height: 90vh;
+
+    background: var(--accent);
+
+    color: var(--black);
+
+    padding: 120px 7vw;
+
+    position: relative;
+
+    overflow: hidden;
+
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.1);
+}
+
+.custom .eyebrow {
+    color: rgba(0,0,0,.55);
+}
+
+.custom-number {
+    position: absolute;
+
+    top: 35px;
+    right: 40px;
+
+    font: 10px var(--mono);
+}
+
+.custom-content {
+    position: relative;
+
+    z-index: 2;
+}
+
+.custom h2 {
+    margin: 50px 0 30px;
+
+    font-size: clamp(80px, 14vw, 200px);
+
+    line-height: .73;
+
+    letter-spacing: -.09em;
+
+    font-weight: 900;
+}
+
+.custom h2 span {
+    color: transparent;
+
+    -webkit-text-stroke: 2px var(--black);
+}
+
+.custom p {
+    max-width: 350px;
+
+    font-size: 18px;
+}
+
+.custom-side {
+    position: absolute;
+
+    right: 7vw;
+    bottom: 100px;
+
+    font: 10px var(--mono);
+
+    text-align: center;
+
+    line-height: 4;
+
+    opacity: .55;
+}
+
+.big-button {
+    margin-top: 35px;
+
+    border: 1px solid currentColor;
+
+    background: transparent;
+
+    padding: 18px 22px;
+
+    cursor: pointer;
+
+    font: 10px var(--mono);
+
+    letter-spacing: .1em;
+
+    transition:
+        background .3s,
+        color .3s,
+        box-shadow .3s;
+}
+
+.big-button:hover {
+    background: var(--black);
+
+    color: var(--accent);
+
+    box-shadow:
+        0 0 25px rgba(200,255,0,.35);
+}
+
+.big-button span {
+    margin-left: 30px;
+}
+
+
+/* =========================================================
+   FAQ
+========================================================= */
+
+.faq {
+    width: 100%;
+
+    padding: 150px 7vw;
+
+    border-top: 1px solid var(--line);
+}
+
+.faq-header {
+    display: grid;
+
+    grid-template-columns: 1fr 2fr;
+
+    gap: 40px;
+
+    margin-bottom: 100px;
+}
+
+.faq h2 {
+    margin: 0;
+
+    font-size: clamp(55px, 8vw, 120px);
+
+    line-height: .83;
+
+    letter-spacing: -.07em;
+
+    font-weight: 900;
+}
+
+.faq-list {
+    width: 100%;
+
+    border-top: 1px solid var(--line);
+}
+
+.faq-item {
+    width: 100%;
+
+    border-bottom: 1px solid var(--line);
+}
+
+.faq-item summary {
+    width: 100%;
+
+    min-width: 0;
+
+    padding: 28px 0;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 30px;
+
+    cursor: pointer;
+
+    list-style: none;
+
+    font: 12px var(--mono);
+
+    letter-spacing: .06em;
+}
+
+.faq-item summary::-webkit-details-marker {
+    display: none;
+}
+
+.faq-item summary::marker {
+    display: none;
+}
+
+.faq-item summary > span:first-child {
+    min-width: 0;
+
+    flex: 1 1 auto;
+
+    white-space: normal;
+
+    overflow-wrap: anywhere;
+}
+
+.faq-plus {
+    flex: 0 0 30px;
+
+    width: 30px;
+    height: 30px;
+
+    border: 1px solid currentColor;
+
+    border-radius: 50%;
+
+    display: grid;
+
+    place-items: center;
+
+    font-size: 16px;
+
+    line-height: 1;
+
+    transition:
+        transform .3s,
+        background .3s,
+        color .3s;
+}
+
+.faq-answer {
+    width: 100%;
+
+    max-width: 650px;
+
+    padding: 0 50px 30px 0;
+}
+
+.faq-answer p {
+    margin: 0;
+
+    color: var(--grey);
+
+    font-size: 14px;
+
+    line-height: 1.5;
+
+    white-space: normal;
+
+    overflow-wrap: anywhere;
+}
+
+.faq-item[open] .faq-plus {
+    transform: rotate(45deg);
+
+    background: var(--accent);
+
+    color: var(--black);
+}
+
+
+/* =========================================================
    QUEUE
-================================ */
+========================================================= */
 
 .queue {
     padding: 130px 7vw;
+
     border-top: 1px solid var(--line);
 }
 
@@ -791,12 +995,15 @@ em {
     margin: 70px 0;
 
     display: flex;
+
     justify-content: space-between;
+
     align-items: flex-end;
 }
 
 .queue-title > span {
     font: 9px var(--mono);
+
     color: var(--accent);
 
     text-shadow:
@@ -833,6 +1040,7 @@ em {
 
 .progress {
     height: 2px;
+
     background: #292927;
 }
 
@@ -851,16 +1059,18 @@ em {
     margin-top: 30px;
 
     font: 10px var(--mono);
+
     color: var(--grey);
 }
 
 
-/* ================================
+/* =========================================================
    ABOUT
-================================ */
+========================================================= */
 
 .about {
     padding: 150px 7vw;
+
     border-top: 1px solid var(--line);
 }
 
@@ -880,6 +1090,7 @@ em {
 
 .large-copy {
     font-size: 25px;
+
     letter-spacing: -.03em;
 }
 
@@ -896,12 +1107,13 @@ em {
 }
 
 
-/* ================================
+/* =========================================================
    FOOTER
-================================ */
+========================================================= */
 
 footer {
     padding: 100px 32px 30px;
+
     border-top: 1px solid var(--line);
 }
 
@@ -911,6 +1123,7 @@ footer {
     font-weight: 900;
 
     letter-spacing: -.09em;
+
     line-height: .75;
 }
 
@@ -918,23 +1131,28 @@ footer {
     margin-top: 160px;
 
     display: flex;
+
     justify-content: space-between;
 
     font: 9px var(--mono);
+
     color: var(--grey);
 }
 
 .footer-bottom div {
     display: flex;
+
     gap: 25px;
 }
 
-/* ================================
-   MODAL
-================================ */
+
+/* =========================================================
+   PRODUCT MODAL
+========================================================= */
 
 .modal {
     position: fixed;
+
     inset: 0;
 
     z-index: 500;
@@ -959,11 +1177,14 @@ footer {
 
 .modal.active {
     transform: translateY(0);
+
     visibility: visible;
 }
 
 
-/* CLOSE */
+/* =========================================================
+   MODAL CLOSE
+========================================================= */
 
 .modal-close {
     position: absolute;
@@ -977,18 +1198,20 @@ footer {
     height: 45px;
 
     border: 0;
+
     background: transparent;
 
     font-size: 35px;
+
     line-height: 1;
 
     cursor: pointer;
 }
 
 
-/* ================================
-   MODAL IMAGE AREA
-================================ */
+/* =========================================================
+   MODAL IMAGE
+========================================================= */
 
 .modal-image {
     position: relative;
@@ -1004,15 +1227,6 @@ footer {
     background: #f1eee7;
 }
 
-
-/*
-   IMPORTANT
-
-   The image itself must stay inside
-   the left area and never push
-   the product information.
-*/
-
 .modal-image img {
     display: block;
 
@@ -1027,9 +1241,10 @@ footer {
     object-position: center;
 }
 
-/* ================================
+
+/* =========================================================
    MODAL GALLERY
-================================ */
+========================================================= */
 
 .modal-gallery {
     position: relative;
@@ -1041,7 +1256,9 @@ footer {
     min-height: 0;
 
     display: flex;
+
     align-items: center;
+
     justify-content: center;
 
     overflow: hidden;
@@ -1057,20 +1274,22 @@ footer {
     min-height: 0;
 
     object-fit: contain;
+
     object-position: center;
 
     user-select: none;
 }
 
 
-/* ================================
+/* =========================================================
    GALLERY ARROWS
-================================ */
+========================================================= */
 
 .gallery-arrow {
     position: absolute;
 
     top: 50%;
+
     z-index: 5;
 
     transform: translateY(-50%);
@@ -1079,12 +1298,15 @@ footer {
     height: 48px;
 
     border: 1px solid rgba(11,11,10,.25);
+
     border-radius: 50%;
 
     background: rgba(241,238,231,.9);
+
     color: var(--black);
 
     display: grid;
+
     place-items: center;
 
     cursor: pointer;
@@ -1099,6 +1321,7 @@ footer {
 
 .gallery-arrow:hover {
     background: var(--black);
+
     color: var(--white);
 }
 
@@ -1111,9 +1334,9 @@ footer {
 }
 
 
-/* ================================
+/* =========================================================
    GALLERY DOTS
-================================ */
+========================================================= */
 
 .gallery-dots {
     position: absolute;
@@ -1126,7 +1349,9 @@ footer {
     transform: translateX(-50%);
 
     display: flex;
+
     align-items: center;
+
     gap: 8px;
 
     padding: 8px 12px;
@@ -1145,6 +1370,7 @@ footer {
     padding: 0;
 
     border: 1px solid var(--white);
+
     border-radius: 50%;
 
     background: transparent;
@@ -1161,6 +1387,7 @@ footer {
 
 .gallery-dot.active {
     background: var(--accent);
+
     border-color: var(--accent);
 
     opacity: 1;
@@ -1168,9 +1395,10 @@ footer {
     transform: scale(1.25);
 }
 
-/* ================================
+
+/* =========================================================
    MODAL CONTENT
-================================ */
+========================================================= */
 
 .modal-content {
     min-width: 0;
@@ -1180,7 +1408,9 @@ footer {
     padding: 110px 7vw 70px;
 
     display: flex;
+
     flex-direction: column;
+
     justify-content: center;
 
     overflow-y: auto;
@@ -1188,22 +1418,23 @@ footer {
     border-left: 1px solid var(--line);
 }
 
-
 .modal-content h2 {
     font-size: clamp(45px, 5vw, 90px);
 
     line-height: .85;
+
     letter-spacing: -.07em;
 
     margin: 30px 0;
 }
 
-
 .modal-details {
     display: flex;
+
     justify-content: space-between;
 
     border-top: 1px solid var(--line);
+
     border-bottom: 1px solid var(--line);
 
     padding: 18px 0;
@@ -1211,64 +1442,24 @@ footer {
     font: 10px var(--mono);
 }
 
-
 .modal-content p {
     color: var(--grey);
 
     font-size: 13px;
+
     line-height: 1.5;
 
     max-width: 420px;
 }
 
 
-/* ================================
-   MODAL MOBILE
-================================ */
-
-@media (max-width: 800px) {
-
-    .modal {
-        grid-template-columns: 1fr;
-        grid-template-rows: minmax(300px, 48vh) auto;
-
-        overflow-y: auto;
-        overflow-x: hidden;
-    }
-
-    .modal-image {
-        width: 100%;
-        height: 100%;
-
-        min-height: 300px;
-    }
-
-    .modal-content {
-        height: auto;
-
-        min-height: 52vh;
-
-        padding: 45px 25px 60px;
-
-        border-left: 0;
-        border-top: 1px solid var(--line);
-
-        justify-content: flex-start;
-    }
-
-    .modal-content h2 {
-        font-size: clamp(40px, 12vw, 65px);
-    }
-
-        
-
-    
-/* ================================
+/* =========================================================
    CART
-================================ */
+========================================================= */
 
 .cart-overlay {
     position: fixed;
+
     inset: 0;
 
     z-index: 300;
@@ -1276,6 +1467,7 @@ footer {
     background: rgba(0,0,0,.6);
 
     opacity: 0;
+
     pointer-events: none;
 
     transition: opacity .3s;
@@ -1283,6 +1475,7 @@ footer {
 
 .cart-overlay.active {
     opacity: 1;
+
     pointer-events: auto;
 }
 
@@ -1298,6 +1491,7 @@ footer {
     width: min(500px, 100%);
 
     background: var(--white);
+
     color: var(--black);
 
     padding: 30px;
@@ -1308,6 +1502,7 @@ footer {
         transform .4s cubic-bezier(.7,0,.2,1);
 
     display: flex;
+
     flex-direction: column;
 }
 
@@ -1317,6 +1512,7 @@ footer {
 
 .cart-header {
     display: flex;
+
     justify-content: space-between;
 
     font: 10px var(--mono);
@@ -1328,6 +1524,7 @@ footer {
 
 .cart-header button {
     border: 0;
+
     background: none;
 
     font-size: 25px;
@@ -1337,16 +1534,19 @@ footer {
 
 .cart-items {
     flex: 1;
+
     padding-top: 20px;
 }
 
 .empty-cart {
     font: 11px var(--mono);
+
     color: #777;
 }
 
 .cart-item {
     display: flex;
+
     justify-content: space-between;
 
     border-bottom: 1px solid rgba(0,0,0,.15);
@@ -1364,11 +1564,13 @@ footer {
 
 .cart-footer {
     border-top: 1px solid rgba(0,0,0,.2);
+
     padding-top: 25px;
 }
 
 .cart-footer > div {
     display: flex;
+
     justify-content: space-between;
 
     font: 10px var(--mono);
@@ -1376,372 +1578,26 @@ footer {
 
 .cart-footer .big-button {
     width: 100%;
-    color: var(--black);
-}
 
-
-/* ================================
-   MOBILE
-================================ */
-
-@media (max-width: 800px) {
-
-    .header {
-        padding: 0 18px;
-    }
-
-    .header nav {
-        display: none;
-    }
-
-    .header-right {
-        gap: 12px;
-    }
-
-    .language-switch {
-        font-size: 8px;
-    }
-
-    .hero {
-        padding: 100px 18px 25px;
-    }
-
-    .hero-title {
-        position: relative;
-        z-index: 3;
-    
-        text-shadow:
-            0 2px 12px rgba(0,0,0,.28),
-            0 0 2px rgba(0,0,0,.18);
-    }
-
-    .hero-art {
-        position: absolute;
-    
-        top: 18%;
-        left: 50%;
-    
-        width: min(50vw, 680px);
-        height: min(50vw, 680px);
-    
-        max-width: 68vh;
-        max-height: 68vh;
-    
-        transform: translateX(-50%);
-    
-        z-index: 1;
-    }
-
-    .hero-bottom p {
-        max-width: 220px;
-    }
-
-    .manifesto {
-        display: block;
-        padding: 100px 25px;
-    }
-
-    .manifesto h2 {
-        margin-top: 60px;
-    }
-
-    .manifesto-copy {
-        margin-top: 80px;
-    }
-
-    .products {
-        grid-template-columns: 1fr;
-        gap: 60px;
-    }
-
-    .product-large {
-        grid-column: span 1;
-    }
-
-    .product-large .product-image {
-        aspect-ratio: 1;
-    }
-
-    .drop,
-    .process,
-    footer {
-        padding-left: 18px;
-        padding-right: 18px;
-    }
-
-    .section-header {
-        display: block;
-    }
-
-    .drop-meta {
-        margin-top: 30px;
-    }
-
-    .custom {
-        padding: 100px 25px;
-    }
-
-    .custom-side {
-        display: none;
-    }
-
-    .process-grid {
-        grid-template-columns: 1fr 1fr;
-    }
-
-    .process-card {
-        min-height: 250px;
-    }
-
-    .queue {
-        padding: 100px 25px;
-    }
-
-    .queue-item {
-        grid-template-columns: 30px 1fr;
-        gap: 8px;
-        padding: 20px 0;
-    }
-
-    .queue-item .progress {
-        grid-column: 2;
-    }
-
-    .queue-item > span:last-child {
-        display: none;
-    }
-
-    .about {
-        padding: 100px 25px;
-    }
-
-    .about-grid {
-        display: block;
-    }
-
-    .about-grid > div {
-        margin-top: 70px;
-    }
-
-    .footer-bottom {
-        margin-top: 100px;
-
-        display: grid;
-
-        gap: 25px;
-    }
-
-    .footer-bottom div {
-        flex-wrap: wrap;
-    }
-
-    .modal {
-        grid-template-columns: 1fr;
-        grid-template-rows: 45% 55%;
-
-        overflow-y: auto;
-    }
-
-    .modal-content {
-        padding: 40px 25px;
-    }
-
-}
-
-    /* =========================================================
-   FAQ
-========================================================= */
-
-.faq {
-    width: 100%;
-    padding: 150px 7vw;
-    border-top: 1px solid var(--line);
-}
-
-.faq-header {
-    display: grid;
-    grid-template-columns: 1fr 2fr;
-    gap: 40px;
-    margin-bottom: 100px;
-}
-
-.faq h2 {
-    margin: 0;
-
-    font-size: clamp(55px, 8vw, 120px);
-    line-height: .83;
-    letter-spacing: -.07em;
-    font-weight: 900;
-}
-
-.faq-list {
-    width: 100%;
-    border-top: 1px solid var(--line);
-}
-
-.faq-item {
-    width: 100%;
-    border-bottom: 1px solid var(--line);
-}
-
-.faq-item summary {
-    width: 100%;
-    min-width: 0;
-
-    padding: 28px 0;
-
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-
-    gap: 30px;
-
-    cursor: pointer;
-
-    list-style: none;
-
-    font: 12px var(--mono);
-    letter-spacing: .06em;
-}
-
-.faq-item summary::-webkit-details-marker {
-    display: none;
-}
-
-.faq-item summary::marker {
-    display: none;
-}
-
-/*
-   IMPORTANT:
-   text is allowed to shrink and wrap
-*/
-
-.faq-item summary > span:first-child {
-    min-width: 0;
-    flex: 1 1 auto;
-
-    white-space: normal;
-    overflow-wrap: anywhere;
-}
-
-.faq-plus {
-    flex: 0 0 30px;
-
-    width: 30px;
-    height: 30px;
-
-    border: 1px solid currentColor;
-    border-radius: 50%;
-
-    display: grid;
-    place-items: center;
-
-    font-size: 16px;
-    line-height: 1;
-
-    transition:
-        transform .3s,
-        background .3s,
-        color .3s;
-}
-
-.faq-answer {
-    width: 100%;
-    max-width: 650px;
-
-    padding: 0 50px 30px 0;
-}
-
-.faq-answer p {
-    margin: 0;
-
-    color: var(--grey);
-
-    font-size: 14px;
-    line-height: 1.5;
-
-    white-space: normal;
-    overflow-wrap: anywhere;
-}
-
-.faq-item[open] .faq-plus {
-    transform: rotate(45deg);
-
-    background: var(--accent);
     color: var(--black);
 }
 
 
 /* =========================================================
-   FAQ — MOBILE
-========================================================= */
-
-@media (max-width: 800px) {
-
-    .faq {
-        padding: 100px 18px;
-    }
-
-    .faq-header {
-        display: block;
-        margin-bottom: 60px;
-    }
-
-    .faq-header h2 {
-        margin-bottom: 25px;
-    }
-
-    .faq-item summary {
-        align-items: flex-start;
-
-        gap: 15px;
-
-        padding: 22px 0;
-
-        font-size: 11px;
-        line-height: 1.35;
-    }
-
-    .faq-item summary > span:first-child {
-        min-width: 0;
-        padding-right: 5px;
-    }
-
-    .faq-plus {
-        flex: 0 0 28px;
-
-        width: 28px;
-        height: 28px;
-
-        font-size: 15px;
-    }
-
-    .faq-answer {
-        max-width: 100%;
-
-        padding: 0 40px 25px 0;
-    }
-
-    .faq-answer p {
-        font-size: 13px;
-        line-height: 1.5;
-    }
-
-}
-
-/* =========================================================
-   brand / MANIFESTO
+   BRAND
 ========================================================= */
 
 .brand {
     padding: 150px 7vw;
+
     border-top: 1px solid var(--line);
 }
 
 .brand-header {
     display: grid;
+
     grid-template-columns: 1fr 2fr;
+
     gap: 40px;
 }
 
@@ -1749,8 +1605,11 @@ footer {
     margin: 0;
 
     font-size: clamp(55px, 8vw, 120px);
+
     line-height: .83;
+
     letter-spacing: -.07em;
+
     font-weight: 900;
 }
 
@@ -1758,6 +1617,7 @@ footer {
     margin-top: 110px;
 
     display: grid;
+
     grid-template-columns: 1.3fr .7fr;
 
     gap: 10vw;
@@ -1769,7 +1629,9 @@ footer {
     max-width: 800px;
 
     font-size: clamp(28px, 4vw, 55px);
+
     line-height: .95;
+
     letter-spacing: -.05em;
 }
 
@@ -1783,6 +1645,7 @@ footer {
     color: var(--grey);
 
     font-size: 14px;
+
     line-height: 1.55;
 }
 
@@ -1790,6 +1653,7 @@ footer {
     margin-top: 70px !important;
 
     font: 10px/1.6 var(--mono) !important;
+
     color: var(--white) !important;
 }
 
@@ -1805,12 +1669,14 @@ footer {
     font: 10px var(--mono);
 }
 
+
 /* =========================================================
-   ABOUT DOCH — NEW BRAND MANIFESTO
+   BRAND MANIFESTO
 ========================================================= */
 
 .brand-manifesto {
     padding: 150px 7vw;
+
     border-top: 1px solid var(--line);
 }
 
@@ -1818,6 +1684,7 @@ footer {
     margin-top: 110px;
 
     display: grid;
+
     grid-template-columns: 1.3fr .7fr;
 
     gap: 10vw;
@@ -1827,8 +1694,11 @@ footer {
     margin: 0;
 
     font-size: clamp(55px, 8vw, 120px);
+
     line-height: .83;
+
     letter-spacing: -.07em;
+
     font-weight: 900;
 }
 
@@ -1842,7 +1712,9 @@ footer {
     max-width: 800px;
 
     font-size: clamp(28px, 4vw, 55px);
+
     line-height: .95;
+
     letter-spacing: -.05em;
 }
 
@@ -1852,6 +1724,7 @@ footer {
     color: var(--grey);
 
     font-size: 14px;
+
     line-height: 1.55;
 }
 
@@ -1861,55 +1734,32 @@ footer {
     margin-top: 70px;
 
     font: 10px/1.6 var(--mono);
+
     color: var(--white);
 }
 
 
-/* =========================
-   MOBILE
-========================= */
-
-@media (max-width: 800px) {
-
-    .brand-manifesto {
-        padding: 100px 25px;
-    }
-
-    .brand-manifesto-grid {
-        display: block;
-        margin-top: 80px;
-    }
-
-    .brand-manifesto h2 {
-        margin-top: 60px;
-    }
-
-    .brand-manifesto-copy {
-        margin-top: 70px;
-    }
-
-    .brand-manifesto-copy .large-copy {
-        font-size: 30px;
-    }
-
-}
 /* =========================================================
-   CUSTOM REQUEST MODAL
+   CUSTOM REQUEST MODAL — OLD
 ========================================================= */
 
 .request-modal {
     position: fixed;
+
     inset: 0;
 
     z-index: 600;
 
     display: flex;
+
     align-items: center;
+
     justify-content: center;
 
     padding: 30px;
 
     visibility: hidden;
+
     opacity: 0;
 
     transition:
@@ -1919,11 +1769,13 @@ footer {
 
 .request-modal.active {
     visibility: visible;
+
     opacity: 1;
 }
 
 .request-overlay {
     position: absolute;
+
     inset: 0;
 
     background: rgba(11,11,10,.88);
@@ -1931,9 +1783,9 @@ footer {
     backdrop-filter: blur(8px);
 }
 
-
 .request-window {
     position: relative;
+
     z-index: 2;
 
     width: min(720px, 100%);
@@ -1943,6 +1795,7 @@ footer {
     overflow-y: auto;
 
     background: var(--white);
+
     color: var(--black);
 
     padding: 55px;
@@ -1960,7 +1813,6 @@ footer {
     transform: translateY(0);
 }
 
-
 .request-close {
     position: absolute;
 
@@ -1971,16 +1823,17 @@ footer {
     height: 40px;
 
     border: 0;
+
     background: transparent;
 
     color: var(--black);
 
     font-size: 30px;
+
     line-height: 1;
 
     cursor: pointer;
 }
-
 
 .request-header h2 {
     margin: 25px 0 55px;
@@ -1988,6 +1841,7 @@ footer {
     font-size: clamp(55px, 9vw, 100px);
 
     line-height: .78;
+
     letter-spacing: -.08em;
 
     font-weight: 900;
@@ -1996,10 +1850,8 @@ footer {
 .request-header h2 span {
     color: transparent;
 
-    -webkit-text-stroke:
-        1.5px var(--black);
+    -webkit-text-stroke: 1.5px var(--black);
 }
-
 
 .request-step {
     padding: 25px 0 30px;
@@ -2007,7 +1859,6 @@ footer {
     border-top:
         1px solid rgba(11,11,10,.2);
 }
-
 
 .request-step-label {
     margin-bottom: 20px;
@@ -2019,27 +1870,24 @@ footer {
     opacity: .55;
 }
 
-
 .request-fields {
     display: grid;
 
-    grid-template-columns:
-        1fr 1fr;
+    grid-template-columns: 1fr 1fr;
 
     gap: 12px;
 }
 
-
 .request-fields input:last-child {
     grid-column: span 2;
 }
-
 
 .request-window input,
 .request-window textarea {
     width: 100%;
 
     border: 0;
+
     border-bottom:
         1px solid rgba(11,11,10,.3);
 
@@ -2069,27 +1917,22 @@ footer {
     color: rgba(11,11,10,.45);
 }
 
-
 .request-window input:focus,
 .request-window textarea:focus {
     border-bottom-color: var(--black);
 }
 
-
 .size-options {
     display: grid;
 
-    grid-template-columns:
-        repeat(4, 1fr);
+    grid-template-columns: repeat(4, 1fr);
 
     gap: 8px;
 }
 
-
 .size-options label {
     cursor: pointer;
 }
-
 
 .size-options input {
     position: absolute;
@@ -2099,11 +1942,11 @@ footer {
     pointer-events: none;
 }
 
-
 .size-options label span {
     display: flex;
 
     align-items: center;
+
     justify-content: center;
 
     min-height: 48px;
@@ -2119,24 +1962,21 @@ footer {
         border-color .2s;
 }
 
-
 .size-options label:hover span {
     border-color: var(--black);
 }
 
-
 .size-options input:checked + span {
     background: var(--black);
+
     color: var(--white);
 
     border-color: var(--black);
 }
 
-
 .custom-size-input {
     margin-top: 15px;
 }
-
 
 .request-submit {
     width: 100%;
@@ -2146,23 +1986,19 @@ footer {
     color: var(--black);
 }
 
-
 .request-success {
     display: none;
 
     padding: 30px 0 10px;
 }
 
-
 .request-modal.submitted .request-success {
     display: block;
 }
 
-
 .request-modal.submitted #rugRequestForm {
     display: none;
 }
-
 
 .request-success-number {
     font: 9px var(--mono);
@@ -2172,16 +2008,15 @@ footer {
     opacity: .5;
 }
 
-
 .request-success h3 {
     margin: 25px 0;
 
     font-size: clamp(50px, 8vw, 90px);
 
     line-height: .8;
+
     letter-spacing: -.07em;
 }
-
 
 .request-success p {
     font: 11px var(--mono);
@@ -2190,63 +2025,31 @@ footer {
 }
 
 
-/* =========================
-   REQUEST MOBILE
-========================= */
-
-@media (max-width: 800px) {
-
-    .request-modal {
-        padding: 0;
-    }
-
-    .request-window {
-        width: 100%;
-        height: 100%;
-
-        max-height: none;
-
-        padding: 45px 25px 35px;
-    }
-
-    .request-header h2 {
-        margin-bottom: 40px;
-    }
-
-    .request-fields {
-        grid-template-columns: 1fr;
-    }
-
-    .request-fields input:last-child {
-        grid-column: span 1;
-    }
-
-    .size-options {
-        grid-template-columns: 1fr 1fr;
-    }
-
-}
-
 /* =========================================================
-   CUSTOM REQUEST MODAL
+   CUSTOM REQUEST MODAL — CURRENT
 ========================================================= */
 
 .custom-modal {
     position: fixed;
+
     inset: 0;
 
     z-index: 600;
 
-    background: rgba(11, 11, 10, .96);
+    background: rgba(11,11,10,.96);
 
     display: flex;
+
     align-items: center;
+
     justify-content: center;
 
     padding: 40px 25px;
 
     opacity: 0;
+
     visibility: hidden;
+
     pointer-events: none;
 
     transition:
@@ -2256,7 +2059,9 @@ footer {
 
 .custom-modal.active {
     opacity: 1;
+
     visibility: visible;
+
     pointer-events: auto;
 }
 
@@ -2289,11 +2094,13 @@ footer {
     height: 40px;
 
     border: 0;
+
     background: transparent;
 
     color: var(--white);
 
     font-size: 30px;
+
     line-height: 1;
 
     cursor: pointer;
@@ -2307,6 +2114,7 @@ footer {
 
 .custom-modal-close:hover {
     opacity: 1;
+
     transform: rotate(90deg);
 }
 
@@ -2316,6 +2124,7 @@ footer {
     font-size: clamp(55px, 9vw, 100px);
 
     line-height: .78;
+
     letter-spacing: -.08em;
 
     font-weight: 900;
@@ -2327,9 +2136,6 @@ footer {
     -webkit-text-stroke: 1px var(--white);
 }
 
-
-/* FORM */
-
 .custom-form-group {
     margin-bottom: 30px;
 }
@@ -2340,6 +2146,7 @@ footer {
     margin-bottom: 10px;
 
     font: 9px var(--mono);
+
     letter-spacing: .12em;
 
     color: var(--grey);
@@ -2350,6 +2157,7 @@ footer {
     width: 100%;
 
     border: 0;
+
     border-bottom: 1px solid var(--line);
 
     border-radius: 0;
@@ -2399,6 +2207,7 @@ footer {
     cursor: pointer;
 
     font-family: var(--mono);
+
     font-size: 10px;
 }
 
@@ -2431,6 +2240,7 @@ footer {
 
 .custom-submit:hover {
     background: var(--white);
+
     color: var(--black);
 }
 
@@ -2455,10 +2265,471 @@ footer {
 
 
 /* =========================================================
-   CUSTOM MODAL — MOBILE
+   CART — REMOVE BUTTON
+========================================================= */
+
+.remove-item {
+    appearance: none;
+    -webkit-appearance: none;
+
+    display: inline-block;
+
+    margin-top: 8px;
+
+    padding: 0;
+
+    border: 0;
+
+    background: transparent;
+
+    font-family: var(--mono);
+
+    font-size: 9px;
+
+    line-height: 1;
+
+    letter-spacing: .08em;
+
+    text-transform: uppercase;
+
+    color: var(--grey);
+
+    cursor: pointer;
+
+    transition:
+        color .2s ease,
+        opacity .2s ease;
+}
+
+.remove-item:hover {
+    color: var(--black);
+}
+
+.remove-item:active {
+    opacity: .5;
+}
+
+.remove-item:focus-visible {
+    outline: 1px solid currentColor;
+
+    outline-offset: 4px;
+}
+
+
+/* =========================================================
+   MOBILE — ALL
 ========================================================= */
 
 @media (max-width: 800px) {
+
+    /* --------------------------------
+       HEADER
+    -------------------------------- */
+
+    .header {
+        padding: 0 18px;
+    }
+
+    .header nav {
+        display: none;
+    }
+
+    .header-right {
+        gap: 12px;
+    }
+
+    .language-switch {
+        font-size: 8px;
+    }
+
+
+    /* --------------------------------
+       HERO
+    -------------------------------- */
+
+    .hero {
+        padding: 100px 18px 25px;
+    }
+
+    .hero-title {
+        position: relative;
+
+        z-index: 3;
+
+        text-shadow:
+            0 2px 12px rgba(0,0,0,.28),
+            0 0 2px rgba(0,0,0,.18);
+    }
+
+    .hero-art {
+        position: absolute;
+
+        top: 18%;
+        left: 50%;
+
+        width: min(50vw, 680px);
+
+        height: min(50vw, 680px);
+
+        max-width: 68vh;
+        max-height: 68vh;
+
+        transform: translateX(-50%);
+
+        z-index: 1;
+    }
+
+    .hero-bottom p {
+        max-width: 220px;
+    }
+
+
+    /* --------------------------------
+       MANIFESTO
+    -------------------------------- */
+
+    .manifesto {
+        display: block;
+
+        padding: 100px 25px;
+    }
+
+    .manifesto h2 {
+        margin-top: 60px;
+    }
+
+    .manifesto-copy {
+        margin-top: 80px;
+    }
+
+
+    /* --------------------------------
+       DROP
+    -------------------------------- */
+
+    .products {
+        grid-template-columns: 1fr;
+
+        gap: 60px;
+    }
+
+    .product-large {
+        grid-column: span 1;
+    }
+
+    .product-large .product-image {
+        aspect-ratio: 1;
+    }
+
+    .drop {
+        padding-left: 18px;
+        padding-right: 18px;
+    }
+
+    .section-header {
+        display: block;
+    }
+
+    .drop-meta {
+        margin-top: 30px;
+    }
+
+
+    /* --------------------------------
+       CUSTOM
+    -------------------------------- */
+
+    .custom {
+        padding: 100px 25px;
+    }
+
+    .custom-side {
+        display: none;
+    }
+
+
+    /* --------------------------------
+       PROCESS
+    -------------------------------- */
+
+    .process {
+        padding-left: 18px;
+        padding-right: 18px;
+    }
+
+    .process-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .process-card {
+        min-height: 250px;
+    }
+
+
+    /* --------------------------------
+       FAQ
+    -------------------------------- */
+
+    .faq {
+        padding: 100px 18px;
+    }
+
+    .faq-header {
+        display: block;
+
+        margin-bottom: 60px;
+    }
+
+    .faq-header h2 {
+        margin-bottom: 25px;
+    }
+
+    .faq-item summary {
+        align-items: flex-start;
+
+        gap: 15px;
+
+        padding: 22px 0;
+
+        font-size: 11px;
+
+        line-height: 1.35;
+    }
+
+    .faq-item summary > span:first-child {
+        min-width: 0;
+
+        padding-right: 5px;
+    }
+
+    .faq-plus {
+        flex: 0 0 28px;
+
+        width: 28px;
+        height: 28px;
+
+        font-size: 15px;
+    }
+
+    .faq-answer {
+        max-width: 100%;
+
+        padding: 0 40px 25px 0;
+    }
+
+    .faq-answer p {
+        font-size: 13px;
+
+        line-height: 1.5;
+    }
+
+
+    /* --------------------------------
+       QUEUE
+    -------------------------------- */
+
+    .queue {
+        padding: 100px 25px;
+    }
+
+    .queue-item {
+        grid-template-columns: 30px 1fr;
+
+        gap: 8px;
+
+        padding: 20px 0;
+    }
+
+    .queue-item .progress {
+        grid-column: 2;
+    }
+
+    .queue-item > span:last-child {
+        display: none;
+    }
+
+
+    /* --------------------------------
+       ABOUT
+    -------------------------------- */
+
+    .about {
+        padding: 100px 25px;
+    }
+
+    .about-grid {
+        display: block;
+    }
+
+    .about-grid > div {
+        margin-top: 70px;
+    }
+
+
+    /* --------------------------------
+       FOOTER
+    -------------------------------- */
+
+    footer {
+        padding-left: 18px;
+        padding-right: 18px;
+    }
+
+    .footer-bottom {
+        margin-top: 100px;
+
+        display: grid;
+
+        gap: 25px;
+    }
+
+    .footer-bottom div {
+        flex-wrap: wrap;
+    }
+
+
+    /* --------------------------------
+       PRODUCT MODAL
+    -------------------------------- */
+
+    .modal {
+        grid-template-columns: 1fr;
+
+        grid-template-rows:
+            minmax(300px, 48vh)
+            auto;
+
+        overflow-y: auto;
+
+        overflow-x: hidden;
+    }
+
+    .modal-image {
+        width: 100%;
+
+        height: 100%;
+
+        min-height: 300px;
+    }
+
+    .modal-content {
+        height: auto;
+
+        min-height: 52vh;
+
+        padding: 45px 25px 60px;
+
+        border-left: 0;
+
+        border-top: 1px solid var(--line);
+
+        justify-content: flex-start;
+    }
+
+    .modal-content h2 {
+        font-size: clamp(40px, 12vw, 65px);
+    }
+
+
+    /* --------------------------------
+       CART
+    -------------------------------- */
+
+    .cart-drawer {
+        width: min(500px, 100%);
+
+        padding: 25px;
+    }
+
+
+    /* --------------------------------
+       BRAND
+    -------------------------------- */
+
+    .brand {
+        padding: 100px 25px;
+    }
+
+    .brand-header {
+        display: block;
+    }
+
+    .brand-grid {
+        display: block;
+
+        margin-top: 80px;
+    }
+
+    .brand-copy {
+        margin-top: 70px;
+    }
+
+
+    /* --------------------------------
+       BRAND MANIFESTO
+    -------------------------------- */
+
+    .brand-manifesto {
+        padding: 100px 25px;
+    }
+
+    .brand-manifesto-grid {
+        display: block;
+
+        margin-top: 80px;
+    }
+
+    .brand-manifesto h2 {
+        margin-top: 60px;
+    }
+
+    .brand-manifesto-copy {
+        margin-top: 70px;
+    }
+
+    .brand-manifesto-copy .large-copy {
+        font-size: 30px;
+    }
+
+
+    /* --------------------------------
+       OLD REQUEST MODAL
+    -------------------------------- */
+
+    .request-modal {
+        padding: 0;
+    }
+
+    .request-window {
+        width: 100%;
+
+        height: 100%;
+
+        max-height: none;
+
+        padding: 45px 25px 35px;
+    }
+
+    .request-header h2 {
+        margin-bottom: 40px;
+    }
+
+    .request-fields {
+        grid-template-columns: 1fr;
+    }
+
+    .request-fields input:last-child {
+        grid-column: span 1;
+    }
+
+    .size-options {
+        grid-template-columns: 1fr 1fr;
+    }
+
+
+    /* --------------------------------
+       CURRENT CUSTOM MODAL
+    -------------------------------- */
 
     .custom-modal {
         padding: 15px;
@@ -2480,49 +2751,4 @@ footer {
         margin-bottom: 25px;
     }
 
-}
-
-/* =========================================================
-   CART — REMOVE BUTTON
-========================================================= */
-
-.remove-item {
-    appearance: none;
-    -webkit-appearance: none;
-
-    display: inline-block;
-
-    margin-top: 8px;
-    padding: 0;
-
-    border: 0;
-    background: transparent;
-
-    font-family: var(--mono);
-    font-size: 9px;
-    line-height: 1;
-
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-
-    color: var(--grey);
-
-    cursor: pointer;
-
-    transition:
-        color .2s ease,
-        opacity .2s ease;
-}
-
-.remove-item:hover {
-    color: var(--text);
-}
-
-.remove-item:active {
-    opacity: .5;
-}
-
-.remove-item:focus-visible {
-    outline: 1px solid currentColor;
-    outline-offset: 4px;
 }
