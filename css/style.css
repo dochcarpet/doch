@@ -560,6 +560,101 @@ em {
     color: var(--white);
 }
 
+/* ================================
+   PRODUCT IMAGE — DISTORTION
+================================ */
+
+.product-image {
+    position: relative;
+
+    width: 100%;
+    aspect-ratio: 1.15;
+
+    overflow: hidden;
+
+    background: #222;
+
+    /*
+       Initially completely square.
+    */
+
+    border-radius: 0;
+
+    cursor: crosshair;
+
+    transition:
+        border-radius .65s cubic-bezier(.2,.8,.2,1),
+        box-shadow .5s ease;
+}
+
+.product-large .product-image {
+    aspect-ratio: 2 / 1;
+}
+
+
+/*
+   Three.js canvas
+*/
+
+.product-image canvas {
+    position: absolute;
+
+    inset: 0;
+
+    width: 100% !important;
+    height: 100% !important;
+
+    display: block;
+
+    pointer-events: none;
+}
+
+
+/*
+   Hide normal image because
+   Three.js uses it as texture.
+*/
+
+.product-image img {
+    display: none;
+}
+
+
+/*
+   Hover shape.
+
+   IMPORTANT:
+   This is NOT a simple rounded rectangle.
+   The image starts square and slowly
+   becomes organic.
+*/
+
+.product:hover .product-image {
+
+    border-radius:
+        7% 12% 8% 14% /
+        12% 7% 14% 8%;
+
+    box-shadow:
+        0 0 45px rgba(200,255,0,.08);
+}
+
+
+/*
+   Slight organic movement of the whole image.
+*/
+
+.product:hover .product-image canvas {
+    transform: scale(1.035);
+    transition:
+        transform .8s cubic-bezier(.2,.7,.2,1);
+}
+
+.product-image canvas {
+    transform: scale(1);
+    transition:
+        transform .8s cubic-bezier(.2,.7,.2,1);
+}
 
 /* ================================
    CUSTOM
