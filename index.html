@@ -1162,6 +1162,10 @@ id="cartOverlay"
      CUSTOM REQUEST MODAL
 ================================= -->
 
+<!-- ================================
+     CUSTOM REQUEST MODAL
+================================= -->
+
 <div class="custom-modal" id="customModal">
 
     <div class="custom-modal-inner">
@@ -1174,11 +1178,14 @@ id="cartOverlay"
             ×
         </button>
 
-        <div class="eyebrow">
+        <div
+            class="eyebrow"
+            data-i18n="customModal.eyebrow"
+        >
             CUSTOM RUG REQUEST
         </div>
 
-        <h2>
+        <h2 data-i18n="customModal.title">
             MAKE YOUR<br>
             <span>RUG.</span>
         </h2>
@@ -1186,7 +1193,11 @@ id="cartOverlay"
         <form id="customRequestForm">
 
             <div class="custom-form-group">
-                <label for="customerName">
+
+                <label
+                    for="customerName"
+                    data-i18n="customModal.name"
+                >
                     NAME
                 </label>
 
@@ -1194,14 +1205,20 @@ id="cartOverlay"
                     type="text"
                     id="customerName"
                     name="name"
+                    data-i18n-placeholder="customModal.namePlaceholder"
                     placeholder="Your name"
                     required
                 >
+
             </div>
 
 
             <div class="custom-form-group">
-                <label for="customerContact">
+
+                <label
+                    for="customerContact"
+                    data-i18n="customModal.contact"
+                >
                     CONTACT
                 </label>
 
@@ -1209,14 +1226,20 @@ id="cartOverlay"
                     type="text"
                     id="customerContact"
                     name="contact"
+                    data-i18n-placeholder="customModal.contactPlaceholder"
                     placeholder="Telegram / Instagram / Email"
                     required
                 >
+
             </div>
 
 
             <div class="custom-form-group">
-                <label for="customerMessage">
+
+                <label
+                    for="customerMessage"
+                    data-i18n="customModal.message"
+                >
                     TELL US ABOUT YOUR RUG
                 </label>
 
@@ -1224,14 +1247,19 @@ id="cartOverlay"
                     id="customerMessage"
                     name="message"
                     rows="4"
+                    data-i18n-placeholder="customModal.messagePlaceholder"
                     placeholder="Size, idea, anything we should know..."
                 ></textarea>
+
             </div>
 
 
             <div class="custom-form-group">
 
-                <label for="customerImage">
+                <label
+                    for="customerImage"
+                    data-i18n="customModal.image"
+                >
                     MEME / IMAGE
                 </label>
 
@@ -1250,11 +1278,19 @@ id="cartOverlay"
                 type="submit"
                 class="big-button custom-submit"
             >
-                SEND REQUEST
-                <span>↗</span>
+
+                <span data-i18n="customModal.submit">
+                    SEND REQUEST
+                </span>
+
+                <span>
+                    ↗
+                </span>
+
             </button>
 
         </form>
+
 
         <div
             class="custom-success"
