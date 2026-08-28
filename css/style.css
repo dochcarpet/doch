@@ -1549,10 +1549,11 @@ footer {
             0 0 2px rgba(0,0,0,.18);
     }
 
-    .hero-art {
-        width: 115%;
-        margin-left: -7.5%;
+     .hero-art {
+        width: 90vw;
+        top: 31%;
     }
+
 
     .hero-art .glitch-rug {
         width: 100%;
