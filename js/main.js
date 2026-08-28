@@ -1348,3 +1348,535 @@ async function init() {
 ========================================================= */
 
 init();
+
+/* =========================================================
+   PRODUCT IMAGE — THREE.JS FISH-EYE DISTORTION
+========================================================= */
+
+function initProductDistortion() {
+
+    if (
+        typeof THREE === "undefined"
+    ) {
+        console.warn(
+            "Three.js not loaded"
+        );
+
+        return;
+    }
+
+
+    const images =
+        document.querySelectorAll(
+            ".product-image img"
+        );
+
+
+    images.forEach(img => {
+
+        const container =
+            img.parentElement;
+
+
+        if (!container) {
+            return;
+        }
+
+
+        /*
+           Prevent duplicate initialization.
+        */
+
+        if (
+            container.dataset.threeReady
+        ) {
+            return;
+        }
+
+        container.dataset.threeReady =
+            "true";
+
+
+        /* =================================================
+           SCENE
+        ================================================= */
+
+        const scene =
+            new THREE.Scene();
+
+
+        /* =================================================
+           CAMERA
+        ================================================= */
+
+        const camera =
+            new THREE.OrthographicCamera(
+                -1,
+                1,
+                1,
+                -1,
+                0,
+                1
+            );
+
+
+        /* =================================================
+           RENDERER
+        ================================================= */
+
+        const renderer =
+            new THREE.WebGLRenderer({
+                antialias: true,
+                alpha: true
+            });
+
+
+        renderer.setPixelRatio(
+            Math.min(
+                window.devicePixelRatio,
+                2
+            )
+        );
+
+
+        renderer.setSize(
+            container.clientWidth,
+            container.clientHeight,
+            false
+        );
+
+
+        renderer.domElement.classList.add(
+            "distortion-canvas"
+        );
+
+
+        container.appendChild(
+            renderer.domElement
+        );
+
+
+        /* =================================================
+           TEXTURE
+        ================================================= */
+
+        const texture =
+            new THREE.TextureLoader()
+                .load(
+                    img.currentSrc ||
+                    img.src
+                );
+
+
+        texture.minFilter =
+            THREE.LinearFilter;
+
+        texture.magFilter =
+            THREE.LinearFilter;
+
+
+        texture.wrapS =
+            THREE.ClampToEdgeWrapping;
+
+        texture.wrapT =
+            THREE.ClampToEdgeWrapping;
+
+
+        /* =================================================
+           SHADER
+        ================================================= */
+
+        const uniforms = {
+
+            uTexture: {
+                value: texture
+            },
+
+            uMouse: {
+                value:
+                    new THREE.Vector2(
+                        .5,
+                        .5
+                    )
+            },
+
+            uTargetMouse: {
+                value:
+                    new THREE.Vector2(
+                        .5,
+                        .5
+                    )
+            },
+
+            uHover: {
+                value: 0
+            },
+
+            uTime: {
+                value: 0
+            }
+
+        };
+
+
+        const material =
+            new THREE.ShaderMaterial({
+
+                uniforms,
+
+                vertexShader: `
+
+                    varying vec2 vUv;
+
+                    void main() {
+
+                        vUv = uv;
+
+                        gl_Position =
+                            vec4(
+                                position,
+                                1.0
+                            );
+
+                    }
+
+                `,
+
+                fragmentShader: `
+
+                    uniform sampler2D uTexture;
+
+                    uniform vec2 uMouse;
+
+                    uniform vec2 uTargetMouse;
+
+                    uniform float uHover;
+
+                    uniform float uTime;
+
+                    varying vec2 vUv;
+
+
+                    void main() {
+
+                        vec2 uv = vUv;
+
+
+                        /*
+                           Mouse position.
+                        */
+
+                        vec2 mouse =
+                            uTargetMouse;
+
+
+                        /*
+                           Distance from cursor.
+                        */
+
+                        float distanceFromMouse =
+                            distance(
+                                uv,
+                                mouse
+                            );
+
+
+                        /*
+                           Lens radius.
+
+                           This is the important part.
+
+                           We want a BIG,
+                           soft distortion —
+                           not a tiny circle.
+                        */
+
+                        float radius =
+                            .48;
+
+
+                        /*
+                           Smooth falloff.
+                        */
+
+                        float strength =
+                            1.0 -
+                            smoothstep(
+                                0.0,
+                                radius,
+                                distanceFromMouse
+                            );
+
+
+                        /*
+                           Organic bulge.
+
+                           Instead of simply
+                           scaling the image,
+                           we push UVs away
+                           from the cursor.
+                        */
+
+                        vec2 direction =
+                            uv - mouse;
+
+
+                        /*
+                           Fish-eye displacement.
+                        */
+
+                        float distortion =
+                            strength *
+                            uHover *
+                            .20;
+
+
+                        uv +=
+                            direction *
+                            distortion;
+
+
+                        /*
+                           Additional subtle
+                           wave distortion.
+                        */
+
+                        float wave =
+                            sin(
+                                distanceFromMouse *
+                                18.0 -
+                                uTime *
+                                2.5
+                            );
+
+
+                        uv +=
+                            direction *
+                            wave *
+                            strength *
+                            uHover *
+                            .012;
+
+
+                        /*
+                           Slight zoom while hovering.
+                        */
+
+                        vec2 centered =
+                            uv - .5;
+
+
+                        uv =
+                            .5 +
+                            centered *
+                            (
+                                1.0 -
+                                uHover *
+                                .045
+                            );
+
+
+                        /*
+                           Texture.
+                        */
+
+                        vec4 color =
+                            texture2D(
+                                uTexture,
+                                uv
+                            );
+
+
+                        gl_FragColor =
+                            color;
+
+                    }
+
+                `
+
+            });
+
+
+        /* =================================================
+           GEOMETRY
+        ================================================= */
+
+        const geometry =
+            new THREE.PlaneGeometry(
+                2,
+                2,
+                32,
+                32
+            );
+
+
+        const mesh =
+            new THREE.Mesh(
+                geometry,
+                material
+            );
+
+
+        scene.add(mesh);
+
+
+        /* =================================================
+           MOUSE
+        ================================================= */
+
+        let mouseX = .5;
+        let mouseY = .5;
+
+
+        container.addEventListener(
+            "mousemove",
+            event => {
+
+                const rect =
+                    container.getBoundingClientRect();
+
+
+                mouseX =
+                    (
+                        event.clientX -
+                        rect.left
+                    ) /
+                    rect.width;
+
+
+                mouseY =
+                    1 -
+                    (
+                        event.clientY -
+                        rect.top
+                    ) /
+                    rect.height;
+
+
+                uniforms.uTargetMouse.value
+                    .set(
+                        mouseX,
+                        mouseY
+                    );
+
+            }
+        );
+
+
+        container.addEventListener(
+            "mouseenter",
+            () => {
+
+                uniforms.uHover.value =
+                    1;
+
+            }
+        );
+
+
+        container.addEventListener(
+            "mouseleave",
+            () => {
+
+                uniforms.uHover.value =
+                    0;
+
+                uniforms.uTargetMouse.value
+                    .set(
+                        .5,
+                        .5
+                    );
+
+            }
+        );
+
+
+        /* =================================================
+           ANIMATION
+        ================================================= */
+
+        function animate(
+            time
+        ) {
+
+            requestAnimationFrame(
+                animate
+            );
+
+
+            uniforms.uTime.value =
+                time * .001;
+
+
+            /*
+               Smooth cursor movement.
+            */
+
+            uniforms.uMouse.value.lerp(
+                uniforms.uTargetMouse.value,
+                .12
+            );
+
+
+            /*
+               Make shader use the
+               smoothed mouse position.
+            */
+
+            uniforms.uTargetMouse.value =
+                uniforms.uMouse.value;
+
+
+            renderer.render(
+                scene,
+                camera
+            );
+
+        }
+
+
+        requestAnimationFrame(
+            animate
+        );
+
+
+        /* =================================================
+           RESIZE
+        ================================================= */
+
+        const resizeObserver =
+            new ResizeObserver(
+                () => {
+
+                    const width =
+                        container.clientWidth;
+
+                    const height =
+                        container.clientHeight;
+
+
+                    if (
+                        !width ||
+                        !height
+                    ) {
+                        return;
+                    }
+
+
+                    renderer.setSize(
+                        width,
+                        height,
+                        false
+                    );
+
+                }
+            );
+
+
+        resizeObserver.observe(
+            container
+        );
+
+    });
+
+}
