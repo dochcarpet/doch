@@ -1550,20 +1550,17 @@ footer {
     }
 
     .hero-art {
-        position: absolute;
-    
-        top: 18%;
-        left: 50%;
-    
-        width: min(70vw, 680px);
-        height: min(70vw, 680px);
-    
-        max-width: 68vh;
-        max-height: 68vh;
-    
-        transform: translateX(-50%);
-    
-        z-index: 1;
+        width: 115%;
+        margin-left: -7.5%;
+    }
+
+    .hero-art .glitch-rug {
+        width: 100%;
+    }
+
+    .hero-art img {
+        width: 100%;
+        height: auto;
     }
 
     .hero-bottom p {
