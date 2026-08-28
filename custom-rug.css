@@ -1004,3 +1004,33 @@ button {
         max-height: none !important;
     }
 }
+
+.preview-upload-button {
+    position: absolute;
+
+    top: 18px;
+    right: 18px;
+
+    width: 42px;
+    height: 42px;
+    min-height: 0;
+
+    padding: 0;
+
+    display: grid;
+    place-items: center;
+
+    background: var(--white);
+    color: var(--black);
+
+    z-index: 5;
+}
+
+.preview-upload-button span {
+    font: 20px var(--mono);
+    line-height: 1;
+}
+
+.preview-upload-button:hover {
+    background: var(--green);
+}
