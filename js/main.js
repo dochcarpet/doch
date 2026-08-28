@@ -14,7 +14,6 @@ const SUPABASE_KEY =
 ========================================================= */
 
 let products = [];
-let cart = [];
 let currentLanguage = "en";
 
 
@@ -1194,7 +1193,7 @@ function closeModal() {
 
 
 /* =========================================================
-   ADD TO CART
+   ADD CURRENT PRODUCT TO CART
 ========================================================= */
 
 document
@@ -1216,15 +1215,7 @@ document
                 return;
             }
 
-            if (
-                product.status === "sold"
-            ) {
-                return;
-            }
-
-            cart.push(product);
-
-            updateCart();
+            addToCart(product);
 
             closeModal();
 
@@ -1232,9 +1223,6 @@ document
 
         }
     );
-
-
-
 
 
 /* =========================================================
