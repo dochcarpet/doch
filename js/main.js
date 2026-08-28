@@ -1464,11 +1464,14 @@ async function submitCustomRugRequest(
         );
 
 
-        alert(
+       alert(
+        error?.message ||
+        (
             currentLanguage === "ru"
-                ? "Не удалось отправить запрос. Попробуйте ещё раз."
-                : "Could not send your request. Please try again."
-        );
+                ? "Не удалось отправить запрос."
+                : "Could not send your request."
+        )
+    );
 
 
     } finally {
