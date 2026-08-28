@@ -1312,7 +1312,6 @@ async function init() {
 
     initProductDistortion();
 
-
     console.log(
         "DOCH MAIN INITIALIZED"
     );
@@ -1337,24 +1336,26 @@ function initProductDistortion() {
         return;
     }
 
-    const images =
-        document.querySelectorAll(".product-image img");
 
-    images.forEach(img => {
+    const containers =
+        document.querySelectorAll(".product-image");
 
-        const container = img.parentElement;
 
-        if (!container) {
-            return;
-        }
-
-        /*
-           Prevent duplicate initialization.
-        */
+    containers.forEach(container => {
 
         if (container.dataset.threeReady) {
             return;
         }
+
+
+        const img =
+            container.querySelector("img");
+
+
+        if (!img) {
+            return;
+        }
+
 
         container.dataset.threeReady = "true";
 
@@ -1363,7 +1364,8 @@ function initProductDistortion() {
            SCENE
         ================================================= */
 
-        const scene = new THREE.Scene();
+        const scene =
+            new THREE.Scene();
 
 
         /* =================================================
@@ -1391,12 +1393,14 @@ function initProductDistortion() {
                 alpha: true
             });
 
+
         renderer.setPixelRatio(
             Math.min(
-                window.devicePixelRatio,
-                2
+                window.devicePixelRatio || 1,
+                1.5
             )
         );
+
 
         renderer.setSize(
             container.clientWidth,
@@ -1404,9 +1408,11 @@ function initProductDistortion() {
             false
         );
 
+
         renderer.domElement.classList.add(
             "distortion-canvas"
         );
+
 
         container.appendChild(
             renderer.domElement
@@ -1417,10 +1423,29 @@ function initProductDistortion() {
            TEXTURE
         ================================================= */
 
+        const textureLoader =
+            new THREE.TextureLoader();
+
+
         const texture =
-            new THREE.TextureLoader().load(
-                img.currentSrc || img.src
+            textureLoader.load(
+                img.currentSrc || img.src,
+                () => {
+
+                    /*
+                       Once Three.js has the image,
+                       hide the original <img>.
+
+                       This prevents the original image
+                       and WebGL image from being rendered
+                       on top of each other.
+                    */
+
+                    img.style.opacity = "0";
+
+                }
             );
+
 
         texture.minFilter =
             THREE.LinearFilter;
@@ -1436,7 +1461,7 @@ function initProductDistortion() {
 
 
         /* =================================================
-           SHADER
+           UNIFORMS
         ================================================= */
 
         const uniforms = {
@@ -1447,12 +1472,18 @@ function initProductDistortion() {
 
             uMouse: {
                 value:
-                    new THREE.Vector2(.5, .5)
+                    new THREE.Vector2(
+                        0.5,
+                        0.5
+                    )
             },
 
             uTargetMouse: {
                 value:
-                    new THREE.Vector2(.5, .5)
+                    new THREE.Vector2(
+                        0.5,
+                        0.5
+                    )
             },
 
             uHover: {
@@ -1469,6 +1500,10 @@ function initProductDistortion() {
 
         };
 
+
+        /* =================================================
+           MATERIAL
+        ================================================= */
 
         const material =
             new THREE.ShaderMaterial({
@@ -1508,14 +1543,8 @@ function initProductDistortion() {
 
                     void main() {
 
-                        vec2 uv = vUv;
-
-
-                        /*
-                           Mouse position.
-                        */
-
-                        vec2 mouse = uMouse;
+                        vec2 uv =
+                            vUv;
 
 
                         /*
@@ -1525,19 +1554,20 @@ function initProductDistortion() {
                         float distanceFromMouse =
                             distance(
                                 uv,
-                                mouse
+                                uMouse
                             );
 
 
                         /*
-                           Large soft lens.
+                           Lens radius.
                         */
 
-                        float radius = .48;
+                        float radius =
+                            0.48;
 
 
                         /*
-                           Smooth falloff.
+                           Soft lens falloff.
                         */
 
                         float strength =
@@ -1554,20 +1584,17 @@ function initProductDistortion() {
                         */
 
                         vec2 direction =
-                            uv - mouse;
+                            uv - uMouse;
 
 
                         /*
-                           Main fish-eye distortion.
-
-                           Hover controls the
-                           intensity smoothly.
+                           Fish-eye.
                         */
 
                         float distortion =
                             strength *
                             uHover *
-                            .20;
+                            0.20;
 
 
                         uv +=
@@ -1576,15 +1603,13 @@ function initProductDistortion() {
 
 
                         /*
-                           Subtle organic wave.
+                           Subtle organic movement.
                         */
 
                         float wave =
                             sin(
-                                distanceFromMouse *
-                                18.0 -
-                                uTime *
-                                2.5
+                                distanceFromMouse * 18.0 -
+                                uTime * 2.5
                             );
 
 
@@ -1593,21 +1618,21 @@ function initProductDistortion() {
                             wave *
                             strength *
                             uHover *
-                            .012;
+                            0.012;
 
 
                         /*
-                           IMPORTANT:
-                           No zoom here.
-
-                           The image stays at
-                           exactly 100% scale.
+                           Clamp prevents sampling
+                           outside the texture.
                         */
 
+                        uv =
+                            clamp(
+                                uv,
+                                0.001,
+                                0.999
+                            );
 
-                        /*
-                           Texture.
-                        */
 
                         vec4 color =
                             texture2D(
@@ -1633,9 +1658,7 @@ function initProductDistortion() {
         const geometry =
             new THREE.PlaneGeometry(
                 2,
-                2,
-                32,
-                32
+                2
             );
 
 
@@ -1645,16 +1668,15 @@ function initProductDistortion() {
                 material
             );
 
-        scene.add(mesh);
+
+        scene.add(
+            mesh
+        );
 
 
         /* =================================================
            MOUSE
         ================================================= */
-
-        let mouseX = .5;
-        let mouseY = .5;
-
 
         container.addEventListener(
             "mousemove",
@@ -1663,14 +1685,16 @@ function initProductDistortion() {
                 const rect =
                     container.getBoundingClientRect();
 
-                mouseX =
+
+                const x =
                     (
                         event.clientX -
                         rect.left
                     ) /
                     rect.width;
 
-                mouseY =
+
+                const y =
                     1 -
                     (
                         event.clientY -
@@ -1678,9 +1702,10 @@ function initProductDistortion() {
                     ) /
                     rect.height;
 
+
                 uniforms.uTargetMouse.value.set(
-                    mouseX,
-                    mouseY
+                    x,
+                    y
                 );
 
             }
@@ -1691,7 +1716,8 @@ function initProductDistortion() {
             "mouseenter",
             () => {
 
-                uniforms.uTargetHover.value = 1;
+                uniforms.uTargetHover.value =
+                    1;
 
             }
         );
@@ -1701,11 +1727,12 @@ function initProductDistortion() {
             "mouseleave",
             () => {
 
-                uniforms.uTargetHover.value = 0;
+                uniforms.uTargetHover.value =
+                    0;
 
                 uniforms.uTargetMouse.value.set(
-                    .5,
-                    .5
+                    0.5,
+                    0.5
                 );
 
             }
@@ -1723,30 +1750,43 @@ function initProductDistortion() {
             );
 
 
+            /*
+               Don't render hidden/offscreen
+               product cards.
+
+               Saves laptop CPU/GPU.
+            */
+
+            const rect =
+                container.getBoundingClientRect();
+
+
+            const visible =
+                rect.bottom > 0 &&
+                rect.top < window.innerHeight;
+
+
+            if (!visible) {
+                return;
+            }
+
+
             uniforms.uTime.value =
-                time * .001;
+                time * 0.001;
 
 
             /*
-               Smooth cursor movement.
+               Smooth cursor.
             */
 
             uniforms.uMouse.value.lerp(
                 uniforms.uTargetMouse.value,
-                .12
+                0.12
             );
 
 
             /*
-               Smooth hover intensity.
-
-               This is the important fix.
-
-               Instead of:
-                   0 → 1 instantly
-
-               we get:
-                   0 → 1 smoothly
+               Smooth hover.
             */
 
             uniforms.uHover.value +=
@@ -1754,7 +1794,7 @@ function initProductDistortion() {
                     uniforms.uTargetHover.value -
                     uniforms.uHover.value
                 ) *
-                .08;
+                0.08;
 
 
             renderer.render(
@@ -1784,9 +1824,14 @@ function initProductDistortion() {
                     const height =
                         container.clientHeight;
 
-                    if (!width || !height) {
+
+                    if (
+                        !width ||
+                        !height
+                    ) {
                         return;
                     }
+
 
                     renderer.setSize(
                         width,
@@ -1805,5 +1850,3 @@ function initProductDistortion() {
     });
 
 }
-
-initProductDistortion();
