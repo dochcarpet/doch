@@ -231,14 +231,11 @@ button {
 .hero-art {
     position: absolute;
 
-    top: 18%;
+    top: 22%;
     left: 50%;
 
-    width: min(56vw, 760px);
-    height: min(56vw, 760px);
-
-    max-width: 74vh;
-    max-height: 74vh;
+    width: min(57vw, 800px);
+    aspect-ratio: 1 / 1;
 
     transform: translateX(-50%);
 
