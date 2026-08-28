@@ -314,33 +314,6 @@ button {
     line-height: 1.4;
 }
 
-.circle-button {
-    width: 65px;
-    height: 65px;
-
-    border: 1px solid var(--white);
-    border-radius: 50%;
-
-    display: grid;
-    place-items: center;
-
-    font-size: 25px;
-
-    transition:
-        background .3s,
-        color .3s,
-        box-shadow .3s;
-}
-
-.circle-button:hover {
-    background: var(--white);
-    color: var(--black);
-
-    box-shadow:
-        0 0 20px rgba(241,238,231,.3);
-}
-
-
 /* ================================
    GENERAL
 ================================ */
