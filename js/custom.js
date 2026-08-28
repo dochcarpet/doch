@@ -202,3 +202,49 @@ function calculateCustomRugPrice() {
 
 }
 
+/* =========================================================
+   SHAPE OPTIONS
+========================================================= */
+
+rugShapeOptions.forEach(
+    button => {
+
+        button.addEventListener(
+            "click",
+            () => {
+
+                rugShapeOptions.forEach(
+                    item => {
+
+                        item.classList.remove(
+                            "active"
+                        );
+
+                    }
+                );
+
+
+                button.classList.add(
+                    "active"
+                );
+
+
+                const shape =
+                    button.dataset.shape;
+
+
+                if (rugShapeInput) {
+
+                    rugShapeInput.value =
+                        shape;
+
+                }
+
+
+                calculateCustomRugPrice();
+
+            }
+        );
+
+    }
+);
