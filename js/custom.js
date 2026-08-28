@@ -77,3 +77,128 @@ const quantityMinus =
 
 const quantityPlus =
     document.getElementById("quantityPlus");
+
+
+/* =========================================================
+   CUSTOM RUG PRICE CALCULATOR
+========================================================= */
+
+const CUSTOM_RUG_PRICE_PER_100CM2 = 1.5;
+
+const CUSTOM_RUG_SHAPE_MULTIPLIERS = {
+
+    rectangle: 1,
+
+    square: 1,
+
+    round: 1.10,
+
+    organic: 1.20
+
+};
+
+const CUSTOM_RUG_SURFACE_MULTIPLIERS = {
+
+    flat: 1,
+
+    carved: 1.20
+
+};
+
+
+function calculateCustomRugPrice() {
+
+    const width =
+        Number(
+            rugWidthInput?.value
+        );
+
+    const height =
+        Number(
+            rugHeightInput?.value
+        );
+
+    const quantity =
+        Math.max(
+            1,
+            Number(
+                rugQuantityInput?.value
+            ) || 1
+        );
+
+    const shape =
+        rugShapeInput?.value ||
+        "rectangle";
+
+    const surface =
+        rugSurfaceInput?.value ||
+        "flat";
+
+
+    if (
+        !width ||
+        !height ||
+        width < 40 ||
+        height < 40
+    ) {
+
+        if (rugEstimatePrice) {
+
+            rugEstimatePrice.textContent =
+                "€ —";
+
+        }
+
+        return null;
+
+    }
+
+
+    const area =
+        width * height;
+
+
+    const basePrice =
+        (
+            area / 100
+        ) *
+        CUSTOM_RUG_PRICE_PER_100CM2;
+
+
+    const shapeMultiplier =
+        CUSTOM_RUG_SHAPE_MULTIPLIERS[
+            shape
+        ] || 1;
+
+
+    const surfaceMultiplier =
+        CUSTOM_RUG_SURFACE_MULTIPLIERS[
+            surface
+        ] || 1;
+
+
+    const price =
+        basePrice *
+        shapeMultiplier *
+        surfaceMultiplier *
+        quantity;
+
+
+    const roundedPrice =
+        Math.ceil(
+            price / 5
+        ) * 5;
+
+
+    if (rugEstimatePrice) {
+
+        rugEstimatePrice.textContent =
+            `€${roundedPrice}`;
+
+    }
+
+
+    return roundedPrice;
+
+}
+
