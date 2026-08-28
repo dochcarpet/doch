@@ -1805,3 +1805,5 @@ function initProductDistortion() {
     });
 
 }
+
+initProductDistortion();
