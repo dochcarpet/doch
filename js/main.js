@@ -1481,6 +1481,21 @@ function setLanguage(language) {
 
             }
         );
+   document
+    .querySelectorAll("[data-i18n-placeholder]")
+    .forEach(element => {
+
+        const key =
+            element.dataset.i18nPlaceholder;
+
+        if (translations[language][key]) {
+
+            element.placeholder =
+                translations[language][key];
+
+        }
+
+    });
 
 
     document
