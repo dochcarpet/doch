@@ -447,6 +447,10 @@ em {
    FISH-EYE REMOVED
 ================================ */
 
+/* ================================
+   PRODUCT IMAGE — DOCH LENS
+================================ */
+
 .product-image {
     position: relative;
 
@@ -457,10 +461,16 @@ em {
 
     background: #222;
 
+    /*
+       Start perfectly rectangular.
+       The organic shape appears only on hover.
+    */
+
+    border-radius: 0;
+
     transition:
-        transform .5s cubic-bezier(.2,.7,.2,1),
-        border-radius .5s ease,
-        box-shadow .5s ease;
+        border-radius .7s cubic-bezier(.2,.8,.2,1),
+        box-shadow .7s ease;
 }
 
 .product-large .product-image {
@@ -468,54 +478,78 @@ em {
 }
 
 
-/*
-   IMPORTANT:
-   No ::before fish-eye lens.
-   No ::after glass overlay.
-*/
-
-.product-image::before,
-.product-image::after {
-    content: none;
-}
-
-
-/* image */
+/* --------------------------------
+   IMAGE
+-------------------------------- */
 
 .product-image img {
     width: 100%;
     height: 100%;
 
-    object-fit: cover;
     display: block;
 
+    object-fit: cover;
+
+    /*
+       Slightly larger from the beginning
+       so the lens has room to move.
+    */
+
+    transform:
+        scale(1.015)
+        translate3d(0, 0, 0);
+
+    transform-origin: center center;
+
+    will-change:
+        transform,
+        filter;
+
     transition:
-        transform .55s cubic-bezier(.2,.7,.2,1),
-        filter .4s ease;
+        transform .8s cubic-bezier(.16,.8,.2,1),
+        filter .5s ease;
 }
 
 
-/* hover */
+/* --------------------------------
+   HOVER — ORGANIC SHAPE
+-------------------------------- */
 
 .product:hover .product-image {
 
-    transform: scale(.985);
-
     border-radius:
-        4% 7% 5% 8% /
-        5% 4% 8% 6%;
+        8% 14% 10% 16% /
+        13% 9% 15% 11%;
 
     box-shadow:
-        0 0 35px rgba(200,255,0,.07);
+        0 20px 60px rgba(0,0,0,.18);
 }
+
 
 .product:hover .product-image img {
 
-    transform: scale(1.08);
+    transform:
+        scale(1.075)
+        translate3d(
+            var(--lens-x, 0px),
+            var(--lens-y, 0px),
+            0
+        );
 
     filter:
-        saturate(1.12)
-        contrast(1.04);
+        saturate(1.1)
+        contrast(1.035);
+}
+
+
+/* --------------------------------
+   NO OVERLAY
+-------------------------------- */
+
+.product-image::before,
+.product-image::after {
+    display: none;
+    content: none;
 }
 
 
