@@ -4,7 +4,7 @@
 
 import {
     SUPABASE_URL,
-    SUPABASE_KEY,
+    SUPABASE_KEY
 } from "./config.js";
 
 import {
@@ -198,19 +198,9 @@ if (customModal) {
    PRICE CALCULATOR
 ========================================================= */
 
-/*
-   Base price per 100 cm².
+const CUSTOM_RUG_PRICE_PER_100CM2 =
+    1.5;
 
-   Change this ONE number when
-   the final DOCH pricing model is ready.
-*/
-
-const CUSTOM_RUG_PRICE_PER_100CM2 = 1.5;
-
-
-/*
-   Shape multipliers.
-*/
 
 const CUSTOM_RUG_SHAPE_MULTIPLIERS = {
 
@@ -224,10 +214,6 @@ const CUSTOM_RUG_SHAPE_MULTIPLIERS = {
 
 };
 
-
-/*
-   Surface multipliers.
-*/
 
 const CUSTOM_RUG_SURFACE_MULTIPLIERS = {
 
@@ -266,10 +252,6 @@ function calculateCustomRugPrice() {
         rugSurfaceInput?.value ||
         "flat";
 
-
-    /*
-       No valid dimensions yet.
-    */
 
     if (
         !width ||
@@ -319,10 +301,6 @@ function calculateCustomRugPrice() {
         surfaceMultiplier *
         quantity;
 
-
-    /*
-       Round up to nearest €5.
-    */
 
     const roundedPrice =
         Math.ceil(
@@ -838,18 +816,28 @@ async function submitCustomRugRequest(
                 {
                     method: "POST",
 
-                     headers: {
-                     
-                         "apikey":
-                             SUPABASE_KEY,
-                     
-                         "Content-Type":
-                             "application/json",
-                     
-                         "Prefer":
-                             "return=representation"
-                     
-                     },
+                    headers: {
+
+                        /*
+                           IMPORTANT:
+                           sb_publishable_ key goes into
+                           apikey only.
+
+                           Do NOT send it as
+                           Authorization: Bearer.
+                        */
+
+                        "apikey":
+                            SUPABASE_KEY,
+
+                        "Content-Type":
+                            file.type ||
+                            "application/octet-stream",
+
+                        "x-upsert":
+                            "false"
+
+                    },
 
                     body:
                         file
@@ -885,88 +873,84 @@ async function submitCustomRugRequest(
            6. ORDER DATA
         ================================================= */
 
-        /*
-           IMPORTANT:
-           These column names match the current
-           custom_rugs table.
-        */
+        const order = {
 
-       const order = {
-         
-             name:
-                 name,
-         
-             email:
-                 email,
-         
-             image_url:
-                 imageUrl,
-         
-             description:
-                 message,
-         
-             width:
-                 width,
-         
-             height:
-                 height,
-         
-             shape:
-                 shape,
-         
-             surface:
-                 surface,
-         
-             quantity:
-                 quantity,
-         
-             estimated_price:
-                 estimatedPrice,
-         
-             status:
-                 "new"
-         
-         };
+            name:
+                name,
+
+            email:
+                email,
+
+            image_url:
+                imageUrl,
+
+            description:
+                message,
+
+            width:
+                width,
+
+            height:
+                height,
+
+            shape:
+                shape,
+
+            surface:
+                surface,
+
+            quantity:
+                quantity,
+
+            estimated_price:
+                estimatedPrice,
+
+            status:
+                "new"
+
+        };
+
+
+        console.log(
+            "DOCH ORDER DATA:",
+            order
+        );
 
 
         /* =================================================
            7. CREATE DATABASE RECORD
         ================================================= */
 
-        console.log("SUPABASE URL:", SUPABASE_URL);
-        console.log("SUPABASE KEY exists:", !!SUPABASE_KEY);
-        console.log(
-           "SUPABASE KEY prefix:",
-            SUPABASE_KEY?.substring(0, 20)
-        );
-
         const orderResponse =
-    await fetch(
-        `${SUPABASE_URL}/rest/v1/orders`,
-        {
-            method: "POST",
+            await fetch(
+                `${SUPABASE_URL}/rest/v1/orders`,
+                {
+                    method: "POST",
 
-            headers: {
+                    headers: {
 
-                "apikey":
-                    SUPABASE_KEY,
+                        /*
+                           IMPORTANT:
+                           Publishable key only in apikey.
+                           No Authorization header.
+                        */
 
-                "Authorization":
-                    `Bearer ${SUPABASE_KEY}`,
+                        "apikey":
+                            SUPABASE_KEY,
 
-                "Content-Type":
-                    "application/json",
+                        "Content-Type":
+                            "application/json",
 
-                "Prefer":
-                    "return=representation"
+                        "Prefer":
+                            "return=representation"
 
-            },
+                    },
 
-            body:
-                JSON.stringify(order)
+                    body:
+                        JSON.stringify(order)
 
-        }
-    );
+                }
+            );
 
 
         if (
@@ -1019,9 +1003,9 @@ async function submitCustomRugRequest(
         customForm.reset();
 
 
-        /*
-           Restore default selections after reset.
-        */
+        /* =================================================
+           RESTORE DEFAULTS
+        ================================================= */
 
         if (rugShapeInput) {
 
@@ -1074,6 +1058,7 @@ async function submitCustomRugRequest(
 
 
         calculateCustomRugPrice();
+
 
     } catch (error) {
 
