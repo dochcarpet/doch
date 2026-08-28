@@ -937,6 +937,13 @@ async function submitCustomRugRequest(
            7. CREATE DATABASE RECORD
         ================================================= */
 
+        console.log("SUPABASE URL:", SUPABASE_URL);
+        console.log("SUPABASE KEY exists:", !!SUPABASE_KEY);
+        console.log(
+           "SUPABASE KEY prefix:",
+            SUPABASE_KEY?.substring(0, 20)
+        );
+
         const orderResponse =
             await fetch(
                 `${SUPABASE_URL}/rest/v1/custom_rugs`,
