@@ -956,7 +956,7 @@ async function submitCustomRugRequest(
                             SUPABASE_KEY,
 
                         "Authorization":
-                            `Bearer ${SUPABASE_KEY`,
+                            `Bearer ${SUPABASE_KEY}`,
 
                         "Content-Type":
                             "application/json",
