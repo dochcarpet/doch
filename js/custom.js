@@ -895,42 +895,42 @@ async function submitCustomRugRequest(
            custom_rugs table.
         */
 
-        const order = {
-
-            name:
-                name,
-
-            email:
-                email,
-
-            width:
-                width,
-
-            height:
-                height,
-
-            shape:
-                shape,
-
-            surface:
-                surface,
-
-            quantity:
-                quantity,
-
-            estimate:
-                estimatedPrice,
-
-            message:
-                message,
-
-            image_url:
-                imageUrl,
-
-            status:
-                "new"
-
-        };
+       const order = {
+         
+             name:
+                 name,
+         
+             email:
+                 email,
+         
+             image_url:
+                 imageUrl,
+         
+             description:
+                 message,
+         
+             width:
+                 width,
+         
+             height:
+                 height,
+         
+             shape:
+                 shape,
+         
+             surface:
+                 surface,
+         
+             quantity:
+                 quantity,
+         
+             estimated_price:
+                 estimatedPrice,
+         
+             status:
+                 "new"
+         
+         };
 
 
         /* =================================================
@@ -945,34 +945,32 @@ async function submitCustomRugRequest(
         );
 
         const orderResponse =
-            await fetch(
-                `${SUPABASE_URL}/rest/v1/orders`,
-                {
-                    method: "POST",
+    await fetch(
+        `${SUPABASE_URL}/rest/v1/orders`,
+        {
+            method: "POST",
 
-                    headers: {
+            headers: {
 
-                        "apikey":
-                            SUPABASE_KEY,
+                "apikey":
+                    SUPABASE_KEY,
 
-                        "Authorization":
-                            `Bearer ${SUPABASE_KEY}`,
+                "Authorization":
+                    `Bearer ${SUPABASE_KEY}`,
 
-                        "Content-Type":
-                            "application/json",
+                "Content-Type":
+                    "application/json",
 
-                        "Prefer":
-                            "return=representation"
+                "Prefer":
+                    "return=representation"
 
-                    },
+            },
 
-                    body:
-                        JSON.stringify(
-                            order
-                        )
+            body:
+                JSON.stringify(order)
 
-                }
-            );
+        }
+    );
 
 
         if (
