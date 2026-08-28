@@ -1597,47 +1597,6 @@ document.addEventListener(
 
 
 /* =========================================================
-   HERO GLITCH
-========================================================= */
-
-const heroTitle =
-    document.querySelector(
-        ".hero-title"
-    );
-
-
-setInterval(
-    () => {
-
-        if (
-            Math.random() > .65
-        ) {
-
-            heroTitle.style.transform =
-                `translate(
-                    ${Math.random() * 4 - 2}px,
-                    ${Math.random() * 3 - 1.5}px
-                )`;
-
-
-            setTimeout(
-                () => {
-
-                    heroTitle.style.transform =
-                        "";
-
-                },
-                80
-            );
-
-        }
-
-    },
-    1600
-);
-
-
-/* =========================================================
    SCROLL REVEALS
 ========================================================= */
 
