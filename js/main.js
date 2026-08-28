@@ -1131,17 +1131,6 @@ if (
 
 }
 
-        alert(
-            currentLanguage === "ru"
-                ? "Пожалуйста, укажите имя и контакт."
-                : "Please enter your name and contact."
-        );
-
-        return;
-
-    }
-
-
     if (!file) {
 
         alert(
@@ -1287,65 +1276,49 @@ if (
 
         const imageUrl =
             `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${filePath}`;
+       
 
+       /* =================================================
+         3. CREATE ORDER DATA
+      ================================================= */
+      
+      const order = {
+      
+          name:
+              name,
+      
+          email:
+              email,
+      
+          image_url:
+              imageUrl,
+      
+          description:
+              message,
+      
+          width:
+              width,
+      
+          height:
+              height,
+      
+          shape:
+              shape,
+      
+          surface:
+              surface,
+      
+          quantity:
+              quantity,
+      
+          estimated_price:
+              estimatedPrice,
+      
+          status:
+              "new"
+      
+      };
 
-/* =================================================
-   3. CONTACT
-================================================= */
-
-const contactType =
-    document.getElementById("contactType")?.value ||
-    "telegram";
-
-
-const order = {
-
-    name:
-        name,
-
-    email:
-        contactType === "email"
-            ? contact
-            : null,
-
-    telegram:
-        contactType === "telegram"
-            ? contact
-            : null,
-
-    instagram:
-        contactType === "instagram"
-            ? contact
-            : null,
-
-    image_url:
-        imageUrl,
-
-    description:
-        message,
-
-    width:
-        width,
-
-    height:
-        height,
-
-    shape:
-        shape,
-
-    surface:
-        surface,
-
-    quantity:
-        quantity,
-
-    estimated_price:
-        estimatedPrice,
-
-    status:
-        "new"
-
-}; 
 
         /* =================================================
            4. CREATE ORDER
