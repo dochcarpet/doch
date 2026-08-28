@@ -1224,65 +1224,40 @@ function initCursorLens() {
            SMOOTH MOTION
         ----------------------------------------- */
 
-        function animate() {
+function animate(time) {
 
-            currentX +=
-                (
-                    targetX -
-                    currentX
-                ) * .12;
+    requestAnimationFrame(animate);
 
+    const rect =
+        container.getBoundingClientRect();
 
-            currentY +=
-                (
-                    targetY -
-                    currentY
-                ) * .12;
+    const visible =
+        rect.bottom > 0 &&
+        rect.top < window.innerHeight;
 
+    if (!visible) {
+        return;
+    }
 
-            const scale =
-                image.style.getPropertyValue(
-                    "--lens-scale"
-                ) ||
-                "1";
+    uniforms.uTime.value =
+        time * .001;
 
+    uniforms.uMouse.value.lerp(
+        uniforms.uTargetMouse.value,
+        .12
+    );
 
-            if (hovering) {
+    uniforms.uHover.value +=
+        (
+            uniforms.uTargetHover.value -
+            uniforms.uHover.value
+        ) * .08;
 
-                image.style.transform =
-                    `
-                    scale(${scale})
-                    translate3d(
-                        ${currentX}px,
-                        ${currentY}px,
-                        0
-                    )
-                    `;
-
-            } else {
-
-                currentX *= .82;
-                currentY *= .82;
-
-
-                image.style.transform =
-                    `
-                    scale(1)
-                    translate3d(
-                        ${currentX}px,
-                        ${currentY}px,
-                        0
-                    )
-                    `;
-
-            }
-
-
-            requestAnimationFrame(
-                animate
-            );
-
-        }
+    renderer.render(
+        scene,
+        camera
+    );
+}
 
 
         animate();
