@@ -574,17 +574,11 @@ em {
 
     background: #222;
 
-    /*
-       Initially completely square.
-    */
-
     border-radius: 0;
 
     cursor: crosshair;
 
-    transition:
-        border-radius .65s cubic-bezier(.2,.8,.2,1),
-        box-shadow .5s ease;
+    transition: box-shadow .25s ease;
 }
 
 .product-large .product-image {
@@ -620,40 +614,9 @@ em {
 }
 
 
-/*
-   Hover shape.
-
-   IMPORTANT:
-   This is NOT a simple rounded rectangle.
-   The image starts square and slowly
-   becomes organic.
-*/
-
 .product:hover .product-image {
-
-    border-radius:
-        7% 12% 8% 14% /
-        12% 7% 14% 8%;
-
     box-shadow:
         0 0 45px rgba(200,255,0,.08);
-}
-
-
-/*
-   Slight organic movement of the whole image.
-*/
-
-.product:hover .product-image canvas {
-    transform: scale(1.035);
-    transition:
-        transform .8s cubic-bezier(.2,.7,.2,1);
-}
-
-.product-image canvas {
-    transform: scale(1);
-    transition:
-        transform .8s cubic-bezier(.2,.7,.2,1);
 }
 
 /* ================================
