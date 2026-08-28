@@ -1110,143 +1110,292 @@ id="cartOverlay"
      CUSTOM REQUEST MODAL
 ================================= -->
 
-<div class="custom-modal" id="customModal">
+<form id="customRequestForm">
 
-    <div class="custom-modal-inner">
+    <!-- CLIENT -->
 
-        <button
-            class="custom-modal-close"
-            id="customModalClose"
-            aria-label="Close"
+    <div class="custom-form-group">
+
+        <label
+            for="customerName"
+            data-i18n="customModal.name"
         >
-            ×
-        </button>
+            NAME
+        </label>
 
-        <div
-            class="eyebrow"
-            data-i18n="customModal.eyebrow"
+        <input
+            type="text"
+            id="customerName"
+            name="name"
+            data-i18n-placeholder="customModal.namePlaceholder"
+            placeholder="Your name"
+            required
         >
-            CUSTOM RUG REQUEST
-        </div>
 
-        <h2 data-i18n="customModal.title">
-            MAKE YOUR<br>
-            <span>RUG.</span>
-        </h2>
-
-        <form id="customRequestForm">
-
-            <div class="custom-form-group">
-
-                <label
-                    for="customerName"
-                    data-i18n="customModal.name"
-                >
-                    NAME
-                </label>
-
-                <input
-                    type="text"
-                    id="customerName"
-                    name="name"
-                    data-i18n-placeholder="customModal.namePlaceholder"
-                    placeholder="Your name"
-                    required
-                >
-
-            </div>
+    </div>
 
 
-            <div class="custom-form-group">
+    <div class="custom-form-group">
 
-                <label
-                    for="customerContact"
-                    data-i18n="customModal.contact"
-                >
-                    CONTACT
-                </label>
+        <label
+            for="customerContact"
+            data-i18n="customModal.contact"
+        >
+            CONTACT
+        </label>
 
-                <input
-                    type="text"
-                    id="customerContact"
-                    name="contact"
-                    data-i18n-placeholder="customModal.contactPlaceholder"
-                    placeholder="Telegram / Instagram / Email"
-                    required
-                >
+        <input
+            type="text"
+            id="customerContact"
+            name="contact"
+            data-i18n-placeholder="customModal.contactPlaceholder"
+            placeholder="Telegram / Instagram / Email"
+            required
+        >
 
-            </div>
-
-
-            <div class="custom-form-group">
-
-                <label
-                    for="customerMessage"
-                    data-i18n="customModal.message"
-                >
-                    TELL US ABOUT YOUR RUG
-                </label>
-
-                <textarea
-                    id="customerMessage"
-                    name="message"
-                    rows="4"
-                    data-i18n-placeholder="customModal.messagePlaceholder"
-                    placeholder="Size, idea, anything we should know..."
-                ></textarea>
-
-            </div>
+    </div>
 
 
-            <div class="custom-form-group">
+    <!-- SIZE -->
 
-                <label
-                    for="customerImage"
-                    data-i18n="customModal.image"
-                >
-                    MEME / IMAGE
-                </label>
+    <div class="custom-form-group">
 
-                <input
-                    type="file"
-                    id="customerImage"
-                    name="image"
-                    accept="image/*"
-                    required
-                >
+        <label>
+            RUG SIZE
+        </label>
 
-            </div>
-
+        <div class="rug-size-options">
 
             <button
-                type="submit"
-                class="big-button custom-submit"
+                type="button"
+                class="rug-size-option"
+                data-width="60"
+                data-height="90"
             >
-
-                <span data-i18n="customModal.submit">
-                    SEND REQUEST
-                </span>
-
-                <span>
-                    ↗
-                </span>
-
+                60 × 90
             </button>
 
-        </form>
+            <button
+                type="button"
+                class="rug-size-option"
+                data-width="80"
+                data-height="120"
+            >
+                80 × 120
+            </button>
+
+            <button
+                type="button"
+                class="rug-size-option"
+                data-width="100"
+                data-height="150"
+            >
+                100 × 150
+            </button>
+
+            <button
+                type="button"
+                class="rug-size-option"
+                data-width="120"
+                data-height="180"
+            >
+                120 × 180
+            </button>
+
+            <button
+                type="button"
+                class="rug-size-option"
+                data-width="150"
+                data-height="200"
+            >
+                150 × 200
+            </button>
+
+            <button
+                type="button"
+                class="rug-size-option custom-size-option"
+                data-custom="true"
+            >
+                CUSTOM
+            </button>
+
+        </div>
 
 
         <div
-            class="custom-success"
-            id="customSuccess"
+            class="custom-rug-size"
+            id="customRugSize"
         >
-            REQUEST SENT.<br>
-            WE'LL GET BACK TO YOU.
+
+            <input
+                type="number"
+                id="rugWidth"
+                name="width"
+                min="20"
+                max="500"
+                placeholder="WIDTH / CM"
+            >
+
+            <span>×</span>
+
+            <input
+                type="number"
+                id="rugHeight"
+                name="height"
+                min="20"
+                max="500"
+                placeholder="HEIGHT / CM"
+            >
+
         </div>
 
     </div>
 
-</div>
+
+    <!-- SHAPE -->
+
+    <div class="custom-form-group">
+
+        <label>
+            SHAPE
+        </label>
+
+        <div class="rug-shape-options">
+
+            <button
+                type="button"
+                class="rug-shape-option active"
+                data-shape="rectangle"
+            >
+                RECTANGLE
+            </button>
+
+            <button
+                type="button"
+                class="rug-shape-option"
+                data-shape="round"
+            >
+                ROUND
+            </button>
+
+            <button
+                type="button"
+                class="rug-shape-option"
+                data-shape="organic"
+            >
+                ORGANIC
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- QUANTITY -->
+
+    <div class="custom-form-group">
+
+        <label for="rugQuantity">
+            QUANTITY
+        </label>
+
+        <input
+            type="number"
+            id="rugQuantity"
+            name="quantity"
+            min="1"
+            max="20"
+            value="1"
+            required
+        >
+
+    </div>
+
+
+    <!-- DESCRIPTION -->
+
+    <div class="custom-form-group">
+
+        <label
+            for="customerMessage"
+            data-i18n="customModal.message"
+        >
+            TELL US ABOUT YOUR RUG
+        </label>
+
+        <textarea
+            id="customerMessage"
+            name="message"
+            rows="4"
+            data-i18n-placeholder="customModal.messagePlaceholder"
+            placeholder="Size, idea, anything we should know..."
+        ></textarea>
+
+    </div>
+
+
+    <!-- IMAGE -->
+
+    <div class="custom-form-group">
+
+        <label
+            for="customerImage"
+            data-i18n="customModal.image"
+        >
+            MEME / IMAGE
+        </label>
+
+        <input
+            type="file"
+            id="customerImage"
+            name="image"
+            accept="image/*"
+            required
+        >
+
+    </div>
+
+
+    <!-- PRICE -->
+
+    <div class="rug-estimate">
+
+        <div class="rug-estimate-label">
+            PRELIMINARY ESTIMATE
+        </div>
+
+        <div
+            class="rug-estimate-price"
+            id="rugEstimatePrice"
+        >
+            € — 
+        </div>
+
+        <div class="rug-estimate-note">
+            FINAL PRICE AFTER DESIGN REVIEW
+        </div>
+
+    </div>
+
+
+    <!-- SUBMIT -->
+
+    <button
+        type="submit"
+        class="big-button custom-submit"
+    >
+
+        <span data-i18n="customModal.submit">
+            SEND REQUEST
+        </span>
+
+        <span>
+            ↗
+        </span>
+
+    </button>
+
+</form>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script type="module" src="js/main.js"></script>
