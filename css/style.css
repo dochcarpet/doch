@@ -39,7 +39,9 @@ a {
     text-decoration: none;
 }
 
-button {
+button,
+input,
+textarea {
     font: inherit;
     color: inherit;
 }
@@ -254,7 +256,6 @@ button {
             rgba(255,255,255,.08) 50%,
             transparent 51%
         ),
-
         repeating-linear-gradient(
             0deg,
             #b8b7b0 0px,
@@ -332,7 +333,10 @@ button {
 .manifesto h2,
 .section-header h2,
 .queue h2,
-.about h2 {
+.about h2,
+.faq h2,
+.brand h2,
+.brand-manifesto h2 {
     font-size: clamp(55px, 8vw, 120px);
 
     letter-spacing: -.07em;
@@ -410,7 +414,7 @@ em {
 
 
 /* =========================================================
-   RUG PLACEHOLDERS
+   PRODUCT
 ========================================================= */
 
 .rug-one {
@@ -485,9 +489,6 @@ em {
 
     font: 8px var(--mono);
     letter-spacing: .1em;
-
-    box-shadow:
-        0 0 15px rgba(200,255,0,.05);
 }
 
 .product-info {
@@ -526,11 +527,6 @@ em {
     font-size: 15px;
     color: var(--white);
 }
-
-
-/* =========================================================
-   PRODUCT IMAGE
-========================================================= */
 
 .product-image {
     position: relative;
@@ -582,7 +578,7 @@ em {
 
 
 /* =========================================================
-   CUSTOM
+   CUSTOM SECTION
 ========================================================= */
 
 .custom {
@@ -859,6 +855,99 @@ em {
 
 
 /* =========================================================
+   FAQ
+========================================================= */
+
+.faq {
+    padding: 150px 7vw;
+    border-top: 1px solid var(--line);
+}
+
+.faq-header {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 40px;
+
+    margin-bottom: 100px;
+}
+
+.faq-list {
+    border-top: 1px solid var(--line);
+}
+
+.faq-item {
+    border-bottom: 1px solid var(--line);
+}
+
+.faq-item summary {
+    padding: 28px 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 20px;
+
+    cursor: pointer;
+
+    list-style: none;
+
+    font: 12px var(--mono);
+    letter-spacing: .06em;
+}
+
+.faq-item summary::-webkit-details-marker {
+    display: none;
+}
+
+.faq-item summary::marker {
+    display: none;
+}
+
+.faq-plus {
+    flex-shrink: 0;
+
+    width: 30px;
+    height: 30px;
+
+    border: 1px solid currentColor;
+    border-radius: 50%;
+
+    display: grid;
+    place-items: center;
+
+    font-size: 16px;
+
+    transition:
+        transform .3s,
+        background .3s,
+        color .3s;
+}
+
+.faq-answer {
+    max-width: 650px;
+
+    padding: 0 50px 30px 0;
+}
+
+.faq-answer p {
+    margin: 0;
+
+    color: var(--grey);
+
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.faq-item[open] .faq-plus {
+    transform: rotate(45deg);
+
+    background: var(--accent);
+    color: var(--black);
+}
+
+
+/* =========================================================
    BRAND
 ========================================================= */
 
@@ -871,15 +960,6 @@ em {
     display: grid;
     grid-template-columns: 1fr 2fr;
     gap: 40px;
-}
-
-.brand h2 {
-    margin: 0;
-
-    font-size: clamp(55px, 8vw, 120px);
-    line-height: .83;
-    letter-spacing: -.07em;
-    font-weight: 900;
 }
 
 .brand-grid {
@@ -950,15 +1030,6 @@ em {
     grid-template-columns: 1.3fr .7fr;
 
     gap: 10vw;
-}
-
-.brand-manifesto h2 {
-    margin: 0;
-
-    font-size: clamp(55px, 8vw, 120px);
-    line-height: .83;
-    letter-spacing: -.07em;
-    font-weight: 900;
 }
 
 .brand-manifesto-copy {
@@ -1140,11 +1211,6 @@ footer {
     user-select: none;
 }
 
-
-/* =========================================================
-   GALLERY ARROWS
-========================================================= */
-
 .gallery-arrow {
     position: absolute;
 
@@ -1240,11 +1306,6 @@ footer {
 
     transform: scale(1.25);
 }
-
-
-/* =========================================================
-   MODAL CONTENT
-========================================================= */
 
 .modal-content {
     min-width: 0;
@@ -1368,6 +1429,7 @@ footer {
 .cart-items {
     flex: 1;
     padding-top: 20px;
+    overflow-y: auto;
 }
 
 .empty-cart {
@@ -1382,6 +1444,8 @@ footer {
     border-bottom: 1px solid rgba(0,0,0,.15);
 
     padding: 15px 0;
+
+    gap: 15px;
 }
 
 .cart-item-name {
@@ -1409,147 +1473,6 @@ footer {
     color: var(--black);
 }
 
-.remove-item {
-    appearance: none;
-    -webkit-appearance: none;
-
-    display: inline-block;
-
-    margin-top: 8px;
-    padding: 0;
-
-    border: 0;
-    background: transparent;
-
-    font-family: var(--mono);
-    font-size: 9px;
-    line-height: 1;
-
-    letter-spacing: .08em;
-    text-transform: uppercase;
-
-    color: var(--grey);
-
-    cursor: pointer;
-
-    transition:
-        color .2s ease,
-        opacity .2s ease;
-}
-
-.remove-item:hover {
-    color: var(--black);
-}
-
-.remove-item:active {
-    opacity: .5;
-}
-
-.remove-item:focus-visible {
-    outline: 1px solid currentColor;
-    outline-offset: 4px;
-}
-
-
-/* =========================================================
-   FAQ
-========================================================= */
-
-.faq {
-    padding: 150px 7vw;
-    border-top: 1px solid var(--line);
-}
-
-.faq-header {
-    display: grid;
-    grid-template-columns: 1fr 2fr;
-    gap: 40px;
-
-    margin-bottom: 100px;
-}
-
-.faq h2 {
-    margin: 0;
-
-    font-size: clamp(55px, 8vw, 120px);
-    line-height: .83;
-    letter-spacing: -.07em;
-    font-weight: 900;
-}
-
-.faq-list {
-    border-top: 1px solid var(--line);
-}
-
-.faq-item {
-    border-bottom: 1px solid var(--line);
-}
-
-.faq-item summary {
-    padding: 28px 0;
-
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-
-    cursor: pointer;
-
-    list-style: none;
-
-    font: 12px var(--mono);
-    letter-spacing: .06em;
-}
-
-.faq-item summary::-webkit-details-marker {
-    display: none;
-}
-
-.faq-item summary::marker {
-    display: none;
-}
-
-.faq-plus {
-    flex-shrink: 0;
-
-    width: 30px;
-    height: 30px;
-
-    border: 1px solid currentColor;
-    border-radius: 50%;
-
-    display: grid;
-    place-items: center;
-
-    font-size: 16px;
-
-    transition:
-        transform .3s,
-        background .3s,
-        color .3s;
-}
-
-.faq-answer {
-    max-width: 650px;
-
-    padding: 0 50px 30px 0;
-}
-
-.faq-answer p {
-    margin: 0;
-
-    color: var(--grey);
-
-    font-size: 14px;
-    line-height: 1.5;
-}
-
-.faq-item[open] .faq-plus {
-    transform: rotate(45deg);
-
-    background: var(--accent);
-    color: var(--black);
-}
-
 
 /* =========================================================
    CUSTOM REQUEST MODAL
@@ -1567,7 +1490,7 @@ footer {
 
     padding: 20px;
 
-    background: rgba(11, 11, 10, .94);
+    background: rgba(11,11,10,.94);
 
     opacity: 0;
     visibility: hidden;
@@ -1593,6 +1516,7 @@ footer {
     max-height: calc(100svh - 40px);
 
     overflow-y: auto;
+    overscroll-behavior: contain;
 
     padding: 38px 42px 42px;
 
@@ -1610,17 +1534,12 @@ footer {
     transition:
         transform .35s cubic-bezier(.2,.7,.2,1);
 
-    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
 }
 
 .custom-modal.active .custom-modal-inner {
     transform: translateY(0);
 }
-
-
-/* =========================================================
-   CUSTOM MODAL CLOSE
-========================================================= */
 
 .custom-modal-close {
     position: absolute;
@@ -1655,11 +1574,6 @@ footer {
     transform: rotate(90deg);
 }
 
-
-/* =========================================================
-   CUSTOM MODAL HEADER
-========================================================= */
-
 .custom-modal-inner h2 {
     margin: 8px 0 32px;
 
@@ -1689,7 +1603,7 @@ footer {
 .custom-form-group label {
     display: block;
 
-    margin-bottom: 7px;
+    margin-bottom: 8px;
 
     font: 8px var(--mono);
     letter-spacing: .12em;
@@ -1697,11 +1611,16 @@ footer {
     color: var(--grey);
 }
 
+
+/* =========================================================
+   INPUTS
+========================================================= */
+
 .custom-form-group input,
 .custom-form-group textarea {
     width: 100%;
 
-    padding: 9px 0;
+    padding: 11px 0;
 
     border: 0;
     border-bottom: 1px solid var(--line);
@@ -1713,7 +1632,7 @@ footer {
 
     outline: none;
 
-    font: 12px var(--sans);
+    font: 13px var(--sans);
 
     transition:
         border-color .2s,
@@ -1735,65 +1654,83 @@ footer {
 
 
 /* =========================================================
-   NAME + CONTACT
+   SIZE INPUTS
+   Matches current HTML:
+   .rug-size-inputs
 ========================================================= */
 
-.custom-form-row {
+.rug-size-inputs {
     display: grid;
 
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr) 25px minmax(0, 1fr);
 
-    gap: 25px;
-}
-
-
-/* =========================================================
-   SIZE
-========================================================= */
-
-.custom-size-row {
-    display: grid;
-
-    grid-template-columns: 1fr 20px 1fr;
-
-    align-items: end;
+    align-items: center;
 
     gap: 10px;
 }
 
-.custom-size-row span {
-    padding-bottom: 10px;
+.rug-size-inputs input {
+    min-width: 0;
+
+    padding: 12px;
+
+    border: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
 
     text-align: center;
 
-    font: 11px var(--mono);
+    font-family: var(--mono);
+    font-size: 11px;
+}
+
+.rug-size-inputs input:focus {
+    border-color: var(--accent);
+
+    box-shadow:
+        0 0 0 1px var(--accent);
+}
+
+.rug-size-inputs span {
+    text-align: center;
 
     color: var(--grey);
+
+    font: 12px var(--mono);
+}
+
+.custom-form-hint {
+    margin-top: 8px;
+
+    color: var(--grey);
+
+    font: 8px var(--mono);
+    letter-spacing: .05em;
 }
 
 
 /* =========================================================
-   SHAPE / SURFACE
+   SHAPE
 ========================================================= */
 
 .rug-shape-options,
 .rug-surface-options {
     display: grid;
 
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
 
     gap: 6px;
 }
 
 .rug-surface-options {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .rug-shape-option,
 .rug-surface-option {
-    min-height: 38px;
+    min-width: 0;
+    min-height: 42px;
 
-    padding: 8px 6px;
+    padding: 8px 5px;
 
     border: 1px solid var(--line);
 
@@ -1802,7 +1739,7 @@ footer {
     color: var(--white);
 
     font: 8px var(--mono);
-    letter-spacing: .05em;
+    letter-spacing: .04em;
 
     cursor: pointer;
 
@@ -1829,26 +1766,24 @@ footer {
 
 /* =========================================================
    QUANTITY
+   Matches current HTML:
+   .quantity-control
 ========================================================= */
 
-.custom-quantity {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
+.quantity-control {
+    width: max-content;
 
-.custom-quantity-controls {
     display: flex;
     align-items: center;
 
-    height: 34px;
+    height: 40px;
 
     border: 1px solid var(--line);
 }
 
-.custom-quantity-controls button {
-    width: 34px;
-    height: 32px;
+.quantity-control button {
+    width: 40px;
+    height: 38px;
 
     padding: 0;
 
@@ -1858,7 +1793,7 @@ footer {
 
     color: var(--white);
 
-    font: 13px var(--mono);
+    font: 15px var(--mono);
 
     cursor: pointer;
 
@@ -1867,14 +1802,14 @@ footer {
         color .2s;
 }
 
-.custom-quantity-controls button:hover {
+.quantity-control button:hover {
     background: var(--accent);
     color: var(--black);
 }
 
-.custom-quantity-controls input {
-    width: 42px !important;
-    height: 32px;
+.quantity-control input {
+    width: 45px !important;
+    height: 38px;
 
     padding: 0 !important;
 
@@ -1887,36 +1822,50 @@ footer {
     text-align: center;
 
     font: 11px var(--mono) !important;
+
+    outline: none;
 }
 
-.custom-quantity-controls input:focus {
+.quantity-control input:focus {
     box-shadow: none !important;
 }
 
 
 /* =========================================================
-   PRICE
+   ESTIMATE
 ========================================================= */
 
-.custom-price {
-    display: flex;
+.rug-estimate {
+    margin: 25px 0;
 
-    justify-content: space-between;
-    align-items: center;
-
-    padding: 13px 0;
+    padding: 15px 0;
 
     border-top: 1px solid var(--line);
     border-bottom: 1px solid var(--line);
-
-    font: 9px var(--mono);
-    letter-spacing: .08em;
 }
 
-.custom-price strong {
-    font-size: 17px;
+.rug-estimate-label {
+    font: 8px var(--mono);
+    letter-spacing: .08em;
+
+    color: var(--grey);
+}
+
+.rug-estimate-price {
+    margin-top: 6px;
 
     color: var(--accent);
+
+    font: 500 20px var(--mono);
+}
+
+.rug-estimate-note {
+    margin-top: 5px;
+
+    color: var(--grey);
+
+    font: 7px var(--mono);
+    letter-spacing: .06em;
 }
 
 
@@ -1925,7 +1874,7 @@ footer {
 ========================================================= */
 
 .custom-form-group textarea {
-    min-height: 65px;
+    min-height: 80px;
 
     resize: vertical;
 
@@ -1938,7 +1887,7 @@ footer {
 ========================================================= */
 
 .custom-form-group input[type="file"] {
-    padding: 8px 0;
+    padding: 10px 0;
 
     cursor: pointer;
 
@@ -1949,7 +1898,7 @@ footer {
 .custom-form-group input[type="file"]::file-selector-button {
     margin-right: 10px;
 
-    padding: 7px 10px;
+    padding: 8px 10px;
 
     border: 1px solid var(--line);
 
@@ -1981,7 +1930,7 @@ footer {
 
     margin-top: 8px;
 
-    padding: 15px 18px;
+    padding: 16px 18px;
 
     border: 1px solid var(--white);
 
@@ -2010,6 +1959,7 @@ footer {
 
 .custom-submit:disabled {
     cursor: wait;
+    opacity: .55;
 }
 
 
@@ -2035,10 +1985,12 @@ footer {
 
 
 /* =========================================================
-   MOBILE — GLOBAL
+   MOBILE — MAIN
 ========================================================= */
 
 @media (max-width: 800px) {
+
+    /* ---------- HEADER ---------- */
 
     .header {
         height: 64px;
@@ -2057,44 +2009,97 @@ footer {
         font-size: 8px;
     }
 
+    .cart-button {
+        font-size: 9px;
+    }
+
+
+    /* ---------- HERO ---------- */
+
     .hero {
-        padding: 90px 18px 25px;
+        min-height: 100svh;
+        padding: 88px 18px 25px;
+    }
+
+    .hero-topline {
+        font-size: 8px;
     }
 
     .hero-title {
-        position: relative;
-        z-index: 3;
+        margin-top: 6vh;
+
+        font-size: clamp(58px, 18vw, 105px);
+
+        line-height: .78;
 
         text-shadow:
             0 2px 12px rgba(0,0,0,.28),
             0 0 2px rgba(0,0,0,.18);
     }
 
-    .hero-art {
-        width: 90vw;
-        top: 31%;
+    .hero-title .outline {
+        margin-left: 8vw;
     }
 
-    .hero-art .glitch-rug,
-    .hero-art img {
-        width: 100%;
+    .hero-title div:last-child {
+        margin-left: 2vw;
+    }
+
+    .hero-art {
+        width: 92vw;
+        top: 31%;
     }
 
     .hero-bottom p {
         max-width: 220px;
+        font-size: 12px;
     }
+
+
+    /* ---------- MANIFESTO ---------- */
 
     .manifesto {
         display: block;
+
+        min-height: auto;
+
         padding: 100px 25px;
     }
 
     .manifesto h2 {
         margin-top: 60px;
+
+        font-size: clamp(50px, 15vw, 85px);
     }
 
     .manifesto-copy {
         margin-top: 80px;
+    }
+
+    .manifesto-copy p {
+        font-size: 18px;
+    }
+
+
+    /* ---------- DROP ---------- */
+
+    .drop {
+        padding: 100px 18px;
+    }
+
+    .section-header {
+        display: block;
+
+        margin-bottom: 60px;
+    }
+
+    .section-header h2 {
+        font-size: clamp(50px, 15vw, 85px);
+    }
+
+    .drop-meta {
+        margin-top: 30px;
+        gap: 15px;
     }
 
     .products {
@@ -2110,45 +2115,113 @@ footer {
         aspect-ratio: 1;
     }
 
-    .drop,
-    .process,
-    footer {
-        padding-left: 18px;
-        padding-right: 18px;
+    .product-image {
+        aspect-ratio: 1;
     }
 
-    .section-header {
-        display: block;
-    }
 
-    .drop-meta {
-        margin-top: 30px;
-    }
+    /* ---------- CUSTOM ---------- */
 
     .custom {
+        min-height: auto;
+
         padding: 100px 25px;
+    }
+
+    .custom h2 {
+        margin-top: 45px;
+
+        font-size: clamp(72px, 20vw, 125px);
     }
 
     .custom-side {
         display: none;
     }
 
+
+    /* ---------- PROCESS ---------- */
+
+    .process {
+        padding: 100px 18px;
+    }
+
     .process-grid {
+        margin-top: 70px;
+
         grid-template-columns: 1fr 1fr;
     }
 
     .process-card {
         min-height: 250px;
+
+        padding: 20px 15px 30px 0;
     }
+
+    .process-card h3 {
+        margin-top: 70px;
+        font-size: 25px;
+    }
+
+
+    /* ---------- FAQ ---------- */
+
+    .faq {
+        padding: 100px 25px;
+    }
+
+    .faq-header {
+        display: block;
+
+        margin-bottom: 70px;
+    }
+
+    .faq-header p {
+        margin-top: 30px;
+    }
+
+    .faq h2 {
+        font-size: clamp(48px, 15vw, 82px);
+    }
+
+    .faq-item summary {
+        padding: 22px 0;
+
+        font-size: 10px;
+
+        line-height: 1.35;
+    }
+
+    .faq-answer {
+        padding: 0 35px 25px 0;
+    }
+
+    .faq-answer p {
+        font-size: 13px;
+    }
+
+
+    /* ---------- QUEUE ---------- */
 
     .queue {
         padding: 100px 25px;
     }
 
+    .queue-title {
+        margin: 55px 0;
+    }
+
+    .queue-title h2 {
+        font-size: clamp(48px, 15vw, 82px);
+    }
+
     .queue-item {
         grid-template-columns: 30px 1fr;
+
         gap: 8px;
+
         padding: 20px 0;
+
+        min-height: 100px;
     }
 
     .queue-item .progress {
@@ -2158,6 +2231,9 @@ footer {
     .queue-item > span:last-child {
         display: none;
     }
+
+
+    /* ---------- ABOUT ---------- */
 
     .about {
         padding: 100px 25px;
@@ -2171,17 +2247,12 @@ footer {
         margin-top: 70px;
     }
 
-    .footer-bottom {
-        margin-top: 100px;
-
-        display: grid;
-
-        gap: 25px;
+    .about h2 {
+        font-size: clamp(48px, 15vw, 82px);
     }
 
-    .footer-bottom div {
-        flex-wrap: wrap;
-    }
+
+    /* ---------- BRAND ---------- */
 
     .brand {
         padding: 100px 25px;
@@ -2197,6 +2268,7 @@ footer {
 
     .brand-grid {
         display: block;
+
         margin-top: 80px;
     }
 
@@ -2208,17 +2280,23 @@ footer {
         margin-top: 70px;
     }
 
+
+    /* ---------- BRAND MANIFESTO ---------- */
+
     .brand-manifesto {
         padding: 100px 25px;
     }
 
     .brand-manifesto-grid {
         display: block;
+
         margin-top: 80px;
     }
 
     .brand-manifesto h2 {
         margin-top: 60px;
+
+        font-size: clamp(48px, 15vw, 82px);
     }
 
     .brand-manifesto-copy {
@@ -2229,25 +2307,57 @@ footer {
         font-size: 30px;
     }
 
-    /* PRODUCT MODAL */
+
+    /* ---------- FOOTER ---------- */
+
+    footer {
+        padding: 80px 18px 25px;
+    }
+
+    .footer-big {
+        font-size: clamp(65px, 18vw, 110px);
+    }
+
+    .footer-bottom {
+        margin-top: 100px;
+
+        display: grid;
+
+        gap: 25px;
+    }
+
+    .footer-bottom div {
+        flex-wrap: wrap;
+        gap: 15px 20px;
+    }
+
+
+    /* =====================================================
+       PRODUCT MODAL MOBILE
+    ===================================================== */
 
     .modal {
         grid-template-columns: 1fr;
-        grid-template-rows: minmax(300px, 45svh) auto;
+
+        grid-template-rows:
+            minmax(280px, 45svh)
+            auto;
 
         overflow-y: auto;
         overflow-x: hidden;
     }
 
     .modal-image {
-        min-height: 300px;
+        min-height: 280px;
+        height: 100%;
     }
 
     .modal-content {
         height: auto;
+
         min-height: 55svh;
 
-        padding: 40px 25px 60px;
+        padding: 40px 25px 55px;
 
         border-left: 0;
         border-top: 1px solid var(--line);
@@ -2259,31 +2369,45 @@ footer {
         font-size: clamp(40px, 12vw, 65px);
     }
 
-    /* FAQ */
+    .modal-close {
+        top: 10px;
+        right: 12px;
 
-    .faq {
-        padding: 100px 25px;
+        width: 42px;
+        height: 42px;
+
+        font-size: 32px;
     }
 
-    .faq-header {
-        display: block;
-        margin-bottom: 70px;
+    .gallery-arrow {
+        width: 40px;
+        height: 40px;
+
+        font-size: 15px;
     }
 
-    .faq h2 {
-        margin-top: 60px;
+    .gallery-prev {
+        left: 12px;
     }
 
-    /* CART */
-
-    .cart-drawer {
-        width: 100%;
-        padding: 22px 18px;
+    .gallery-next {
+        right: 12px;
     }
 
 
     /* =====================================================
-       CUSTOM MODAL — MOBILE
+       CART MOBILE
+    ===================================================== */
+
+    .cart-drawer {
+        width: 100%;
+
+        padding: 22px 20px 25px;
+    }
+
+
+    /* =====================================================
+       CUSTOM REQUEST MODAL MOBILE
     ===================================================== */
 
     .custom-modal {
@@ -2291,7 +2415,7 @@ footer {
 
         padding: 0;
 
-        background: rgba(11, 11, 10, .78);
+        background: rgba(11,11,10,.78);
     }
 
     .custom-modal-inner {
@@ -2302,7 +2426,7 @@ footer {
         padding:
             28px
             20px
-            max(28px, env(safe-area-inset-bottom));
+            calc(25px + env(safe-area-inset-bottom));
 
         border-left: 0;
         border-right: 0;
@@ -2310,174 +2434,208 @@ footer {
 
         border-radius: 18px 18px 0 0;
 
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
-
         box-shadow:
-            0 -20px 80px rgba(0,0,0,.55),
-            0 -5px 30px rgba(200,255,0,.04);
+            0 -20px 80px rgba(0,0,0,.55);
 
-        transform: translateY(100%);
+        transform: translateY(30px);
+
+        -webkit-overflow-scrolling: touch;
     }
 
     .custom-modal.active .custom-modal-inner {
         transform: translateY(0);
     }
 
+    .custom-modal-inner::before {
+        content: "";
+
+        position: absolute;
+
+        top: 9px;
+        left: 50%;
+
+        width: 38px;
+        height: 3px;
+
+        transform: translateX(-50%);
+
+        border-radius: 10px;
+
+        background: rgba(241,238,231,.25);
+    }
+
     .custom-modal-close {
-        top: 13px;
+        top: 16px;
         right: 14px;
 
-        width: 40px;
-        height: 40px;
+        width: 38px;
+        height: 38px;
 
         font-size: 25px;
     }
 
     .custom-modal-inner h2 {
-        margin:
-            8px
-            42px
-            30px
-            0;
+        margin: 15px 35px 28px 0;
 
-        font-size: clamp(43px, 14vw, 68px);
+        font-size: clamp(46px, 15vw, 72px);
 
-        line-height: .8;
-    }
-
-    /* NAME + CONTACT */
-
-    .custom-form-row {
-        grid-template-columns: 1fr;
-
-        gap: 0;
+        line-height: .78;
     }
 
     .custom-form-group {
         margin-bottom: 18px;
     }
 
-    /* INPUTS */
+    .custom-form-group label {
+        margin-bottom: 7px;
+
+        font-size: 8px;
+    }
 
     .custom-form-group input,
     .custom-form-group textarea {
-        min-height: 40px;
+        font-size: 16px;
 
-        padding: 8px 0;
+        padding: 12px 0;
 
-        font-size: 15px;
+        /* prevents iOS Safari auto-zoom */
     }
 
     .custom-form-group textarea {
         min-height: 90px;
     }
 
-    /* SIZE */
 
-    .custom-size-row {
+    /* ---------- SIZE ---------- */
+
+    .rug-size-inputs {
         grid-template-columns:
             minmax(0, 1fr)
             20px
             minmax(0, 1fr);
 
-        gap: 8px;
+        gap: 7px;
     }
 
-    .custom-size-row input {
-        min-width: 0;
+    .rug-size-inputs input {
+        padding: 13px 8px;
+
+        font-size: 11px;
     }
 
-    /* SHAPE */
+    .custom-form-hint {
+        font-size: 7px;
+        line-height: 1.4;
+    }
+
+
+    /* ---------- SHAPE ---------- */
 
     .rug-shape-options {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: 1fr 1fr;
 
         gap: 7px;
+    }
+
+    .rug-shape-option {
+        min-height: 44px;
+
+        padding: 10px 6px;
+
+        font-size: 8px;
     }
 
     .rug-surface-options {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: 1fr 1fr;
 
         gap: 7px;
     }
 
-    .rug-shape-option,
     .rug-surface-option {
-        min-height: 46px;
+        min-height: 44px;
 
-        padding: 10px 7px;
+        padding: 10px 6px;
 
-        font-size: 9px;
+        font-size: 8px;
     }
 
-    /* QUANTITY */
 
-    .custom-quantity-controls {
+    /* ---------- QUANTITY ---------- */
+
+    .quantity-control {
+        width: 100%;
+
+        height: 44px;
+    }
+
+    .quantity-control button {
+        width: 48px;
         height: 42px;
-    }
-
-    .custom-quantity-controls button {
-        width: 42px;
-        height: 40px;
 
         font-size: 16px;
     }
 
-    .custom-quantity-controls input {
-        width: 48px !important;
-        height: 40px;
+    .quantity-control input {
+        flex: 1;
 
-        font-size: 13px !important;
+        width: auto !important;
+        height: 42px;
+
+        font-size: 12px !important;
     }
 
-    /* PRICE */
 
-    .custom-price {
+    /* ---------- ESTIMATE ---------- */
+
+    .rug-estimate {
+        margin: 22px 0;
+
         padding: 16px 0;
-
-        gap: 15px;
     }
 
-    .custom-price strong {
-        font-size: 18px;
-        white-space: nowrap;
+    .rug-estimate-price {
+        font-size: 21px;
     }
 
-    /* FILE */
+
+    /* ---------- FILE ---------- */
 
     .custom-form-group input[type="file"] {
-        min-height: 42px;
+        width: 100%;
 
-        padding: 8px 0;
+        padding: 10px 0;
 
-        font-size: 10px;
+        font-size: 8px;
     }
 
     .custom-form-group input[type="file"]::file-selector-button {
-        min-height: 36px;
+        padding: 10px 12px;
 
-        padding: 8px 11px;
-
-        font-size: 9px;
+        font-size: 8px;
     }
 
-    /* SUBMIT */
+
+    /* ---------- SUBMIT ---------- */
 
     .custom-submit {
+        position: sticky;
+        bottom: 0;
+
         min-height: 50px;
 
-        margin-top: 12px;
+        margin-top: 10px;
 
-        padding: 15px;
+        padding: 16px 14px;
 
-        font-size: 10px;
+        background: var(--black);
+
+        font-size: 9px;
     }
 }
 
 
 /* =========================================================
-   VERY SMALL PHONES
+   SMALL PHONES
 ========================================================= */
 
 @media (max-width: 380px) {
@@ -2488,15 +2646,45 @@ footer {
     }
 
     .custom-modal-inner h2 {
-        font-size: 43px;
-    }
-
-    .custom-form-group label {
-        font-size: 7px;
+        font-size: 45px;
     }
 
     .rug-shape-option,
     .rug-surface-option {
-        font-size: 8px;
+        font-size: 7px;
+    }
+
+    .custom-form-hint {
+        font-size: 6px;
+    }
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+    }
+}
+
+
+/* =========================================================
+   SAFE AREA
+========================================================= */
+
+@supports (padding: env(safe-area-inset-bottom)) {
+
+    .cart-drawer {
+        padding-bottom:
+            calc(25px + env(safe-area-inset-bottom));
     }
 }
