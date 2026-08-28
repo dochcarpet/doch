@@ -1023,10 +1023,10 @@ async function submitCustomRugRequest(
             "customerName"
         );
 
-    const contactInput =
-        document.getElementById(
-            "customerContact"
-        );
+    const emailInput =
+    document.getElementById(
+        "customerEmail"
+    );
 
     const messageInput =
         document.getElementById(
@@ -1043,8 +1043,8 @@ async function submitCustomRugRequest(
         nameInput?.value.trim() ||
         "";
 
-    const contact =
-        contactInput?.value.trim() ||
+     const email =
+       emailInput?.value.trim() ||
         "";
 
     const message =
@@ -1081,17 +1081,27 @@ async function submitCustomRugRequest(
       const estimatedPrice =
           calculateCustomRugPrice();
       
+/* =================================================
+   VALIDATION
+================================================= */
 
-    /* =================================================
-       VALIDATION
-    ================================================= */
+if (
+    !name ||
+    !email
+) {
 
-    if (
-        !name ||
-        !contact
-    ) {
+    alert(
+        currentLanguage === "ru"
+            ? "Пожалуйста, укажите имя и email."
+            : "Please enter your name and email."
+    );
 
-       if (
+    return;
+
+}
+
+
+if (
     width < 40 ||
     height < 40 ||
     width > 170 ||
@@ -1103,6 +1113,10 @@ async function submitCustomRugRequest(
             ? "Укажите размер ковра в допустимом диапазоне."
             : "Please enter a rug size within the available range."
     );
+
+    return;
+
+}
 
     return;
 
