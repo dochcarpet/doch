@@ -1849,82 +1849,575 @@ initFAQ();
 
 document.addEventListener("DOMContentLoaded", () => {
 
-    const customButton = document.getElementById("customButton");
-    const customModal = document.getElementById("customModal");
-    const customModalClose = document.getElementById("customModalClose");
+    const customButton =
+        document.getElementById("customButton");
+
+    const customModal =
+        document.getElementById("customModal");
+
+    const customModalClose =
+        document.getElementById("customModalClose");
+
+    const customForm =
+        document.getElementById("customRequestForm");
+
+    const customSuccess =
+        document.getElementById("customSuccess");
+
+    const customSubmit =
+        customForm
+            ? customForm.querySelector(".custom-submit")
+            : null;
+
+
+    /*
+       Supabase Storage bucket
+    */
+
+    const CUSTOM_BUCKET =
+        "custom-rugs";
+
 
     console.log("CUSTOM MODAL:", {
         button: customButton,
         modal: customModal,
-        close: customModalClose
+        close: customModalClose,
+        form: customForm
     });
 
 
+    // =====================================================
     // OPEN
+    // =====================================================
 
     if (customButton && customModal) {
 
-        customButton.addEventListener("click", () => {
+        customButton.addEventListener(
+            "click",
+            () => {
 
-            console.log("MAKE MY RUG clicked");
+                customModal.classList.add("active");
 
-            customModal.classList.add("active");
-            document.body.classList.add("no-scroll");
+                document.body.classList.add(
+                    "no-scroll"
+                );
 
-        });
+            }
+        );
 
     }
 
 
+    // =====================================================
     // CLOSE
+    // =====================================================
 
-    if (customModalClose && customModal) {
+    function closeCustomModal() {
 
-        customModalClose.addEventListener("click", () => {
+        if (!customModal) {
+            return;
+        }
 
-            customModal.classList.remove("active");
-            document.body.classList.remove("no-scroll");
+        customModal.classList.remove(
+            "active"
+        );
 
-        });
+        document.body.classList.remove(
+            "no-scroll"
+        );
 
     }
 
 
-    // CLOSE BY CLICKING OUTSIDE
+    if (customModalClose) {
+
+        customModalClose.addEventListener(
+            "click",
+            closeCustomModal
+        );
+
+    }
+
+
+    // =====================================================
+    // CLICK OUTSIDE
+    // =====================================================
 
     if (customModal) {
 
-        customModal.addEventListener("click", (event) => {
+        customModal.addEventListener(
+            "click",
+            event => {
 
-            if (event.target === customModal) {
+                if (
+                    event.target === customModal
+                ) {
 
-                customModal.classList.remove("active");
-                document.body.classList.remove("no-scroll");
+                    closeCustomModal();
+
+                }
 
             }
-
-        });
+        );
 
     }
 
 
-    // CLOSE WITH ESC
+    // =====================================================
+    // ESC
+    // =====================================================
 
-    document.addEventListener("keydown", (event) => {
+    document.addEventListener(
+        "keydown",
+        event => {
 
-        if (
-            event.key === "Escape" &&
-            customModal &&
-            customModal.classList.contains("active")
-        ) {
+            if (
+                event.key === "Escape" &&
+                customModal &&
+                customModal.classList.contains("active")
+            ) {
 
-            customModal.classList.remove("active");
-            document.body.classList.remove("no-scroll");
+                closeCustomModal();
+
+            }
 
         }
+    );
 
-    });
+
+    // =====================================================
+    // CUSTOM RUG FORM
+    // =====================================================
+
+    if (!customForm) {
+        return;
+    }
+
+
+    customForm.addEventListener(
+        "submit",
+        async event => {
+
+            /*
+               VERY IMPORTANT:
+               Prevent normal HTML form submission.
+
+               This is what stops:
+               ?name=...
+               ?contact=...
+               ?message=...
+               ?image=...
+            */
+
+            event.preventDefault();
+
+
+            // -------------------------------------------------
+            // GET FORM DATA
+            // -------------------------------------------------
+
+            const name =
+                document
+                    .getElementById("customerName")
+                    .value
+                    .trim();
+
+            const contact =
+                document
+                    .getElementById("customerContact")
+                    .value
+                    .trim();
+
+            const message =
+                document
+                    .getElementById("customerMessage")
+                    .value
+                    .trim();
+
+            const imageInput =
+                document.getElementById(
+                    "customerImage"
+                );
+
+            const file =
+                imageInput &&
+                imageInput.files
+                    ? imageInput.files[0]
+                    : null;
+
+
+            // -------------------------------------------------
+            // VALIDATION
+            // -------------------------------------------------
+
+            if (!name || !contact) {
+
+                alert(
+                    currentLanguage === "ru"
+                        ? "Пожалуйста, укажите имя и контакт."
+                        : "Please enter your name and contact."
+                );
+
+                return;
+
+            }
+
+
+            if (!file) {
+
+                alert(
+                    currentLanguage === "ru"
+                        ? "Пожалуйста, выберите изображение."
+                        : "Please choose an image."
+                );
+
+                return;
+
+            }
+
+
+            // -------------------------------------------------
+            // LIMIT IMAGE SIZE
+            // -------------------------------------------------
+
+            const maxFileSize =
+                10 * 1024 * 1024; // 10 MB
+
+
+            if (
+                file.size > maxFileSize
+            ) {
+
+                alert(
+                    currentLanguage === "ru"
+                        ? "Изображение должно быть меньше 10 MB."
+                        : "Image must be smaller than 10 MB."
+                );
+
+                return;
+
+            }
+
+
+            // -------------------------------------------------
+            // BUTTON STATE
+            // -------------------------------------------------
+
+            const originalButtonHTML =
+                customSubmit
+                    ? customSubmit.innerHTML
+                    : "";
+
+
+            if (customSubmit) {
+
+                customSubmit.disabled =
+                    true;
+
+                customSubmit.style.opacity =
+                    "0.5";
+
+                customSubmit.style.pointerEvents =
+                    "none";
+
+                customSubmit.innerHTML =
+                    currentLanguage === "ru"
+                        ? "ОТПРАВЛЯЕМ... ↗"
+                        : "SENDING... ↗";
+
+            }
+
+
+            try {
+
+                // =================================================
+                // 1. UPLOAD IMAGE TO SUPABASE STORAGE
+                // =================================================
+
+                const fileExtension =
+                    file.name
+                        .split(".")
+                        .pop()
+                        .toLowerCase();
+
+
+                const safeExtension =
+                    /^[a-z0-9]+$/.test(
+                        fileExtension
+                    )
+                        ? fileExtension
+                        : "jpg";
+
+
+                const fileName =
+                    `${Date.now()}-${crypto.randomUUID()}.${safeExtension}`;
+
+
+                const filePath =
+                    `custom/${fileName}`;
+
+
+                console.log(
+                    "Uploading custom rug image:",
+                    filePath
+                );
+
+
+                const uploadResponse =
+                    await fetch(
+                        `${SUPABASE_URL}/storage/v1/object/${CUSTOM_BUCKET}/${filePath}`,
+                        {
+                            method: "POST",
+
+                            headers: {
+                                "apikey":
+                                    SUPABASE_KEY,
+
+                                "Authorization":
+                                    `Bearer ${SUPABASE_KEY}`,
+
+                                "Content-Type":
+                                    file.type ||
+                                    "application/octet-stream",
+
+                                "x-upsert":
+                                    "false"
+                            },
+
+                            body: file
+                        }
+                    );
+
+
+                if (!uploadResponse.ok) {
+
+                    const errorText =
+                        await uploadResponse.text();
+
+                    throw new Error(
+                        `Storage upload failed: ${uploadResponse.status} ${errorText}`
+                    );
+
+                }
+
+
+                console.log(
+                    "Image uploaded successfully."
+                );
+
+
+                // =================================================
+                // 2. GET PUBLIC IMAGE URL
+                // =================================================
+
+                const imageUrl =
+                    `${SUPABASE_URL}/storage/v1/object/public/${CUSTOM_BUCKET}/${filePath}`;
+
+
+                console.log(
+                    "Image URL:",
+                    imageUrl
+                );
+
+
+                // =================================================
+                // 3. CREATE ORDER IN SUPABASE
+                // =================================================
+
+                const order =
+                    {
+
+                        name:
+                            name,
+
+                        email:
+                            null,
+
+                        telegram:
+                            null,
+
+                        instagram:
+                            null,
+
+                        image_url:
+                            imageUrl,
+
+                        description:
+                            message,
+
+                        status:
+                            "new"
+
+                    };
+
+
+                /*
+                   Put contact into the correct field.
+
+                   We support:
+                   Telegram
+                   Instagram
+                   Email
+                */
+
+                const normalizedContact =
+                    contact.toLowerCase();
+
+
+                if (
+                    normalizedContact.includes("@") &&
+                    normalizedContact.includes(".")
+                ) {
+
+                    order.email =
+                        contact;
+
+                } else if (
+                    normalizedContact.includes("telegram") ||
+                    normalizedContact.startsWith("@")
+                ) {
+
+                    order.telegram =
+                        contact;
+
+                } else if (
+                    normalizedContact.includes("instagram")
+                ) {
+
+                    order.instagram =
+                        contact;
+
+                } else {
+
+                    /*
+                       If we cannot determine the platform,
+                       store it in telegram for now.
+                    */
+
+                    order.telegram =
+                        contact;
+
+                }
+
+
+                console.log(
+                    "Creating order:",
+                    order
+                );
+
+
+                const orderResponse =
+                    await fetch(
+                        `${SUPABASE_URL}/rest/v1/orders`,
+                        {
+                            method: "POST",
+
+                            headers: {
+
+                                "apikey":
+                                    SUPABASE_KEY,
+
+                                "Authorization":
+                                    `Bearer ${SUPABASE_KEY}`,
+
+                                "Content-Type":
+                                    "application/json",
+
+                                "Prefer":
+                                    "return=representation"
+
+                            },
+
+                            body:
+                                JSON.stringify(order)
+
+                        }
+                    );
+
+
+                if (!orderResponse.ok) {
+
+                    const errorText =
+                        await orderResponse.text();
+
+                    throw new Error(
+                        `Order creation failed: ${orderResponse.status} ${errorText}`
+                    );
+
+                }
+
+
+                const createdOrder =
+                    await orderResponse.json();
+
+
+                console.log(
+                    "CUSTOM RUG ORDER CREATED:",
+                    createdOrder
+                );
+
+
+                // =================================================
+                // 4. SUCCESS
+                // =================================================
+
+                customForm.style.display =
+                    "none";
+
+
+                customSuccess.innerHTML =
+                    translations[
+                        currentLanguage
+                    ]["customModal.success"];
+
+
+                customSuccess.style.display =
+                    "block";
+
+
+                // -------------------------------------------------
+                // Reset form after successful submission
+                // -------------------------------------------------
+
+                customForm.reset();
+
+
+            } catch (error) {
+
+                console.error(
+                    "CUSTOM RUG REQUEST ERROR:",
+                    error
+                );
+
+
+                alert(
+                    currentLanguage === "ru"
+                        ? "Не удалось отправить запрос. Попробуйте ещё раз."
+                        : "Could not send your request. Please try again."
+                );
+
+
+            } finally {
+
+                if (customSubmit) {
+
+                    customSubmit.disabled =
+                        false;
+
+                    customSubmit.style.opacity =
+                        "";
+
+                    customSubmit.style.pointerEvents =
+                        "";
+
+                    customSubmit.innerHTML =
+                        originalButtonHTML;
+
+                }
+
+            }
+
+        }
+    );
 
 });
-
-
