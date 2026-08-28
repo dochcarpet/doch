@@ -1031,6 +1031,265 @@ if (customForm) {
 
 }
 
+/* =========================================================
+   CURSOR LENS
+========================================================= */
+
+function initCursorLens() {
+
+    /*
+       Disable on touch devices.
+    */
+
+    if (
+        window.matchMedia("(hover: none)").matches ||
+        window.innerWidth <= 800
+    ) {
+        return;
+    }
+
+
+    const products =
+        document.querySelectorAll(
+            ".product-image"
+        );
+
+
+    products.forEach(imageContainer => {
+
+        const image =
+            imageContainer.querySelector("img");
+
+
+        if (!image) {
+            return;
+        }
+
+
+        let targetX = 0;
+        let targetY = 0;
+
+        let currentX = 0;
+        let currentY = 0;
+
+        let hovering = false;
+
+
+        /*
+           Lens strength.
+
+           Increase these if you want
+           the effect more insane.
+        */
+
+        const MAX_SHIFT = 28;
+        const MAX_SCALE = 1.18;
+
+
+        /* -----------------------------------------
+           MOUSE ENTER
+        ----------------------------------------- */
+
+        imageContainer.addEventListener(
+            "mouseenter",
+            () => {
+
+                hovering = true;
+
+            }
+        );
+
+
+        /* -----------------------------------------
+           MOUSE MOVE
+        ----------------------------------------- */
+
+        imageContainer.addEventListener(
+            "mousemove",
+            event => {
+
+                const rect =
+                    imageContainer.getBoundingClientRect();
+
+
+                /*
+                   Cursor position inside image
+                   from -1 to +1.
+                */
+
+                const x =
+                    (
+                        event.clientX -
+                        rect.left
+                    ) /
+                    rect.width;
+
+
+                const y =
+                    (
+                        event.clientY -
+                        rect.top
+                    ) /
+                    rect.height;
+
+
+                const normalizedX =
+                    x * 2 - 1;
+
+
+                const normalizedY =
+                    y * 2 - 1;
+
+
+                /*
+                   Move the image slightly
+                   opposite to cursor.
+
+                   This creates the feeling
+                   that the lens is inspecting
+                   the surface.
+                */
+
+                targetX =
+                    -normalizedX *
+                    MAX_SHIFT;
+
+
+                targetY =
+                    -normalizedY *
+                    MAX_SHIFT;
+
+
+                /*
+                   Strong zoom when cursor
+                   approaches the center.
+                */
+
+                const distance =
+                    Math.sqrt(
+                        normalizedX *
+                        normalizedX +
+                        normalizedY *
+                        normalizedY
+                    );
+
+
+                const lensStrength =
+                    Math.max(
+                        0,
+                        1 - distance
+                    );
+
+
+                const scale =
+                    1 +
+                    (
+                        (MAX_SCALE - 1) *
+                        lensStrength
+                    );
+
+
+                image.style.setProperty(
+                    "--lens-scale",
+                    scale
+                );
+
+            }
+        );
+
+
+        /* -----------------------------------------
+           MOUSE LEAVE
+        ----------------------------------------- */
+
+        imageContainer.addEventListener(
+            "mouseleave",
+            () => {
+
+                hovering = false;
+
+                targetX = 0;
+                targetY = 0;
+
+                image.style.setProperty(
+                    "--lens-scale",
+                    "1"
+                );
+
+            }
+        );
+
+
+        /* -----------------------------------------
+           SMOOTH MOTION
+        ----------------------------------------- */
+
+        function animate() {
+
+            currentX +=
+                (
+                    targetX -
+                    currentX
+                ) * .12;
+
+
+            currentY +=
+                (
+                    targetY -
+                    currentY
+                ) * .12;
+
+
+            const scale =
+                image.style.getPropertyValue(
+                    "--lens-scale"
+                ) ||
+                "1";
+
+
+            if (hovering) {
+
+                image.style.transform =
+                    `
+                    scale(${scale})
+                    translate3d(
+                        ${currentX}px,
+                        ${currentY}px,
+                        0
+                    )
+                    `;
+
+            } else {
+
+                currentX *= .82;
+                currentY *= .82;
+
+
+                image.style.transform =
+                    `
+                    scale(1)
+                    translate3d(
+                        ${currentX}px,
+                        ${currentY}px,
+                        0
+                    )
+                    `;
+
+            }
+
+
+            requestAnimationFrame(
+                animate
+            );
+
+        }
+
+
+        animate();
+
+    });
+
+}
 
 /* =========================================================
    INITIALIZATION
@@ -1073,6 +1332,8 @@ async function init() {
     initFAQ();
 
     initScrollReveal();
+
+    initCursorLens();
 
 
     console.log(
