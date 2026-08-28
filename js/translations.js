@@ -31,9 +31,14 @@ export const translations = {
 
         "hero.top": "HANDMADE / INTERNET ART",
 
-        "hero.title1": "MEMES.",
-        "hero.title2": "MADE TO",
-        "hero.title3": "TOUCH.",
+        "hero.title1":
+            "MEMES.",
+
+        "hero.title2":
+            "MADE TO",
+
+        "hero.title3":
+            "TOUCH.",
 
         "hero.description":
             "Internet culture, memes & digital chaos — translated into handmade rugs.",
@@ -43,7 +48,8 @@ export const translations = {
            MANIFESTO
         ========================= */
 
-        "manifesto.eyebrow": "01 / THE IDEA",
+        "manifesto.eyebrow":
+            "01 / THE IDEA",
 
         "manifesto.title":
             "THE INTERNET<br>WAS NEVER<br><em>THIS SOFT.</em>",
@@ -56,29 +62,39 @@ export const translations = {
            DROP
         ========================= */
 
-        "drop.eyebrow": "02 / CURRENT DROP",
+        "drop.eyebrow":
+            "02 / CURRENT DROP",
 
         "drop.title":
             "INTERNET<br><em>RELICS</em>",
 
-        "drop.objects": "OBJECTS",
+        "drop.objects":
+            "OBJECTS",
 
 
         /* =========================
            PRODUCT
         ========================= */
 
-        "product.one": "ONE OF ONE",
-        "product.made": "MADE TO ORDER",
-        "product.sold": "SOLD OUT",
-        "product.handmade": "HANDMADE",
+        "product.one":
+            "ONE OF ONE",
+
+        "product.made":
+            "MADE TO ORDER",
+
+        "product.sold":
+            "SOLD OUT",
+
+        "product.handmade":
+            "HANDMADE",
 
 
         /* =========================
            CUSTOM
         ========================= */
 
-        "custom.eyebrow": "CUSTOM RUGS",
+        "custom.eyebrow":
+            "CUSTOM RUGS",
 
         "custom.title":
             "GOT A<br><span>MEME?</span>",
@@ -108,6 +124,9 @@ export const translations = {
 
         "customModal.title":
             "MAKE YOUR<br><span>RUG.</span>",
+
+        "customModal.email":
+            "EMAIL",
 
         "customModal.name":
             "NAME",
@@ -147,6 +166,9 @@ export const translations = {
 
         "customModal.height":
             "HEIGHT / CM",
+
+        "customModal.cm":
+            "CM",
 
         "customModal.shape":
             "SHAPE",
@@ -363,23 +385,43 @@ export const translations = {
            NAV
         ========================= */
 
-        "nav.drop": "КОВРЫ",
-        "nav.custom": "НА ЗАКАЗ",
-        "nav.process": "ПРОЦЕСС",
-        "nav.faq": "FAQ",
-        "nav.about": "О НАС",
+        "nav.drop":
+            "КОВРЫ",
+
+        "nav.custom":
+            "НА ЗАКАЗ",
+
+        "nav.process":
+            "ПРОЦЕСС",
+
+        "nav.faq":
+            "FAQ",
+
+        "nav.about":
+            "О НАС",
 
 
         /* =========================
            CART
         ========================= */
 
-        "cart.label": "КОРЗИНА",
-        "cart.your": "ВАША КОРЗИНА",
-        "cart.empty": "Здесь пока ничего нет.",
-        "cart.total": "ИТОГО",
-        "cart.checkout": "ОФОРМИТЬ",
-        "cart.remove": "УДАЛИТЬ",
+        "cart.label":
+            "КОРЗИНА",
+
+        "cart.your":
+            "ВАША КОРЗИНА",
+
+        "cart.empty":
+            "Здесь пока ничего нет.",
+
+        "cart.total":
+            "ИТОГО",
+
+        "cart.checkout":
+            "ОФОРМИТЬ",
+
+        "cart.remove":
+            "УДАЛИТЬ",
 
 
         /* =========================
@@ -483,6 +525,9 @@ export const translations = {
         "customModal.title":
             "СДЕЛАТЬ СВОЙ<br><span>КОВЁР.</span>",
 
+        "customModal.email":
+            "EMAIL",
+
         "customModal.name":
             "ИМЯ",
 
@@ -522,6 +567,9 @@ export const translations = {
         "customModal.height":
             "ВЫСОТА / СМ",
 
+        "customModal.cm":
+            "СМ",
+
         "customModal.shape":
             "ФОРМА",
 
@@ -544,7 +592,7 @@ export const translations = {
             "ПЛОСКАЯ",
 
         "customModal.carved":
-            "РЕЛЬЕФНАЯ",
+            "КАРВИНГ",
 
         "customModal.quantity":
             "КОЛИЧЕСТВО",
