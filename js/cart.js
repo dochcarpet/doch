@@ -1,5 +1,23 @@
 /* =========================================================
-   CART
+   DOCH — CART
+========================================================= */
+
+import {
+    formatPrice,
+    escapeHtml
+} from "./utils.js";
+
+import {
+    getProductTitle
+} from "./products.js";
+
+import {
+    translations
+} from "./translations.js";
+
+
+/* =========================================================
+   STATE
 ========================================================= */
 
 let cart = [];
@@ -32,20 +50,43 @@ const cartClose =
 
 
 /* =========================================================
+   LANGUAGE
+========================================================= */
+
+let currentLanguage = "en";
+
+
+export function setCartLanguage(language) {
+
+    currentLanguage =
+        language || "en";
+
+    updateCart();
+
+}
+
+
+/* =========================================================
    OPEN
 ========================================================= */
 
-function openCart() {
+export function openCart() {
 
     if (!cartDrawer || !cartOverlay) {
         return;
     }
 
-    cartDrawer.classList.add("active");
+    cartDrawer.classList.add(
+        "active"
+    );
 
-    cartOverlay.classList.add("active");
+    cartOverlay.classList.add(
+        "active"
+    );
 
-    document.body.classList.add("no-scroll");
+    document.body.classList.add(
+        "no-scroll"
+    );
 
 }
 
@@ -54,17 +95,23 @@ function openCart() {
    CLOSE
 ========================================================= */
 
-function closeCart() {
+export function closeCart() {
 
     if (!cartDrawer || !cartOverlay) {
         return;
     }
 
-    cartDrawer.classList.remove("active");
+    cartDrawer.classList.remove(
+        "active"
+    );
 
-    cartOverlay.classList.remove("active");
+    cartOverlay.classList.remove(
+        "active"
+    );
 
-    document.body.classList.remove("no-scroll");
+    document.body.classList.remove(
+        "no-scroll"
+    );
 
 }
 
@@ -73,17 +120,44 @@ function closeCart() {
    ADD
 ========================================================= */
 
-function addToCart(product) {
+export function addToCart(product) {
 
     if (!product) {
         return;
     }
 
-    if (product.status === "sold") {
+
+    if (
+        product.status === "sold"
+    ) {
         return;
     }
 
+
+    /*
+       Prevent duplicate rug.
+       Every physical rug is a single object.
+    */
+
+    const alreadyInCart =
+        cart.some(
+            item =>
+                String(item.id) ===
+                String(product.id)
+        );
+
+
+    if (alreadyInCart) {
+
+        updateCart();
+
+        return;
+
+    }
+
+
     cart.push(product);
+
 
     updateCart();
 
@@ -103,7 +177,12 @@ function removeFromCart(index) {
         return;
     }
 
-    cart.splice(index, 1);
+
+    cart.splice(
+        index,
+        1
+    );
+
 
     updateCart();
 
@@ -114,9 +193,13 @@ function removeFromCart(index) {
    RENDER
 ========================================================= */
 
-function updateCart() {
+export function updateCart() {
 
-    if (!cartCount || !cartItems || !cartTotal) {
+    if (
+        !cartCount ||
+        !cartItems ||
+        !cartTotal
+    ) {
         return;
     }
 
@@ -135,18 +218,26 @@ function updateCart() {
 
     if (!cart.length) {
 
+        const emptyText =
+            translations?.[currentLanguage]?.["cart.empty"]
+            ||
+            "Nothing here yet.";
+
+
         cartItems.innerHTML = `
 
             <p class="empty-cart">
-                ${
-                    translations[currentLanguage]["cart.empty"]
-                }
+
+                ${escapeHtml(emptyText)}
+
             </p>
 
         `;
 
+
         cartTotal.textContent =
             "€0";
+
 
         return;
 
@@ -159,6 +250,7 @@ function updateCart() {
 
     cartItems.innerHTML = "";
 
+
     let total = 0;
 
 
@@ -166,11 +258,16 @@ function updateCart() {
         (product, index) => {
 
             total +=
-                Number(product.price || 0);
+                Number(
+                    product.price || 0
+                );
 
 
             const element =
-                document.createElement("div");
+                document.createElement(
+                    "div"
+                );
+
 
             element.className =
                 "cart-item";
@@ -183,32 +280,41 @@ function updateCart() {
                     <div class="cart-item-name">
 
                         ${escapeHtml(
-                            getProductTitle(product)
+                            getProductTitle(
+                                product
+                            )
                         )}
 
                     </div>
+
 
                     <button
                         class="remove-item"
                         type="button"
                         data-index="${index}"
                     >
+
                         ${
                             currentLanguage === "ru"
                                 ? "УДАЛИТЬ"
                                 : "REMOVE"
                         }
+
                     </button>
 
                 </div>
 
+
                 <div class="cart-item-price">
 
                     ${escapeHtml(
-                        product.currency || "EUR"
+                        product.currency ||
+                        "EUR"
                     )}
 
-                    ${formatPrice(product.price)}
+                    ${formatPrice(
+                        product.price
+                    )}
 
                 </div>
 
@@ -236,315 +342,27 @@ function updateCart() {
     ----------------------------------------- */
 
     cartItems
-        .querySelectorAll(".remove-item")
-        .forEach(button => {
-
-            button.addEventListener(
-                "click",
-                () => {
-
-                    removeFromCart(
-                        Number(
-                            button.dataset.index
-                        )
-                    );
-
-                }
-            );
-
-        });
-
-}
-
-
-/* =========================================================
-   EVENTS
-========================================================= */
-
-if (cartButton) {
-
-    cartButton.addEventListener(
-        "click",
-        openCart
-    );
-
-}
-
-
-if (cartClose) {
-
-    cartClose.addEventListener(
-        "click",
-        closeCart
-    );
-
-}
-
-
-if (cartOverlay) {
-
-    cartOverlay.addEventListener(
-        "click",
-        closeCart
-    );
-
-}
-
-/* =========================================================
-   CART
-========================================================= */
-
-let cart = [];
-
-
-/* =========================================================
-   DOM
-========================================================= */
-
-const cartDrawer =
-    document.getElementById("cartDrawer");
-
-const cartOverlay =
-    document.getElementById("cartOverlay");
-
-const cartItems =
-    document.getElementById("cartItems");
-
-const cartTotal =
-    document.getElementById("cartTotal");
-
-const cartCount =
-    document.getElementById("cartCount");
-
-const cartButton =
-    document.getElementById("cartButton");
-
-const cartClose =
-    document.getElementById("cartClose");
-
-
-/* =========================================================
-   OPEN
-========================================================= */
-
-function openCart() {
-
-    if (!cartDrawer || !cartOverlay) {
-        return;
-    }
-
-    cartDrawer.classList.add("active");
-
-    cartOverlay.classList.add("active");
-
-    document.body.classList.add("no-scroll");
-
-}
-
-
-/* =========================================================
-   CLOSE
-========================================================= */
-
-function closeCart() {
-
-    if (!cartDrawer || !cartOverlay) {
-        return;
-    }
-
-    cartDrawer.classList.remove("active");
-
-    cartOverlay.classList.remove("active");
-
-    document.body.classList.remove("no-scroll");
-
-}
-
-
-/* =========================================================
-   ADD
-========================================================= */
-
-function addToCart(product) {
-
-    if (!product) {
-        return;
-    }
-
-    if (product.status === "sold") {
-        return;
-    }
-
-    cart.push(product);
-
-    updateCart();
-
-}
-
-
-/* =========================================================
-   REMOVE
-========================================================= */
-
-function removeFromCart(index) {
-
-    if (
-        index < 0 ||
-        index >= cart.length
-    ) {
-        return;
-    }
-
-    cart.splice(index, 1);
-
-    updateCart();
-
-}
-
-
-/* =========================================================
-   RENDER
-========================================================= */
-
-function updateCart() {
-
-    if (!cartCount || !cartItems || !cartTotal) {
-        return;
-    }
-
-
-    /* -----------------------------------------
-       COUNT
-    ----------------------------------------- */
-
-    cartCount.textContent =
-        cart.length;
-
-
-    /* -----------------------------------------
-       EMPTY
-    ----------------------------------------- */
-
-    if (!cart.length) {
-
-        cartItems.innerHTML = `
-
-            <p class="empty-cart">
-                ${
-                    translations[currentLanguage]["cart.empty"]
-                }
-            </p>
-
-        `;
-
-        cartTotal.textContent =
-            "€0";
-
-        return;
-
-    }
-
-
-    /* -----------------------------------------
-       ITEMS
-    ----------------------------------------- */
-
-    cartItems.innerHTML = "";
-
-    let total = 0;
-
-
-    cart.forEach(
-        (product, index) => {
-
-            total +=
-                Number(product.price || 0);
-
-
-            const element =
-                document.createElement("div");
-
-            element.className =
-                "cart-item";
-
-
-            element.innerHTML = `
-
-                <div>
-
-                    <div class="cart-item-name">
-
-                        ${escapeHtml(
-                            getProductTitle(product)
-                        )}
-
-                    </div>
-
-                    <button
-                        class="remove-item"
-                        type="button"
-                        data-index="${index}"
-                    >
-                        ${
-                            currentLanguage === "ru"
-                                ? "УДАЛИТЬ"
-                                : "REMOVE"
-                        }
-                    </button>
-
-                </div>
-
-                <div class="cart-item-price">
-
-                    ${escapeHtml(
-                        product.currency || "EUR"
-                    )}
-
-                    ${formatPrice(product.price)}
-
-                </div>
-
-            `;
-
-
-            cartItems.appendChild(
-                element
-            );
-
-        }
-    );
-
-
-    /* -----------------------------------------
-       TOTAL
-    ----------------------------------------- */
-
-    cartTotal.textContent =
-        `€${formatPrice(total)}`;
-
-
-    /* -----------------------------------------
-       REMOVE EVENTS
-    ----------------------------------------- */
-
-    cartItems
-        .querySelectorAll(".remove-item")
-        .forEach(button => {
-
-            button.addEventListener(
-                "click",
-                () => {
-
-                    removeFromCart(
-                        Number(
-                            button.dataset.index
-                        )
-                    );
-
-                }
-            );
-
-        });
+        .querySelectorAll(
+            ".remove-item"
+        )
+        .forEach(
+            button => {
+
+                button.addEventListener(
+                    "click",
+                    () => {
+
+                        removeFromCart(
+                            Number(
+                                button.dataset.index
+                            )
+                        );
+
+                    }
+                );
+
+            }
+        );
 
 }
 
