@@ -915,36 +915,30 @@ async function submitCustomRugRequest(
              SUPABASE_KEY?.length
          );
 
-        const orderResponse =
-            await fetch(
-                `${SUPABASE_URL}/rest/v1/orders`,
-                {
-                    method: "POST",
-
-                    headers: {
-
-                        /*
-                           IMPORTANT:
-                           Publishable key only in apikey.
-                           No Authorization header.
-                        */
-
-                        "apikey":
-                            SUPABASE_KEY,
-
-                        "Content-Type":
-                            "application/json",
-
-                        "Prefer":
-                            "return=representation"
-
-                    },
-
-                    body:
-                        JSON.stringify(order)
-
-                }
-            );
+       const orderResponse =
+       await fetch(
+           `${SUPABASE_URL}/rest/v1/orders`,
+           {
+               method: "POST",
+   
+               headers: {
+                   "apikey":
+                       SUPABASE_KEY,
+   
+                   "Authorization":
+                       `Bearer ${SUPABASE_KEY}`,
+   
+                   "Content-Type":
+                       "application/json",
+   
+                   "Prefer":
+                       "return=representation"
+               },
+   
+               body:
+                   JSON.stringify(order)
+           }
+       );
 
 
         if (
