@@ -946,7 +946,7 @@ async function submitCustomRugRequest(
 
         const orderResponse =
             await fetch(
-                `${SUPABASE_URL}/rest/v1/custom_rugs`,
+                `${SUPABASE_URL}/rest/v1/orders`,
                 {
                     method: "POST",
 
