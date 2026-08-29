@@ -668,22 +668,36 @@ async function submitCustomRugRequest(
     }
 
 
-    if (
-        width < 40 ||
-        height < 40 ||
-        width > 170 ||
-        height > 200
-    ) {
-
-        alert(
-            currentLanguage === "ru"
-                ? "Укажите размер ковра в допустимом диапазоне."
-                : "Please enter a rug size within the available range."
-        );
-
-        return;
-
-    }
+      if (
+          width < 40 ||
+          height < 40
+      ) {
+      
+          alert(
+              currentLanguage === "ru"
+                  ? "Мы обычно не делаем ковры такими маленькими, однако если у вас есть идея - напишите нам, и мы обсудим, что можно сделать."
+                  : "THIS ONE IS TINY. We don't usually make rugs this small, but if you have an idea, send it anyway."
+          );
+      
+          return;
+      
+      }
+      
+      
+      if (
+          width > 200 ||
+          height > 200
+      ) {
+      
+          alert(
+              currentLanguage === "ru"
+                  ? "О, это уже большой ковёр. Для такого размера нужен индивидуальный расчёт — отправьте запрос, и мы обсудим детали."
+                  : "Oh, that's a big rug. This size needs an individual quote — send us a request and we'll discuss the details."
+          );
+      
+          return;
+      
+      }
 
 
     if (!estimatedPrice) {
