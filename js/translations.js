@@ -639,6 +639,9 @@ export const translations = {
         "customModal.fileHint":
             "JPG / PNG / WEBP / HEIC — ДО 30 МБ",
 
+        "customModal.chooseFile":
+            "ВЫБРАТЬ ФАЙЛ",
+        
 
         /* =========================
            PROCESS
