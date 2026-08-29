@@ -1164,69 +1164,39 @@ footer {
     top: 20px;
     right: 25px;
 
-    width: 48px;
-    height: 48px;
+    width: 45px;
+    height: 45px;
 
     padding: 0;
 
-    border: 2px solid #fff;
-    border-radius: 50%;
+    border: 0;
+    background: transparent;
 
-    background: #0b0b0a;
     color: #fff;
 
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    font-family: Arial, sans-serif;
+    font-size: 38px;
+    font-weight: 400;
+    line-height: 1;
+
+    display: grid;
+    place-items: center;
 
     cursor: pointer;
 
-    box-shadow:
-        0 4px 20px rgba(0,0,0,.8);
-
-    isolation: isolate;
+    text-shadow:
+        0 1px 3px rgba(0,0,0,.95),
+        0 2px 8px rgba(0,0,0,.8),
+        0 0 14px rgba(0,0,0,.65);
 
     transition:
-        transform .2s ease,
-        background .2s ease,
-        border-color .2s ease;
-}
-
-.modal-close span {
-    position: absolute;
-
-    width: 21px;
-    height: 2px;
-
-    left: 50%;
-    top: 50%;
-
-    background: #fff;
-
-    transform-origin: center;
-}
-
-.modal-close span:first-child {
-    transform:
-        translate(-50%, -50%)
-        rotate(45deg);
-}
-
-.modal-close span:last-child {
-    transform:
-        translate(-50%, -50%)
-        rotate(-45deg);
+        opacity .2s ease,
+        transform .2s ease;
 }
 
 .modal-close:hover {
-    background: var(--accent);
-    border-color: var(--accent);
-
+    opacity: .65;
     transform: rotate(90deg);
-}
-
-.modal-close:hover span {
-    background: var(--black);
 }
 
 .modal-image {
@@ -2451,14 +2421,16 @@ footer {
     }
 
     .modal-close {
-    top: 14px;
-    right: 14px;
+        top: 10px;
+        right: 12px;
 
-    width: 46px;
-    height: 46px;
+        width: 42px;
+        height: 42px;
 
-    z-index: 9999;
+        font-size: 34px;
     }
+
+}
     
     .gallery-arrow {
         width: 40px;
