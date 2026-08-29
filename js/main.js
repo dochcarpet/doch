@@ -20,6 +20,11 @@ import {
     translations
 } from "./translations.js";
 
+import {
+    initCustom,
+    setCustomLanguage
+} from "./custom.js";
+
 
 /* =========================================================
    STATE
@@ -142,6 +147,10 @@ function setLanguage(language) {
         language
     );
 
+    setCustomLanguage(
+    language
+    );
+   
 }
 
 
@@ -520,6 +529,8 @@ async function init() {
     initScrollReveal();
 
     initProductDistortion();
+
+    initCustom();
 
     console.log(
         "DOCH MAIN INITIALIZED"
