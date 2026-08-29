@@ -1152,24 +1152,81 @@ footer {
     visibility: visible;
 }
 
+/* =========================================================
+   MODAL CLOSE
+========================================================= */
+
 .modal-close {
     position: absolute;
 
-    z-index: 20;
+    z-index: 9999;
 
     top: 20px;
     right: 25px;
 
-    width: 45px;
-    height: 45px;
+    width: 48px;
+    height: 48px;
 
-    border: 0;
-    background: transparent;
+    padding: 0;
 
-    font-size: 35px;
-    line-height: 1;
+    border: 2px solid #fff;
+    border-radius: 50%;
+
+    background: #0b0b0a;
+    color: #fff;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
     cursor: pointer;
+
+    box-shadow:
+        0 4px 20px rgba(0,0,0,.8);
+
+    isolation: isolate;
+
+    transition:
+        transform .2s ease,
+        background .2s ease,
+        border-color .2s ease;
+}
+
+.modal-close span {
+    position: absolute;
+
+    width: 21px;
+    height: 2px;
+
+    left: 50%;
+    top: 50%;
+
+    background: #fff;
+
+    transform-origin: center;
+}
+
+.modal-close span:first-child {
+    transform:
+        translate(-50%, -50%)
+        rotate(45deg);
+}
+
+.modal-close span:last-child {
+    transform:
+        translate(-50%, -50%)
+        rotate(-45deg);
+}
+
+.modal-close:hover {
+    background: var(--accent);
+    border-color: var(--accent);
+
+    transform: rotate(90deg);
+}
+
+.modal-close:hover span {
+    background: var(--black);
 }
 
 .modal-image {
@@ -2394,16 +2451,15 @@ footer {
     }
 
     .modal-close {
-        top: 10px;
-        right: 12px;
+    top: 14px;
+    right: 14px;
 
-        width: 42px;
-        height: 42px;
+    width: 46px;
+    height: 46px;
 
-        font-size: 32px;
-        z-index: 100;
+    z-index: 9999;
     }
-
+    
     .gallery-arrow {
         width: 40px;
         height: 40px;
