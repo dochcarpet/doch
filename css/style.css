@@ -23,6 +23,9 @@ html {
 }
 
 body {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
     margin: 0;
     background: var(--black);
     color: var(--white);
@@ -2024,6 +2027,14 @@ footer {
 
     .cart-button {
         font-size: 9px;
+    }
+
+    html,
+    body {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden;
+        overscroll-behavior-x: none;
     }
 
 
