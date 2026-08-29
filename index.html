@@ -1219,34 +1219,38 @@ id="cartOverlay"
 
     <div class="rug-shape-options">
 
-        <button
+       <button
             type="button"
             class="rug-shape-option active"
             data-shape="rectangle"
+            data-i18n="customModal.rectangle"
         >
             RECTANGLE
         </button>
-
+        
         <button
             type="button"
             class="rug-shape-option"
             data-shape="square"
+            data-i18n="customModal.square"
         >
             SQUARE
         </button>
-
+        
         <button
             type="button"
             class="rug-shape-option"
             data-shape="round"
+            data-i18n="customModal.round"
         >
             ROUND
         </button>
-
+        
         <button
             type="button"
             class="rug-shape-option"
             data-shape="organic"
+            data-i18n="customModal.organic"
         >
             ORGANIC
         </button>
@@ -1265,40 +1269,23 @@ id="cartOverlay"
         
         <!-- SURFACE -->
         
-        <div class="custom-form-group">
-        
-            <label data-i18n="customModal.surface">
-                SURFACE
-            </label>
-        
-            <div class="rug-surface-options">
-        
-                <button
-                    type="button"
-                    class="rug-surface-option active"
-                    data-surface="flat"
-                >
-                    FLAT
-                </button>
-        
-                <button
-                    type="button"
-                    class="rug-surface-option"
-                    data-surface="carved"
-                >
-                    CARVED
-                </button>
-        
-            </div>
-        
-            <input
-                type="hidden"
-                id="rugSurface"
-                name="surface"
-                value="flat"
+        <button
+                type="button"
+                class="rug-surface-option active"
+                data-surface="flat"
+                data-i18n="customModal.flat"
             >
-        
-        </div>
+                FLAT
+            </button>
+            
+        <button
+                type="button"
+                class="rug-surface-option"
+                data-surface="carved"
+                data-i18n="customModal.carved"
+            >
+                CARVED
+        </button>
         
         
         <!-- QUANTITY -->
@@ -1345,23 +1332,22 @@ id="cartOverlay"
         
         <!-- ESTIMATE -->
         
-        <div class="rug-estimate">
+        <div
+            class="rug-estimate-label"
+            data-i18n="customModal.estimate"
+        >
+            PRELIMINARY ESTIMATE
+        </div>
         
-            <div class="rug-estimate-label">
-                PRELIMINARY ESTIMATE
-            </div>
+        <div class="rug-estimate-price">
+            € —
+        </div>
         
-            <div
-                class="rug-estimate-price"
-                id="rugEstimatePrice"
-            >
-                €100
-            </div>
-        
-            <div class="rug-estimate-note">
-                FINAL PRICE AFTER DESIGN REVIEW
-            </div>
-        
+        <div
+            class="rug-estimate-note"
+            data-i18n="customModal.estimateNote"
+        >
+            FINAL PRICE AFTER DESIGN REVIEW
         </div>
 
 
@@ -1385,22 +1371,18 @@ id="cartOverlay"
             </div>
 
 
-            <div class="custom-form-group">
-
-                <label
-                    for="customerImage"
-                    data-i18n="customModal.image"
-                >
+            <div class="custom-form-field">
+            
+                <label for="customerImage" data-i18n="customModal.image">
                     MEME / IMAGE
                 </label>
-
-                <div class="custom-form-group">
-
+            
                 <label
                     for="customerImage"
-                    data-i18n="customModal.image"
+                    class="custom-file-button"
+                    data-i18n="customModal.chooseFile"
                 >
-                    MEME / IMAGE
+                    CHOOSE FILE
                 </label>
             
                 <input
@@ -1411,12 +1393,13 @@ id="cartOverlay"
                     required
                 >
             
-                <div class="custom-form-hint">
+                <div
+                    class="custom-form-hint"
+                    data-i18n="customModal.fileHint"
+                >
                     JPG / PNG / WEBP / HEIC — UP TO 30 MB
                 </div>
             
-            </div>
-
             </div>
 
 
