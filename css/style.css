@@ -2767,3 +2767,29 @@ footer {
             calc(25px + env(safe-area-inset-bottom));
     }
 }
+
+/* =========================================================
+   MOBILE — PRODUCT MODAL SCROLL LOCK
+========================================================= */
+
+@media (max-width: 800px) {
+
+    body.no-scroll {
+        position: fixed;
+        width: 100%;
+        overflow: hidden;
+        touch-action: none;
+    }
+
+    .modal {
+        touch-action: pan-y;
+        overscroll-behavior: contain;
+    }
+
+    .modal-image,
+    .modal-gallery {
+        overscroll-behavior: contain;
+        touch-action: pan-y;
+    }
+
+}
