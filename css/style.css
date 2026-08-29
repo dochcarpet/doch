@@ -2299,7 +2299,10 @@ footer {
     }
 
     .about h2 {
-        font-size: clamp(48px, 15vw, 82px);
+    font-size: clamp(42px, 13.5vw, 76px);
+    letter-spacing: -.085em;
+    line-height: .8;
+    max-width: 100%;
     }
 
 
