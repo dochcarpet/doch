@@ -7,6 +7,9 @@ import {
     SUPABASE_KEY
 } from "./config.js";
 
+import {
+    translations
+} from "./translations.js";
 
 /* =========================================================
    STATE
