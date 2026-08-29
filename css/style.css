@@ -236,7 +236,7 @@ textarea {
 
     transform: translateX(-50%);
 
-    z-index: 1;
+    z-index: 0;
 }
 
 .glitch-rug {
