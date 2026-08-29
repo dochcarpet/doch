@@ -548,23 +548,14 @@ em {
 
     background: #222;
 
-    border-radius: 0;
-
     cursor: crosshair;
 
-    isolation: isolate;
-
-    transition:
-        box-shadow .25s ease;
+    transition: box-shadow .25s ease;
 }
-
 
 /* ---------- ORIGINAL IMAGE ---------- */
 
 .product-image img {
-    position: relative;
-    z-index: 1;
-
     display: block;
 
     width: 100%;
@@ -581,9 +572,8 @@ em {
 .product-image canvas {
     position: absolute;
 
-    inset: 0;
-
-    z-index: 2;
+    top: 0;
+    left: 0;
 
     width: 100% !important;
     height: 100% !important;
