@@ -25,6 +25,10 @@ import {
     setCustomLanguage
 } from "./custom.js";
 
+import {
+    initProductHaptics
+} from "./haptic.js";
+
 
 /* =========================================================
    STATE
@@ -529,6 +533,8 @@ async function init() {
     initScrollReveal();
 
     initProductDistortion();
+
+    initProductHaptics();
 
     initCustom();
 
