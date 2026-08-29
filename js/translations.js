@@ -357,8 +357,7 @@ export const translations = {
            FOOTER
         ========================= */
 
-        "footer.title":
-            "MAKE THE INTERNET SOFT.",
+        "footer.title": "MAKE THE INTERNET <span class=\"green-word\">SOFTER.</span>",
 
         "footer.tag":
             "HANDMADE INTERNET ART",
@@ -766,8 +765,7 @@ export const translations = {
            FOOTER
         ========================= */
 
-        "footer.title":
-            "СДЕЛАЕМ ИНТЕРНЕТ МЯГЧЕ.",
+        "footer.title": "СДЕЛАЕМ ИНТЕРНЕТ <span class=\"green-word\">МЯГЧЕ.</span>",
 
         "footer.tag":
             "РУЧНОЙ ИНТЕРНЕТ-АРТ",
