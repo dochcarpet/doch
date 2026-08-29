@@ -340,6 +340,8 @@ if (rugEstimatePrice) {
 
 return roundedPrice;
 
+}
+
    
 /* =========================================================
    SHAPE OPTIONS
