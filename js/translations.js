@@ -6,30 +6,51 @@ export const translations = {
            NAV
         ========================= */
 
-        "nav.drop": "DROP",
-        "nav.custom": "CUSTOM",
-        "nav.process": "PROCESS",
-        "nav.faq": "FAQ",
-        "nav.about": "ABOUT",
+        "nav.drop":
+            "DROP",
+
+        "nav.custom":
+            "CUSTOM",
+
+        "nav.process":
+            "PROCESS",
+
+        "nav.faq":
+            "FAQ",
+
+        "nav.about":
+            "ABOUT",
 
 
         /* =========================
            CART
         ========================= */
 
-        "cart.label": "CART",
-        "cart.your": "YOUR CART",
-        "cart.empty": "Nothing here yet.",
-        "cart.total": "TOTAL",
-        "cart.checkout": "CHECKOUT",
-        "cart.remove": "REMOVE",
+        "cart.label":
+            "CART",
+
+        "cart.your":
+            "YOUR CART",
+
+        "cart.empty":
+            "Nothing here yet.",
+
+        "cart.total":
+            "TOTAL",
+
+        "cart.checkout":
+            "CHECKOUT",
+
+        "cart.remove":
+            "REMOVE",
 
 
         /* =========================
            HERO
         ========================= */
 
-        "hero.top": "HANDMADE / INTERNET ART",
+        "hero.top":
+            "HANDMADE / INTERNET ART",
 
         "hero.title1":
             "MEMES.",
@@ -125,8 +146,14 @@ export const translations = {
         "customModal.title":
             "MAKE YOUR<br><span>RUG.</span>",
 
+
+        /* ---------- CONTACT ---------- */
+
         "customModal.email":
             "EMAIL",
+
+        "customModal.emailPlaceholder":
+            "Your email",
 
         "customModal.name":
             "NAME",
@@ -140,20 +167,8 @@ export const translations = {
         "customModal.contactPlaceholder":
             "Telegram / Instagram / Email",
 
-        "customModal.message":
-            "TELL US ABOUT YOUR RUG",
 
-        "customModal.messagePlaceholder":
-            "Size, idea, anything we should know...",
-
-        "customModal.image":
-            "MEME / IMAGE",
-
-        "customModal.submit":
-            "SEND REQUEST",
-
-        "customModal.success":
-            "REQUEST SENT.<br>WE'LL GET BACK TO YOU.",
+        /* ---------- SIZE ---------- */
 
         "customModal.size":
             "RUG SIZE",
@@ -170,6 +185,21 @@ export const translations = {
         "customModal.cm":
             "CM",
 
+        "customModal.sizeHint":
+            "MINIMUM SIZE: 40 × 40 CM",
+
+        "customModal.sizeTooSmall":
+            "TOO SMALL. MINIMUM SIZE IS 40 × 40 CM.",
+
+        "customModal.sizeHuge":
+            "WHOA. THAT'S A HUGE RUG.",
+
+        "customModal.sizeHugeHint":
+            "WE'LL CHECK IF WE CAN MAKE SOMETHING THIS BIG.",
+
+
+        /* ---------- SHAPE ---------- */
+
         "customModal.shape":
             "SHAPE",
 
@@ -183,7 +213,10 @@ export const translations = {
             "ROUND",
 
         "customModal.organic":
-            "ORGANIC",
+            "FREEFORM",
+
+
+        /* ---------- SURFACE ---------- */
 
         "customModal.surface":
             "SURFACE",
@@ -194,8 +227,38 @@ export const translations = {
         "customModal.carved":
             "CARVED",
 
+
+        /* ---------- QUANTITY ---------- */
+
         "customModal.quantity":
             "QUANTITY",
+
+
+        /* ---------- DESCRIPTION ---------- */
+
+        "customModal.message":
+            "TELL US ABOUT YOUR RUG",
+
+        "customModal.messagePlaceholder":
+            "Size, idea, anything we should know...",
+
+
+        /* ---------- IMAGE ---------- */
+
+        "customModal.image":
+            "MEME / IMAGE",
+
+        "customModal.chooseFile":
+            "CHOOSE FILE",
+
+        "customModal.noFile":
+            "NO FILE CHOSEN",
+
+        "customModal.imageHint":
+            "JPG / PNG / WEBP / HEIC — UP TO 30 MB",
+
+
+        /* ---------- ESTIMATE ---------- */
 
         "customModal.estimate":
             "PRELIMINARY ESTIMATE",
@@ -205,6 +268,15 @@ export const translations = {
 
         "customModal.currency":
             "EUR",
+
+
+        /* ---------- SUBMIT ---------- */
+
+        "customModal.submit":
+            "SEND REQUEST ↗",
+
+        "customModal.success":
+            "REQUEST SENT.<br>WE'LL GET BACK TO YOU.",
 
 
         /* =========================
@@ -509,7 +581,7 @@ export const translations = {
             "ТВОЯ КАРТИНКА",
 
         "custom.side2":
-            "НАША РАБОТА",
+            "ПРЯЖА",
 
         "custom.side3":
             "ТВОЙ КОВЁР",
@@ -525,8 +597,14 @@ export const translations = {
         "customModal.title":
             "СДЕЛАТЬ СВОЙ<br><span>КОВЁР.</span>",
 
+
+        /* ---------- CONTACT ---------- */
+
         "customModal.email":
             "EMAIL",
+
+        "customModal.emailPlaceholder":
+            "Ваш email",
 
         "customModal.name":
             "ИМЯ",
@@ -540,20 +618,8 @@ export const translations = {
         "customModal.contactPlaceholder":
             "Telegram / Instagram / Email",
 
-        "customModal.message":
-            "РАССКАЖИТЕ О КОВРЕ",
 
-        "customModal.messagePlaceholder":
-            "Размер, идея, всё, что нам стоит знать...",
-
-        "customModal.image":
-            "МЕМ / КАРТИНКА",
-
-        "customModal.submit":
-            "ОТПРАВИТЬ ЗАПРОС",
-
-        "customModal.success":
-            "ЗАПРОС ОТПРАВЛЕН.<br>МЫ С ВАМИ СВЯЖЕМСЯ.",
+        /* ---------- SIZE ---------- */
 
         "customModal.size":
             "РАЗМЕР КОВРА",
@@ -570,6 +636,21 @@ export const translations = {
         "customModal.cm":
             "СМ",
 
+        "customModal.sizeHint":
+            "МИНИМАЛЬНЫЙ РАЗМЕР: 40 × 40 СМ",
+
+        "customModal.sizeTooSmall":
+            "МАЛОВАТО. МИНИМАЛЬНЫЙ РАЗМЕР — 40 × 40 СМ.",
+
+        "customModal.sizeHuge":
+            "ТЫ ШООО? ЭТО ОГРОМНЫЙ КОВЁР.",
+
+        "customModal.sizeHugeHint":
+            "ОСТАВЬТЕ ЗАПРОС — МЫ ПРОВЕРИМ, МОЖНО ЛИ СДЕЛАТЬ ТАКОЙ РАЗМЕР.",
+
+
+        /* ---------- SHAPE ---------- */
+
         "customModal.shape":
             "ФОРМА",
 
@@ -583,19 +664,52 @@ export const translations = {
             "КРУГ",
 
         "customModal.organic":
-            "ОРГАНИЧЕСКАЯ",
+            "СВОБОДНАЯ ФОРМА",
+
+
+        /* ---------- SURFACE ---------- */
 
         "customModal.surface":
             "ПОВЕРХНОСТЬ",
 
         "customModal.flat":
-            "ПЛОСКАЯ",
+            "FLAT",
 
         "customModal.carved":
-            "КАРВИНГ",
+            "CARVED",
+
+
+        /* ---------- QUANTITY ---------- */
 
         "customModal.quantity":
             "КОЛИЧЕСТВО",
+
+
+        /* ---------- DESCRIPTION ---------- */
+
+        "customModal.message":
+            "РАССКАЖИТЕ О КОВРЕ",
+
+        "customModal.messagePlaceholder":
+            "Размер, идея, всё, что нам стоит знать...",
+
+
+        /* ---------- IMAGE ---------- */
+
+        "customModal.image":
+            "МЕМ / КАРТИНКА",
+
+        "customModal.chooseFile":
+            "ВЫБРАТЬ ФАЙЛ",
+
+        "customModal.noFile":
+            "ФАЙЛ НЕ ВЫБРАН",
+
+        "customModal.imageHint":
+            "JPG / PNG / WEBP / HEIC — ДО 30 МБ",
+
+
+        /* ---------- ESTIMATE ---------- */
 
         "customModal.estimate":
             "ПРЕДВАРИТЕЛЬНЫЙ РАСЧЁТ",
@@ -605,6 +719,15 @@ export const translations = {
 
         "customModal.currency":
             "EUR",
+
+
+        /* ---------- SUBMIT ---------- */
+
+        "customModal.submit":
+            "ОТПРАВИТЬ ЗАПРОС ↗",
+
+        "customModal.success":
+            "ЗАПРОС ОТПРАВЛЕН.<br>МЫ С ВАМИ СВЯЖЕМСЯ.",
 
 
         /* =========================
