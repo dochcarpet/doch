@@ -252,74 +252,95 @@ function calculateCustomRugPrice() {
         "flat";
 
 
-    if (
-        !width ||
-        !height ||
-        width < 40 ||
-        height < 40
-    ) {
-
-        if (rugEstimatePrice) {
-
-            rugEstimatePrice.textContent =
-                "€ —";
-
-        }
-
-        return null;
-
-    }
-
-
-    const area =
-        width * height;
-
-
-    const basePrice =
-        (
-            area / 100
-        ) *
-        CUSTOM_RUG_PRICE_PER_100CM2;
-
-
-    const shapeMultiplier =
-        CUSTOM_RUG_SHAPE_MULTIPLIERS[
-            shape
-        ] || 1;
-
-
-    const surfaceMultiplier =
-        CUSTOM_RUG_SURFACE_MULTIPLIERS[
-            surface
-        ] || 1;
-
-
-    const price =
-        basePrice *
-        shapeMultiplier *
-        surfaceMultiplier *
-        quantity;
-
-
-    const roundedPrice =
-        Math.ceil(
-            price / 5
-        ) * 5;
-
+if (
+    !width ||
+    !height ||
+    width < 40 ||
+    height < 40
+) {
 
     if (rugEstimatePrice) {
 
         rugEstimatePrice.textContent =
-            `€${roundedPrice}`;
+            "€ —";
 
     }
 
-
-    return roundedPrice;
+    return null;
 
 }
 
 
+/* =================================================
+   LARGE CUSTOM RUG
+================================================= */
+
+if (
+    width > 200 ||
+    height > 200
+) {
+
+    if (rugEstimatePrice) {
+
+        rugEstimatePrice.textContent =
+            currentLanguage === "ru"
+                ? "ИНДИВИДУАЛЬНЫЙ РАСЧЁТ"
+                : "CUSTOM QUOTE";
+
+    }
+
+    return "custom";
+
+}
+
+
+const area =
+    width * height;
+
+
+const basePrice =
+    (
+        area / 100
+    ) *
+    CUSTOM_RUG_PRICE_PER_100CM2;
+
+
+const shapeMultiplier =
+    CUSTOM_RUG_SHAPE_MULTIPLIERS[
+        shape
+    ] || 1;
+
+
+const surfaceMultiplier =
+    CUSTOM_RUG_SURFACE_MULTIPLIERS[
+        surface
+    ] || 1;
+
+
+const price =
+    basePrice *
+    shapeMultiplier *
+    surfaceMultiplier *
+    quantity;
+
+
+const roundedPrice =
+    Math.ceil(
+        price / 5
+    ) * 5;
+
+
+if (rugEstimatePrice) {
+
+    rugEstimatePrice.textContent =
+        `€${roundedPrice}`;
+
+}
+
+
+return roundedPrice;
+
+   
 /* =========================================================
    SHAPE OPTIONS
 ========================================================= */
