@@ -17,6 +17,7 @@ import {
 } from "./payment-config.js";
 
 
+
 /* =========================================================
    CREATE ORDER
 ========================================================= */
@@ -494,14 +495,12 @@ async function handleCheckout(event) {
         );
 
 
-        message.textContent =
-            "ORDER CREATED. PAYMENT COMING NEXT.";
+       showCryptoPayment();
 
-
-        submitButton
-            .querySelector("span")
-            .textContent =
-            "ORDER CREATED";
+      submitButton
+          .querySelector("span")
+          .textContent =
+          "PAYMENT";
 
 
     } catch (error) {
@@ -526,6 +525,355 @@ async function handleCheckout(event) {
             "CONTINUE TO PAYMENT";
 
     }
+
+}
+
+/* =========================================================
+   CRYPTO PAYMENT
+========================================================= */
+
+function showCryptoPayment() {
+
+    const modal =
+        document.getElementById(
+            "checkoutModal"
+        );
+
+
+    if (!modal) {
+        return;
+    }
+
+
+    const total =
+        getCartTotal();
+
+
+    const crypto =
+        PAYMENT_CONFIG.crypto;
+
+
+    const wallet =
+        crypto.wallet ||
+        "WALLET COMING SOON";
+
+
+    const network =
+        crypto.network ||
+        "NETWORK";
+
+
+    const currency =
+        crypto.currency ||
+        "USDT";
+
+
+    const paymentHTML = `
+
+        <div class="crypto-payment">
+
+            <div class="eyebrow">
+                PAYMENT
+            </div>
+
+
+            <h2>
+                PAY WITH<br>
+                <em>CRYPTO.</em>
+            </h2>
+
+
+            <div class="checkout-total">
+
+                <span>
+                    ORDER TOTAL
+                </span>
+
+                <strong>
+                    €${formatPrice(total)}
+                </strong>
+
+            </div>
+
+
+            <div class="crypto-details">
+
+                <div class="crypto-row">
+
+                    <span>
+                        CURRENCY
+                    </span>
+
+                    <strong>
+                        ${escapeHtml(currency)}
+                    </strong>
+
+                </div>
+
+
+                <div class="crypto-row">
+
+                    <span>
+                        NETWORK
+                    </span>
+
+                    <strong>
+                        ${escapeHtml(network)}
+                    </strong>
+
+                </div>
+
+
+                <div class="crypto-wallet">
+
+                    <span>
+                        WALLET
+                    </span>
+
+                    <div class="crypto-wallet-address">
+
+                        ${escapeHtml(wallet)}
+
+                    </div>
+
+                    ${
+                        crypto.wallet
+                            ? `
+                                <button
+                                    type="button"
+                                    class="big-button"
+                                    id="copyCryptoWallet"
+                                >
+                                    <span>
+                                        COPY WALLET
+                                    </span>
+
+                                    <span>
+                                        ⧉
+                                    </span>
+                                </button>
+                              `
+                            : ""
+                    }
+
+                </div>
+
+            </div>
+
+
+            <div class="checkout-message">
+
+                Send the payment to the wallet above,
+                then confirm below.
+
+            </div>
+
+
+            <button
+                type="button"
+                class="big-button"
+                id="cryptoPaidButton"
+            >
+
+                <span>
+                    I HAVE PAID
+                </span>
+
+                <span>
+                    →
+                </span>
+
+            </button>
+
+
+            <button
+                type="button"
+                class="checkout-close"
+                id="cryptoBackButton"
+            >
+
+                BACK
+
+            </button>
+
+        </div>
+
+    `;
+
+
+    const inner =
+        modal.querySelector(
+            ".checkout-inner"
+        );
+
+
+    if (!inner) {
+        return;
+    }
+
+
+    inner.innerHTML =
+        paymentHTML;
+
+
+    /* -----------------------------------------
+       COPY WALLET
+    ----------------------------------------- */
+
+    const copyButton =
+        document.getElementById(
+            "copyCryptoWallet"
+        );
+
+
+    if (copyButton) {
+
+        copyButton.addEventListener(
+            "click",
+            async () => {
+
+                try {
+
+                    await navigator.clipboard.writeText(
+                        crypto.wallet
+                    );
+
+
+                    copyButton
+                        .querySelector("span")
+                        .textContent =
+                        "COPIED";
+
+                } catch (error) {
+
+                    console.error(
+                        "COPY WALLET ERROR:",
+                        error
+                    );
+
+                }
+
+            }
+        );
+
+    }
+
+
+    /* -----------------------------------------
+       PAID
+    ----------------------------------------- */
+
+    document
+        .getElementById(
+            "cryptoPaidButton"
+        )
+        ?.addEventListener(
+            "click",
+            () => {
+
+                showCryptoPending();
+
+            }
+        );
+
+
+    /* -----------------------------------------
+       BACK
+    ----------------------------------------- */
+
+    document
+        .getElementById(
+            "cryptoBackButton"
+        )
+        ?.addEventListener(
+            "click",
+            closeCheckout
+        );
+
+}
+
+
+/* =========================================================
+   CRYPTO PENDING
+========================================================= */
+
+function showCryptoPending() {
+
+    const modal =
+        document.getElementById(
+            "checkoutModal"
+        );
+
+
+    if (!modal) {
+        return;
+    }
+
+
+    const inner =
+        modal.querySelector(
+            ".checkout-inner"
+        );
+
+
+    if (!inner) {
+        return;
+    }
+
+
+    inner.innerHTML = `
+
+        <div class="crypto-payment">
+
+            <div class="eyebrow">
+                PAYMENT RECEIVED
+            </div>
+
+
+            <h2>
+                THANK<br>
+                <em>YOU.</em>
+            </h2>
+
+
+            <p class="checkout-message">
+
+                Your payment is being verified.
+                We will contact you when your order
+                moves into production.
+
+            </p>
+
+
+            <button
+                type="button"
+                class="big-button"
+                id="cryptoCloseButton"
+            >
+
+                <span>
+                    CLOSE
+                </span>
+
+                <span>
+                    →
+                </span>
+
+            </button>
+
+        </div>
+
+    `;
+
+
+    document
+        .getElementById(
+            "cryptoCloseButton"
+        )
+        ?.addEventListener(
+            "click",
+            closeCheckout
+        );
 
 }
 
