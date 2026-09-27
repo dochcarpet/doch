@@ -1411,7 +1411,7 @@ footer {
 
     z-index: 300;
 
-    background: rgba(0,0,0,.6);
+    background: rgba(0,0,0,.58);
 
     opacity: 0;
     pointer-events: none;
@@ -1433,12 +1433,12 @@ footer {
     right: 0;
     bottom: 0;
 
-    width: min(500px, 100%);
+    width: min(520px, 92vw);
 
     background: var(--white);
     color: var(--black);
 
-    padding: 30px;
+    padding: 34px 38px 30px;
 
     transform: translateX(100%);
 
@@ -1447,77 +1447,259 @@ footer {
 
     display: flex;
     flex-direction: column;
+
+    box-shadow:
+        -25px 0 80px rgba(0,0,0,.35);
 }
 
 .cart-drawer.active {
     transform: translateX(0);
 }
 
+
+/* ---------- HEADER ---------- */
+
 .cart-header {
     display: flex;
+    align-items: flex-start;
     justify-content: space-between;
 
-    font: 10px var(--mono);
-
-    padding-bottom: 25px;
+    padding-bottom: 24px;
 
     border-bottom: 1px solid rgba(0,0,0,.2);
 }
 
-.cart-header button {
-    border: 0;
-    background: none;
+.cart-header > span {
+    font: 9px var(--mono);
+    letter-spacing: .12em;
+}
 
-    font-size: 25px;
+.cart-header button {
+    width: 34px;
+    height: 34px;
+
+    padding: 0;
+
+    border: 0;
+    background: transparent;
+
+    color: var(--black);
+
+    font-family: Arial, sans-serif;
+    font-size: 28px;
+    line-height: 1;
 
     cursor: pointer;
+
+    opacity: .55;
+
+    transition:
+        opacity .2s,
+        transform .2s;
 }
+
+.cart-header button:hover {
+    opacity: 1;
+    transform: rotate(90deg);
+}
+
+
+/* ---------- TITLE ---------- */
+
+/*
+   Если YOUR CART / ВАША КОРЗИНА
+   находится отдельным h2 внутри drawer.
+*/
+
+.cart-drawer h2 {
+    margin: 0 0 30px;
+
+    font-size: clamp(48px, 7vw, 76px);
+
+    line-height: .82;
+
+    letter-spacing: -.075em;
+
+    font-weight: 900;
+}
+
+
+/* ---------- ITEMS ---------- */
 
 .cart-items {
     flex: 1;
-    padding-top: 20px;
+
+    padding-top: 18px;
+
     overflow-y: auto;
+
+    min-height: 0;
+
+    scrollbar-width: thin;
 }
 
+.cart-items::-webkit-scrollbar {
+    width: 4px;
+}
+
+.cart-items::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.cart-items::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,.22);
+}
+
+
+/* ---------- EMPTY ---------- */
+
 .empty-cart {
-    font: 11px var(--mono);
+    padding: 25px 0;
+
+    font: 10px/1.5 var(--mono);
+
     color: #777;
 }
 
+
+/* ---------- ITEM ---------- */
+
 .cart-item {
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+
+    grid-template-columns:
+        minmax(0, 1fr)
+        auto;
+
+    align-items: center;
+
+    gap: 20px;
+
+    padding: 18px 0;
 
     border-bottom: 1px solid rgba(0,0,0,.15);
-
-    padding: 15px 0;
-
-    gap: 15px;
 }
 
 .cart-item-name {
+    min-width: 0;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+
+    white-space: nowrap;
+
+    font-size: 15px;
+
+    line-height: 1;
+
     font-weight: 700;
+
+    letter-spacing: -.03em;
 }
 
 .cart-item-price {
-    font: 11px var(--mono);
+    white-space: nowrap;
+
+    font: 10px var(--mono);
+
+    color: #555;
 }
 
+
+/* ---------- REMOVE ---------- */
+
+.cart-item button {
+    padding: 0;
+
+    border: 0;
+
+    background: transparent;
+
+    color: #777;
+
+    font: 8px var(--mono);
+
+    cursor: pointer;
+
+    transition:
+        color .2s,
+        opacity .2s;
+}
+
+.cart-item button:hover {
+    color: var(--black);
+}
+
+
+/* ---------- FOOTER ---------- */
+
 .cart-footer {
+    flex-shrink: 0;
+
+    margin-top: 20px;
+
+    padding-top: 20px;
+
     border-top: 1px solid rgba(0,0,0,.2);
-    padding-top: 25px;
 }
 
 .cart-footer > div {
     display: flex;
+
+    align-items: baseline;
+
     justify-content: space-between;
 
-    font: 10px var(--mono);
+    gap: 20px;
+
+    font: 9px var(--mono);
 }
+
+.cart-footer > div strong {
+    font-size: 17px;
+
+    font-weight: 400;
+}
+
+
+/* ---------- CHECKOUT BUTTON ---------- */
 
 .cart-footer .big-button {
     width: 100%;
+
+    margin-top: 22px;
+
     color: var(--black);
+
+    border-color: var(--black);
+}
+
+.cart-footer .big-button:hover {
+    background: var(--black);
+
+    color: var(--white);
+
+    box-shadow: none;
+}
+
+
+
+/* =========================================================
+   CART SMALL PHONES
+========================================================= */
+
+@media (max-width: 380px) {
+
+    .cart-drawer {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    .cart-drawer h2 {
+        font-size: 50px;
+    }
+
 }
 
 /* =========================================================
@@ -1528,7 +1710,7 @@ footer {
     position: fixed;
     inset: 0;
 
-    z-index: 900;
+    z-index: 1100;
 
     display: flex;
     align-items: center;
@@ -1546,15 +1728,12 @@ footer {
 }
 
 .checkout-inner {
+   
     position: relative;
 
     width: min(680px, 100%);
 
-    max-height: calc(100svh - 60px);
-
-    overflow-y: auto;
-
-    padding: 55px 55px 60px;
+    padding: 35px 45px 40px;
 
     background: var(--black);
 
@@ -1563,8 +1742,6 @@ footer {
     box-shadow:
         0 30px 100px rgba(0,0,0,.65),
         0 0 70px rgba(200,255,0,.04);
-
-    -webkit-overflow-scrolling: touch;
 }
 
 
@@ -1609,15 +1786,8 @@ footer {
 /* ---------- HEADER ---------- */
 
 .checkout-inner h2 {
-    margin: 25px 0 45px;
-
-    font-size: clamp(58px, 8vw, 100px);
-
-    line-height: .78;
-
-    letter-spacing: -.08em;
-
-    font-weight: 900;
+    margin: 15px 0 30px;
+    font-size: clamp(52px, 7vw, 82px);
 }
 
 
@@ -3009,8 +3179,6 @@ footer {
 
         font-size: 34px;
     }
-
-}
     
     .gallery-arrow {
         width: 40px;
@@ -3026,18 +3194,6 @@ footer {
     .gallery-next {
         right: 12px;
     }
-
-
-    /* =====================================================
-       CART MOBILE
-    ===================================================== */
-
-    .cart-drawer {
-        width: 100%;
-
-        padding: 22px 20px 25px;
-    }
-
 
     /* =====================================================
        CUSTOM REQUEST MODAL MOBILE
