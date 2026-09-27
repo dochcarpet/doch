@@ -3,8 +3,9 @@
 ========================================================= */
 
 import {
-    formatPrice
-} from "./utils.js";
+    getCart,
+    getCartTotal
+} from "./cart.js";
 
 
 /* =========================================================
@@ -15,7 +16,17 @@ const SUPABASE_URL =
     "https://kixsnkhmxyytecvvwnse.supabase.co";
 
 const SUPABASE_KEY =
-    "ТВОЙ_SUPABASE_PUBLISHABLE_KEY";
+    "ТВОЙ_PUBLISHABLE_KEY";
+
+
+/* =========================================================
+   DOM
+========================================================= */
+
+const checkoutButton =
+    document.getElementById(
+        "checkoutButton"
+    );
 
 
 /* =========================================================
@@ -26,24 +37,28 @@ let checkoutOpen = false;
 
 
 /* =========================================================
-   DOM
-========================================================= */
-
-const checkoutButton =
-    document.getElementById("checkoutButton");
-
-
-/* =========================================================
-   OPEN CHECKOUT
+   OPEN
 ========================================================= */
 
 function openCheckout() {
+
+    const cart =
+        getCart();
+
+    if (!cart.length) {
+        return;
+    }
 
     if (checkoutOpen) {
         return;
     }
 
     checkoutOpen = true;
+
+
+    const total =
+        getCartTotal();
+
 
     const modal =
         document.createElement("div");
@@ -54,6 +69,7 @@ function openCheckout() {
     modal.id =
         "checkoutModal";
 
+
     modal.innerHTML = `
 
         <div class="checkout-inner">
@@ -62,6 +78,7 @@ function openCheckout() {
                 type="button"
                 class="checkout-close"
                 id="checkoutClose"
+                aria-label="Close"
             >
                 ×
             </button>
@@ -76,6 +93,46 @@ function openCheckout() {
                 YOUR<br>
                 <em>ORDER.</em>
             </h2>
+
+
+            <div class="checkout-items">
+
+                ${cart.map(product => `
+
+                    <div class="checkout-item">
+
+                        <span>
+                            ${escapeHtml(
+                                product.name ||
+                                "DOCH RUG"
+                            )}
+                        </span>
+
+                        <strong>
+                            ${product.currency || "EUR"}
+                            ${formatPrice(
+                                product.price
+                            )}
+                        </strong>
+
+                    </div>
+
+                `).join("")}
+
+            </div>
+
+
+            <div class="checkout-total">
+
+                <span>
+                    TOTAL
+                </span>
+
+                <strong>
+                    €${formatPrice(total)}
+                </strong>
+
+            </div>
 
 
             <form id="checkoutForm">
@@ -141,21 +198,9 @@ function openCheckout() {
                         id="checkoutAddress"
                         name="address"
                         rows="4"
+                        autocomplete="street-address"
                         required
                     ></textarea>
-
-                </div>
-
-
-                <div class="checkout-summary">
-
-                    <span>
-                        TOTAL
-                    </span>
-
-                    <strong id="checkoutTotal">
-                        €0
-                    </strong>
 
                 </div>
 
@@ -188,29 +233,15 @@ function openCheckout() {
 
     `;
 
+
     document.body.appendChild(
         modal
     );
 
 
-    /* -----------------------------------------
-       TOTAL
-    ----------------------------------------- */
-
-    const total =
-        window.DOCH_CART_TOTAL || 0;
-
-    const totalElement =
-        document.getElementById(
-            "checkoutTotal"
-        );
-
-    if (totalElement) {
-
-        totalElement.textContent =
-            `€${formatPrice(total)}`;
-
-    }
+    document.body.classList.add(
+        "no-scroll"
+    );
 
 
     /* -----------------------------------------
@@ -240,7 +271,7 @@ function openCheckout() {
 
 
 /* =========================================================
-   CLOSE CHECKOUT
+   CLOSE
 ========================================================= */
 
 function closeCheckout() {
@@ -250,13 +281,20 @@ function closeCheckout() {
             "checkoutModal"
         );
 
+
     if (modal) {
 
         modal.remove();
 
     }
 
+
     checkoutOpen = false;
+
+
+    document.body.classList.remove(
+        "no-scroll"
+    );
 
 }
 
@@ -270,20 +308,17 @@ async function handleCheckout(event) {
     event.preventDefault();
 
 
+    const cart =
+        getCart();
+
+
+    if (!cart.length) {
+        return;
+    }
+
+
     const form =
         event.currentTarget;
-
-
-    const submitButton =
-        document.getElementById(
-            "checkoutSubmit"
-        );
-
-
-    const message =
-        document.getElementById(
-            "checkoutMessage"
-        );
 
 
     const formData =
@@ -315,10 +350,26 @@ async function handleCheckout(event) {
 
 
     const total =
-        window.DOCH_CART_TOTAL || 0;
+        getCartTotal();
 
 
-    if (!name || !email || !address) {
+    const submitButton =
+        document.getElementById(
+            "checkoutSubmit"
+        );
+
+
+    const message =
+        document.getElementById(
+            "checkoutMessage"
+        );
+
+
+    if (
+        !name ||
+        !email ||
+        !address
+    ) {
 
         return;
 
@@ -337,13 +388,45 @@ async function handleCheckout(event) {
 
     try {
 
+        const order = {
+
+            name,
+
+            email,
+
+            telegram,
+
+            description:
+                address,
+
+            price:
+                total,
+
+            currency:
+                "EUR",
+
+            payment_method:
+                null,
+
+            payment_status:
+                "PENDING",
+
+            order_status:
+                "AWAITING_PAYMENT"
+
+        };
+
+
         const response =
             await fetch(
                 `${SUPABASE_URL}/rest/v1/orders`,
                 {
-                    method: "POST",
+
+                    method:
+                        "POST",
 
                     headers: {
+
                         "Content-Type":
                             "application/json",
 
@@ -355,31 +438,14 @@ async function handleCheckout(event) {
 
                         "Prefer":
                             "return=representation"
+
                     },
 
                     body:
-                        JSON.stringify({
-                            name,
-                            email,
-                            telegram,
-                            description:
-                                address,
+                        JSON.stringify(
+                            order
+                        )
 
-                            price:
-                                total,
-
-                            currency:
-                                "EUR",
-
-                            payment_method:
-                                null,
-
-                            payment_status:
-                                "PENDING",
-
-                            order_status:
-                                "AWAITING_PAYMENT"
-                        })
                 }
             );
 
@@ -408,7 +474,7 @@ async function handleCheckout(event) {
 
 
         message.textContent =
-            "ORDER CREATED.";
+            "ORDER CREATED. PAYMENT COMING NEXT.";
 
 
         submitButton
@@ -439,6 +505,52 @@ async function handleCheckout(event) {
             "CONTINUE TO PAYMENT";
 
     }
+
+}
+
+
+/* =========================================================
+   HELPERS
+========================================================= */
+
+function escapeHtml(value) {
+
+    return String(value)
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+        .replace(
+            /</g,
+            "&lt;"
+        )
+        .replace(
+            />/g,
+            "&gt;"
+        )
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+
+}
+
+
+function formatPrice(value) {
+
+    return Number(
+        value || 0
+    ).toLocaleString(
+        "en-US",
+        {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 2
+        }
+    );
 
 }
 
