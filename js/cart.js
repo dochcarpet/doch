@@ -1,3 +1,4 @@
+js
 /* =========================================================
    DOCH — CART
 ========================================================= */
@@ -239,6 +240,23 @@ export function updateCart() {
             "€0";
 
 
+        /* -----------------------------------------
+           CHECKOUT BUTTON
+        ----------------------------------------- */
+
+        const checkoutButton =
+            document.getElementById(
+                "checkoutButton"
+            );
+
+        if (checkoutButton) {
+
+            checkoutButton.disabled =
+                true;
+
+        }
+
+
         return;
 
     }
@@ -335,14 +353,16 @@ export function updateCart() {
 
     cartTotal.textContent =
         `€${formatPrice(total)}`;
-   
 
-   /* -----------------------------------------
+
+    /* -----------------------------------------
        CHECKOUT
     ----------------------------------------- */
 
     const checkoutButton =
-        document.getElementById("checkoutButton");
+        document.getElementById(
+            "checkoutButton"
+        );
 
     if (checkoutButton) {
 
@@ -351,28 +371,7 @@ export function updateCart() {
 
     }
 
-   export function getCart() {
 
-    return [...cart];
-
-}
-
-
-export function getCartTotal() {
-
-    return cart.reduce(
-        (total, product) => {
-
-            return total +
-                Number(product.price || 0);
-
-        },
-        0
-    );
-
-}
-
-   
     /* -----------------------------------------
        REMOVE EVENTS
     ----------------------------------------- */
@@ -432,6 +431,34 @@ if (cartOverlay) {
     cartOverlay.addEventListener(
         "click",
         closeCart
+    );
+
+}
+
+
+/* =========================================================
+   CHECKOUT DATA
+========================================================= */
+
+export function getCart() {
+
+    return [...cart];
+
+}
+
+
+export function getCartTotal() {
+
+    return cart.reduce(
+        (total, product) => {
+
+            return total +
+                Number(
+                    product.price || 0
+                );
+
+        },
+        0
     );
 
 }
