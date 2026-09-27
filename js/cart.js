@@ -335,8 +335,28 @@ export function updateCart() {
 
     cartTotal.textContent =
         `€${formatPrice(total)}`;
+   
+
+   /* -----------------------------------------
+       CHECKOUT
+    ----------------------------------------- */
+
+    const checkoutButton =
+        document.getElementById("checkoutButton");
+
+    if (checkoutButton) {
+
+        checkoutButton.disabled =
+            !cart.length;
+
+    }
 
 
+    /* -----------------------------------------
+       REMOVE EVENTS
+    ----------------------------------------- */
+
+   
     /* -----------------------------------------
        REMOVE EVENTS
     ----------------------------------------- */
