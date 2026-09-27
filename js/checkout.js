@@ -10,7 +10,7 @@ import {
 import {
     SUPABASE_URL,
     SUPABASE_KEY
-} from "./config.js
+} from "./config.js;
 
 import {
     PAYMENT_CONFIG
