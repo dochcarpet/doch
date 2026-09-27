@@ -1860,7 +1860,6 @@ footer {
         0 0 12px var(--accent-glow);
 }
 
-
 /* ---------- FORM ---------- */
 
 #checkoutForm {
@@ -1868,56 +1867,65 @@ footer {
 }
 
 .checkout-field {
-    margin-bottom: 28px;
+    margin-bottom: 20px;
 }
 
 .checkout-field label {
     display: block;
 
-    margin-bottom: 9px;
+    margin-bottom: 7px;
 
-    font: 8px var(--mono);
-
+    font-family: var(--mono);
+    font-size: 9px;
+    line-height: 1.2;
     letter-spacing: .12em;
 
-    color: var(--grey);
+    color: rgba(241,238,231,.58);
 }
 
 .checkout-field input,
 .checkout-field textarea {
+    display: block;
+
     width: 100%;
+    box-sizing: border-box;
 
-    padding: 12px 0;
+    min-height: 46px;
 
-    border: 0;
-    border-bottom: 1px solid var(--line);
+    padding: 12px 13px;
 
+    border: 1px solid rgba(241,238,231,.22);
     border-radius: 0;
 
     outline: none;
 
-    background: transparent;
+    background: rgba(241,238,231,.045);
 
     color: var(--white);
 
-    font: 14px var(--sans);
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.4;
 
     transition:
         border-color .2s,
+        background .2s,
         box-shadow .2s;
 }
 
 .checkout-field input:focus,
 .checkout-field textarea:focus {
-    border-bottom-color: var(--accent);
+    border-color: var(--accent);
+
+    background: rgba(200,255,0,.035);
 
     box-shadow:
-        0 1px 0 var(--accent);
+        0 0 0 1px rgba(200,255,0,.12);
 }
 
 .checkout-field input::placeholder,
 .checkout-field textarea::placeholder {
-    color: #66635e;
+    color: rgba(241,238,231,.28);
 }
 
 .checkout-field textarea {
@@ -2188,11 +2196,11 @@ footer {
 
     .checkout-inner {
         width: 100%;
-
-        max-height: 94svh;
-
+    
+        max-height: none;
+    
         padding:
-            35px
+            30px
             20px
             calc(30px + env(safe-area-inset-bottom));
 
@@ -2237,7 +2245,13 @@ footer {
 
     .checkout-field input,
     .checkout-field textarea {
-        font-size: 16px;
+        min-height: 48px;
+    
+        padding: 13px;
+    
+        font-family: var(--mono);
+        font-size: 13px;
+        line-height: 1.4;
     }
 
     .checkout-item {
@@ -2247,6 +2261,16 @@ footer {
     .crypto-wallet-address {
         font-size: 9px;
     }
+
+    .checkout-field {
+    margin-bottom: 18px;
+    }
+
+    .checkout-field label {
+    margin-bottom: 7px;
+    font-size: 9px;
+    }
+    
 }
 
 
