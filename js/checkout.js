@@ -415,10 +415,6 @@ async function handleCheckout(event) {
         ).trim();
 
 
-    const total =
-        getCartTotal();
-
-
     const submitButton =
         document.getElementById(
             "checkoutSubmit"
@@ -454,84 +450,26 @@ async function handleCheckout(event) {
 
     try {
 
-        const order = {
+        const order =
+            await createOrder({
 
-            name,
+                name,
 
-            email,
+                email,
 
-            telegram,
+                telegram,
 
-            description:
-                address,
+                instagram:
+                    null,
 
-            price:
-                total,
+                address
 
-            currency:
-                "EUR",
-
-            payment_method:
-                null,
-
-            payment_status:
-                "PENDING",
-
-            order_status:
-                "AWAITING_PAYMENT"
-
-        };
-
-
-        const response =
-            await fetch(
-                `${SUPABASE_URL}/rest/v1/orders`,
-                {
-
-                    method:
-                        "POST",
-
-                    headers: {
-
-                        "Content-Type":
-                            "application/json",
-
-                        "apikey":
-                            SUPABASE_KEY,
-
-                        "Prefer": "return=minimal"
-
-                    },
-
-                    body:
-                        JSON.stringify(
-                            order
-                        )
-
-                }
-            );
-
-
-        if (!response.ok) {
-
-            const error =
-                await response.text();
-
-            throw new Error(
-                error ||
-                `HTTP ${response.status}`
-            );
-
-        }
-
-
-        const result =
-            await response.json();
+            });
 
 
         console.log(
             "DOCH ORDER CREATED:",
-            result
+            order
         );
 
 
