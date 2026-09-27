@@ -16,6 +16,39 @@ import {
     PAYMENT_CONFIG
 } from "./payment-config.js";
 
+import {
+    translations
+} from "./translations.js";
+
+
+/* =========================================================
+   LANGUAGE
+========================================================= */
+
+function getCurrentLanguage() {
+
+    const lang =
+        document.documentElement.lang;
+
+    return lang === "ru"
+        ? "ru"
+        : "en";
+
+}
+
+
+function t(key) {
+
+    const language =
+        getCurrentLanguage();
+
+    return (
+        translations?.[language]?.[key] ||
+        translations?.en?.[key] ||
+        key
+    );
+
+}
 
 
 /* =========================================================
@@ -24,9 +57,11 @@ import {
 
 export async function createOrder(customer) {
 
-    const cart = getCart();
+    const cart =
+        getCart();
 
-    const total = getCartTotal();
+    const total =
+        getCartTotal();
 
 
     if (!cart.length) {
@@ -38,56 +73,93 @@ export async function createOrder(customer) {
     }
 
 
-    const response = await fetch(
-        `${SUPABASE_URL}/rest/v1/orders`,
-        {
-            method: "POST",
+    const region =
+        PAYMENT_CONFIG.region;
 
-            headers: {
-                "apikey": SUPABASE_KEY,
-                "Content-Type": "application/json",
-                "Prefer": "return=minimal"
-            },
+    const regionConfig =
+        PAYMENT_CONFIG.providers?.[region];
 
-            body: JSON.stringify({
-            
-                name: customer.name,
-                email: customer.email,
-                telegram: customer.telegram || null,
-                instagram: customer.instagram || null,
-            
-                description: customer.address || null,
-            
-                price: total,
-                currency: PAYMENT_CONFIG.displayCurrency,
-            
-                payment_region:
-                    PAYMENT_CONFIG.region,
-            
-                payment_currency:
-                    PAYMENT_CONFIG.providers[
-                        PAYMENT_CONFIG.region
-                    ].currency,
-            
-                payment_provider:
-                    PAYMENT_CONFIG.providers[
-                        PAYMENT_CONFIG.region
-                    ].provider,
-            
-                payment_amount:
-                    total,
-            
-                order_status: "AWAITING_PAYMENT",
-                payment_status: "PENDING",
-            
-                payment_id: null,
-            
-                status: "new"
-            
-            })
 
-        }
-    );
+    if (!regionConfig) {
+
+        throw new Error(
+            `Payment region "${region}" is not configured.`
+        );
+
+    }
+
+
+    const response =
+        await fetch(
+            `${SUPABASE_URL}/rest/v1/orders`,
+            {
+                method: "POST",
+
+                headers: {
+                    "apikey":
+                        SUPABASE_KEY,
+
+                    "Content-Type":
+                        "application/json",
+
+                    "Prefer":
+                        "return=minimal"
+                },
+
+                body:
+                    JSON.stringify({
+
+                        name:
+                            customer.name,
+
+                        email:
+                            customer.email,
+
+                        telegram:
+                            customer.telegram ||
+                            null,
+
+                        instagram:
+                            customer.instagram ||
+                            null,
+
+                        description:
+                            customer.address ||
+                            null,
+
+                        price:
+                            total,
+
+                        currency:
+                            PAYMENT_CONFIG.displayCurrency,
+
+                        payment_region:
+                            region,
+
+                        payment_currency:
+                            regionConfig.currency,
+
+                        payment_provider:
+                            regionConfig.provider,
+
+                        payment_amount:
+                            total,
+
+                        order_status:
+                            "AWAITING_PAYMENT",
+
+                        payment_status:
+                            "PENDING",
+
+                        payment_id:
+                            null,
+
+                        status:
+                            "new"
+
+                    })
+            }
+        );
 
 
     if (!response.ok) {
@@ -121,7 +193,8 @@ const checkoutButton =
    STATE
 ========================================================= */
 
-let checkoutOpen = false;
+let checkoutOpen =
+    false;
 
 
 /* =========================================================
@@ -133,15 +206,19 @@ function openCheckout() {
     const cart =
         getCart();
 
+
     if (!cart.length) {
         return;
     }
+
 
     if (checkoutOpen) {
         return;
     }
 
-    checkoutOpen = true;
+
+    checkoutOpen =
+        true;
 
 
     const total =
@@ -151,8 +228,10 @@ function openCheckout() {
     const modal =
         document.createElement("div");
 
+
     modal.className =
         "checkout-modal";
+
 
     modal.id =
         "checkoutModal";
@@ -166,7 +245,9 @@ function openCheckout() {
                 type="button"
                 class="checkout-close"
                 id="checkoutClose"
-                aria-label="Close"
+                aria-label="${escapeHtml(
+                    t("payment.close")
+                )}"
             >
                 ×
             </button>
@@ -213,7 +294,9 @@ function openCheckout() {
             <div class="checkout-total">
 
                 <span>
-                    TOTAL
+                    ${escapeHtml(
+                        t("cart.total")
+                    )}
                 </span>
 
                 <strong>
@@ -229,7 +312,9 @@ function openCheckout() {
                 <div class="checkout-field">
 
                     <label for="checkoutName">
-                        NAME
+                        ${escapeHtml(
+                            t("customModal.name")
+                        )}
                     </label>
 
                     <input
@@ -246,7 +331,9 @@ function openCheckout() {
                 <div class="checkout-field">
 
                     <label for="checkoutEmail">
-                        EMAIL
+                        ${escapeHtml(
+                            t("customModal.email")
+                        )}
                     </label>
 
                     <input
@@ -377,7 +464,8 @@ function closeCheckout() {
     }
 
 
-    checkoutOpen = false;
+    checkoutOpen =
+        false;
 
 
     document.body.classList.remove(
@@ -415,25 +503,29 @@ async function handleCheckout(event) {
 
     const name =
         String(
-            formData.get("name") || ""
+            formData.get("name") ||
+            ""
         ).trim();
 
 
     const email =
         String(
-            formData.get("email") || ""
+            formData.get("email") ||
+            ""
         ).trim();
 
 
     const telegram =
         String(
-            formData.get("telegram") || ""
+            formData.get("telegram") ||
+            ""
         ).trim();
 
 
     const address =
         String(
-            formData.get("address") || ""
+            formData.get("address") ||
+            ""
         ).trim();
 
 
@@ -495,12 +587,13 @@ async function handleCheckout(event) {
         );
 
 
-       showCryptoPayment();
+        showPaymentMethods();
 
-      submitButton
-          .querySelector("span")
-          .textContent =
-          "PAYMENT";
+
+        submitButton
+            .querySelector("span")
+            .textContent =
+            t("payment.title");
 
 
     } catch (error) {
@@ -512,7 +605,9 @@ async function handleCheckout(event) {
 
 
         message.textContent =
-            "Something went wrong. Please try again.";
+            getCurrentLanguage() === "ru"
+                ? "Что-то пошло не так. Попробуйте ещё раз."
+                : "Something went wrong. Please try again.";
 
 
         submitButton.disabled =
@@ -522,17 +617,261 @@ async function handleCheckout(event) {
         submitButton
             .querySelector("span")
             .textContent =
-            "CONTINUE TO PAYMENT";
+            getCurrentLanguage() === "ru"
+                ? "ПЕРЕЙТИ К ОПЛАТЕ"
+                : "CONTINUE TO PAYMENT";
 
     }
 
 }
 
+
+/* =========================================================
+   PAYMENT METHODS
+========================================================= */
+
+function showPaymentMethods() {
+
+    const modal =
+        document.getElementById(
+            "checkoutModal"
+        );
+
+
+    if (!modal) {
+        return;
+    }
+
+
+    const inner =
+        modal.querySelector(
+            ".checkout-inner"
+        );
+
+
+    if (!inner) {
+        return;
+    }
+
+
+    const cryptoProvider =
+        PAYMENT_CONFIG.providers?.CRYPTO;
+
+
+    const regionProvider =
+        PAYMENT_CONFIG.providers?.[
+            PAYMENT_CONFIG.region
+        ];
+
+
+    const cryptoEnabled =
+        cryptoProvider?.enabled === true;
+
+
+    const regionEnabled =
+        regionProvider?.enabled === true;
+
+
+    const cryptoMethods =
+        cryptoProvider?.methods || {};
+
+
+    const cryptoButtons =
+        Object.entries(
+            cryptoMethods
+        )
+        .filter(
+            ([, method]) =>
+                method?.enabled === true
+        )
+        .map(
+            ([currency]) => `
+
+                <button
+                    type="button"
+                    class="big-button payment-method-button"
+                    data-payment-method="CRYPTO"
+                    data-crypto-currency="${escapeHtml(
+                        currency
+                    )}"
+                >
+
+                    <span>
+                        ${escapeHtml(
+                            currency
+                        )}
+                    </span>
+
+                    <span>
+                        →
+                    </span>
+
+                </button>
+
+            `
+        )
+        .join("");
+
+
+    const cryptoSection =
+        cryptoEnabled &&
+        cryptoButtons
+            ? `
+
+                <div class="payment-method-section">
+
+                    <div class="eyebrow">
+                        ${escapeHtml(
+                            t("payment.crypto")
+                        )}
+                    </div>
+
+                    ${cryptoButtons}
+
+                </div>
+
+            `
+            : "";
+
+
+    let providerLabel =
+        "CARD / SBP";
+
+
+    if (
+        regionProvider?.provider ===
+        "STRIPE"
+    ) {
+
+        providerLabel =
+            "CARD";
+
+    }
+
+
+    const providerSection = `
+
+        <div class="payment-method-section">
+
+            <div class="eyebrow">
+                ${escapeHtml(
+                    providerLabel
+                )}
+            </div>
+
+            <button
+                type="button"
+                class="big-button payment-method-button"
+                id="disabledPaymentMethod"
+                disabled
+            >
+
+                <span>
+                    ${escapeHtml(
+                        t("payment.comingSoon")
+                    )}
+                </span>
+
+                <span>
+                    —
+                </span>
+
+            </button>
+
+        </div>
+
+    `;
+
+
+    inner.innerHTML = `
+
+        <div class="payment-methods">
+
+            <div class="eyebrow">
+                ${escapeHtml(
+                    t("payment.title")
+                )}
+            </div>
+
+
+            <h2>
+                CHOOSE<br>
+                <em>PAYMENT.</em>
+            </h2>
+
+
+            ${cryptoSection}
+
+
+            ${providerSection}
+
+
+            <button
+                type="button"
+                class="checkout-close"
+                id="paymentBackButton"
+            >
+                ${escapeHtml(
+                    t("payment.back")
+                )}
+            </button>
+
+        </div>
+
+    `;
+
+
+    /* -----------------------------------------
+       CRYPTO OPTIONS
+    ----------------------------------------- */
+
+    document
+        .querySelectorAll(
+            "[data-payment-method='CRYPTO']"
+        )
+        .forEach(button => {
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    const currency =
+                        button.dataset
+                            .cryptoCurrency;
+
+                    showCryptoPayment(
+                        currency
+                    );
+
+                }
+            );
+
+        });
+
+
+    /* -----------------------------------------
+       BACK
+    ----------------------------------------- */
+
+    document
+        .getElementById(
+            "paymentBackButton"
+        )
+        ?.addEventListener(
+            "click",
+            closeCheckout
+        );
+
+}
+
+
 /* =========================================================
    CRYPTO PAYMENT
 ========================================================= */
 
-function showCryptoPayment() {
+function showCryptoPayment(
+    cryptoCurrency = "USDT"
+) {
 
     const modal =
         document.getElementById(
@@ -549,8 +888,26 @@ function showCryptoPayment() {
         getCartTotal();
 
 
+    const cryptoProvider =
+        PAYMENT_CONFIG.providers?.CRYPTO;
+
+
     const crypto =
-        PAYMENT_CONFIG.crypto;
+        cryptoProvider?.methods?.[
+            cryptoCurrency
+        ];
+
+
+    if (!crypto) {
+
+        console.error(
+            "CRYPTO METHOD NOT FOUND:",
+            cryptoCurrency
+        );
+
+        return;
+
+    }
 
 
     const wallet =
@@ -564,8 +921,7 @@ function showCryptoPayment() {
 
 
     const currency =
-        crypto.currency ||
-        "USDT";
+        cryptoCurrency;
 
 
     const paymentHTML = `
@@ -573,20 +929,26 @@ function showCryptoPayment() {
         <div class="crypto-payment">
 
             <div class="eyebrow">
-                PAYMENT
+                ${escapeHtml(
+                    t("payment.title")
+                )}
             </div>
 
 
             <h2>
                 PAY WITH<br>
-                <em>CRYPTO.</em>
+                <em>${escapeHtml(
+                    currency
+                )}.</em>
             </h2>
 
 
             <div class="checkout-total">
 
                 <span>
-                    ORDER TOTAL
+                    ${escapeHtml(
+                        t("payment.total")
+                    )}
                 </span>
 
                 <strong>
@@ -601,11 +963,15 @@ function showCryptoPayment() {
                 <div class="crypto-row">
 
                     <span>
-                        CURRENCY
+                        ${escapeHtml(
+                            t("payment.currency")
+                        )}
                     </span>
 
                     <strong>
-                        ${escapeHtml(currency)}
+                        ${escapeHtml(
+                            currency
+                        )}
                     </strong>
 
                 </div>
@@ -614,11 +980,15 @@ function showCryptoPayment() {
                 <div class="crypto-row">
 
                     <span>
-                        NETWORK
+                        ${escapeHtml(
+                            t("payment.network")
+                        )}
                     </span>
 
                     <strong>
-                        ${escapeHtml(network)}
+                        ${escapeHtml(
+                            network
+                        )}
                     </strong>
 
                 </div>
@@ -627,14 +997,20 @@ function showCryptoPayment() {
                 <div class="crypto-wallet">
 
                     <span>
-                        WALLET
+                        ${escapeHtml(
+                            t("payment.wallet")
+                        )}
                     </span>
+
 
                     <div class="crypto-wallet-address">
 
-                        ${escapeHtml(wallet)}
+                        ${escapeHtml(
+                            wallet
+                        )}
 
                     </div>
+
 
                     ${
                         crypto.wallet
@@ -644,13 +1020,17 @@ function showCryptoPayment() {
                                     class="big-button"
                                     id="copyCryptoWallet"
                                 >
+
                                     <span>
-                                        COPY WALLET
+                                        ${escapeHtml(
+                                            t("payment.copy")
+                                        )}
                                     </span>
 
                                     <span>
                                         ⧉
                                     </span>
+
                                 </button>
                               `
                             : ""
@@ -663,8 +1043,9 @@ function showCryptoPayment() {
 
             <div class="checkout-message">
 
-                Send the payment to the wallet above,
-                then confirm below.
+                ${escapeHtml(
+                    t("payment.send")
+                )}
 
             </div>
 
@@ -676,7 +1057,9 @@ function showCryptoPayment() {
             >
 
                 <span>
-                    I HAVE PAID
+                    ${escapeHtml(
+                        t("payment.paid")
+                    )}
                 </span>
 
                 <span>
@@ -692,7 +1075,9 @@ function showCryptoPayment() {
                 id="cryptoBackButton"
             >
 
-                BACK
+                ${escapeHtml(
+                    t("payment.back")
+                )}
 
             </button>
 
@@ -742,7 +1127,8 @@ function showCryptoPayment() {
                     copyButton
                         .querySelector("span")
                         .textContent =
-                        "COPIED";
+                        t("payment.copied");
+
 
                 } catch (error) {
 
@@ -787,7 +1173,7 @@ function showCryptoPayment() {
         )
         ?.addEventListener(
             "click",
-            closeCheckout
+            showPaymentMethods
         );
 
 }
@@ -826,7 +1212,9 @@ function showCryptoPending() {
         <div class="crypto-payment">
 
             <div class="eyebrow">
-                PAYMENT RECEIVED
+                ${escapeHtml(
+                    t("payment.received")
+                )}
             </div>
 
 
@@ -838,9 +1226,9 @@ function showCryptoPending() {
 
             <p class="checkout-message">
 
-                Your payment is being verified.
-                We will contact you when your order
-                moves into production.
+                ${escapeHtml(
+                    t("payment.verifying")
+                )}
 
             </p>
 
@@ -852,7 +1240,9 @@ function showCryptoPending() {
             >
 
                 <span>
-                    CLOSE
+                    ${escapeHtml(
+                        t("payment.close")
+                    )}
                 </span>
 
                 <span>
@@ -885,22 +1275,27 @@ function showCryptoPending() {
 function escapeHtml(value) {
 
     return String(value)
+
         .replace(
             /&/g,
             "&amp;"
         )
+
         .replace(
             /</g,
             "&lt;"
         )
+
         .replace(
             />/g,
             "&gt;"
         )
+
         .replace(
             /"/g,
             "&quot;"
         )
+
         .replace(
             /'/g,
             "&#039;"
@@ -937,53 +1332,79 @@ if (checkoutButton) {
 
 }
 
-console.log("DOCH checkout loaded");
 
-window.testCreateOrder = async function () {
+console.log(
+    "DOCH checkout loaded"
+);
 
-    try {
 
-        const order =
-            await createOrder({
+/* =========================================================
+   TEST
+========================================================= */
 
-                name: "TEST DOCH",
-                email: "test@doch.test",
-                telegram: "@test",
-                instagram: null
+window.testCreateOrder =
+    async function () {
 
-            });
+        try {
+
+            const order =
+                await createOrder({
+
+                    name:
+                        "TEST DOCH",
+
+                    email:
+                        "test@doch.test",
+
+                    telegram:
+                        "@test",
+
+                    instagram:
+                        null
+
+                });
+
+
+            console.log(
+                "ORDER CREATED:",
+                order
+            );
+
+
+        } catch (error) {
+
+            console.error(
+                "ORDER ERROR:",
+                error
+            );
+
+        }
+
+    };
+
+
+/* =========================================================
+   DEBUG
+========================================================= */
+
+window.debugSupabaseRole =
+    async function () {
+
+        const response =
+            await fetch(
+                `${SUPABASE_URL}/rest/v1/rpc/debug_current_role`,
+                {
+                    headers: {
+                        "apikey":
+                            SUPABASE_KEY
+                    }
+                }
+            );
 
 
         console.log(
-            "ORDER CREATED:",
-            order
+            "SUPABASE ROLE:",
+            await response.text()
         );
 
-    } catch (error) {
-
-        console.error(
-            "ORDER ERROR:",
-            error
-        );
-
-    }
-
-};
-
-window.debugSupabaseRole = async function () {
-
-    const response = await fetch(
-        `${SUPABASE_URL}/rest/v1/rpc/debug_current_role`,
-        {
-            headers: {
-                "apikey": SUPABASE_KEY
-            }
-        }
-    );
-
-    console.log(
-        "SUPABASE ROLE:",
-        await response.text()
-    );
-
-};
+    };
