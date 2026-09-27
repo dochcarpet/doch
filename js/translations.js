@@ -46,6 +46,56 @@ export const translations = {
 
 
         /* =========================
+           PAYMENT
+        ========================= */
+
+        "payment.title":
+            "PAYMENT",
+
+        "payment.crypto":
+            "PAY WITH CRYPTO",
+
+        "payment.total":
+            "ORDER TOTAL",
+
+        "payment.currency":
+            "CURRENCY",
+
+        "payment.network":
+            "NETWORK",
+
+        "payment.wallet":
+            "WALLET",
+
+        "payment.copy":
+            "COPY WALLET",
+
+        "payment.copied":
+            "COPIED",
+
+        "payment.send":
+            "Send the payment to the wallet above, then confirm below.",
+
+        "payment.paid":
+            "I HAVE PAID",
+
+        "payment.received":
+            "PAYMENT RECEIVED",
+
+        "payment.verifying":
+            "Your payment is being verified. We will contact you when your order moves into production.",
+
+        "payment.close":
+            "CLOSE",
+
+        "payment.back":
+            "BACK",
+
+        "payment.comingSoon":
+            "COMING SOON",
+
+
+        /* =========================
            HERO
         ========================= */
 
@@ -357,7 +407,8 @@ export const translations = {
            FOOTER
         ========================= */
 
-        "footer.title": "MAKE THE INTERNET <span class=\"green-word\">SOFTER.</span>",
+        "footer.title":
+            "MAKE THE INTERNET <span class=\"green-word\">SOFTER.</span>",
 
         "footer.tag":
             "HANDMADE INTERNET ART",
@@ -448,6 +499,56 @@ export const translations = {
 
         "cart.remove":
             "УДАЛИТЬ",
+
+
+        /* =========================
+           PAYMENT
+        ========================= */
+
+        "payment.title":
+            "ОПЛАТА",
+
+        "payment.crypto":
+            "ОПЛАТИТЬ КРИПТОЙ",
+
+        "payment.total":
+            "СУММА ЗАКАЗА",
+
+        "payment.currency":
+            "ВАЛЮТА",
+
+        "payment.network":
+            "СЕТЬ",
+
+        "payment.wallet":
+            "КОШЕЛЁК",
+
+        "payment.copy":
+            "СКОПИРОВАТЬ КОШЕЛЁК",
+
+        "payment.copied":
+            "СКОПИРОВАНО",
+
+        "payment.send":
+            "Отправьте оплату на указанный кошелёк и подтвердите оплату ниже.",
+
+        "payment.paid":
+            "Я ОПЛАТИЛА",
+
+        "payment.received":
+            "ОПЛАТА ПОЛУЧЕНА",
+
+        "payment.verifying":
+            "Платёж проверяется. Мы свяжемся с вами, когда заказ перейдёт в производство.",
+
+        "payment.close":
+            "ЗАКРЫТЬ",
+
+        "payment.back":
+            "НАЗАД",
+
+        "payment.comingSoon":
+            "СКОРО",
 
 
         /* =========================
@@ -640,7 +741,7 @@ export const translations = {
 
         "customModal.chooseFile":
             "ВЫБРАТЬ ФАЙЛ",
-        
+
 
         /* =========================
            PROCESS
@@ -765,7 +866,8 @@ export const translations = {
            FOOTER
         ========================= */
 
-        "footer.title": "СДЕЛАЕМ ИНТЕРНЕТ <span class=\"green-word\">МЯГЧЕ.</span>",
+        "footer.title":
+            "СДЕЛАЕМ ИНТЕРНЕТ <span class=\"green-word\">МЯГЧЕ.</span>",
 
         "footer.tag":
             "РУЧНОЙ ИНТЕРНЕТ-АРТ",
