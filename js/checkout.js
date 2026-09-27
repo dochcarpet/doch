@@ -7,6 +7,11 @@ import {
     getCartTotal
 } from "./cart.js";
 
+import {
+    SUPABASE_URL,
+    SUPABASE_KEY
+} from "./config.js";
+
 
 /* =========================================================
    SUPABASE
