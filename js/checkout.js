@@ -228,6 +228,8 @@ function openCheckout() {
     const total =
         getCartTotal();
 
+    console.log("STEP 1: creating modal");
+
 
     const modal =
         document.createElement("div");
@@ -416,6 +418,12 @@ function openCheckout() {
     document.body.appendChild(
         modal
     );
+
+   console.log("STEP 2: modal appended");
+   console.log(
+       "MODAL:",
+       document.getElementById("checkoutModal")
+   );
 
 
     document.body.classList.add(
