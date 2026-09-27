@@ -14,14 +14,80 @@ import {
 
 
 /* =========================================================
-   SUPABASE
+   CREATE ORDER
 ========================================================= */
 
-const SUPABASE_URL =
-    "https://kixsnkhmxyytecvvwnse.supabase.co";
+export async function createOrder(customer) {
 
-const SUPABASE_KEY =
-    "ТВОЙ_PUBLISHABLE_KEY";
+    const cart = getCart();
+
+    const total = getCartTotal();
+
+
+    if (!cart.length) {
+
+        throw new Error(
+            "Cart is empty"
+        );
+
+    }
+
+
+    const response = await fetch(
+        `${SUPABASE_URL}/rest/v1/orders`,
+        {
+            method: "POST",
+
+            headers: {
+                "apikey": SUPABASE_KEY,
+                "Authorization": `Bearer ${SUPABASE_KEY}`,
+                "Content-Type": "application/json",
+                "Prefer": "return=representation"
+            },
+
+            body: JSON.stringify({
+
+                name: customer.name,
+                email: customer.email,
+                telegram: customer.telegram || null,
+                instagram: customer.instagram || null,
+
+                price: total,
+                currency: "EUR",
+
+                order_status: "AWAITING_PAYMENT",
+                payment_status: "PENDING",
+
+                payment_provider: null,
+                payment_id: null,
+
+                status: "new"
+
+            })
+
+        }
+    );
+
+
+    if (!response.ok) {
+
+        const errorText =
+            await response.text();
+
+        throw new Error(
+            `Order creation failed: ${response.status} ${errorText}`
+        );
+
+    }
+
+
+    const data =
+        await response.json();
+
+
+    return data[0];
+
+}
 
 
 /* =========================================================
