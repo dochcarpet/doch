@@ -503,9 +503,6 @@ async function handleCheckout(event) {
                         "apikey":
                             SUPABASE_KEY,
 
-                        "Authorization":
-                            `Bearer ${SUPABASE_KEY}`,
-
                         "Prefer":
                             "return=representation"
 
