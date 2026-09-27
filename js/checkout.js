@@ -503,8 +503,7 @@ async function handleCheckout(event) {
                         "apikey":
                             SUPABASE_KEY,
 
-                        "Prefer":
-                            "return=representation"
+                        "Prefer": "return=minimal"
 
                     },
 
