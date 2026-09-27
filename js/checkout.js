@@ -667,3 +667,21 @@ window.testCreateOrder = async function () {
     }
 
 };
+
+window.debugSupabaseRole = async function () {
+
+    const response = await fetch(
+        `${SUPABASE_URL}/rest/v1/rpc/debug_current_role`,
+        {
+            headers: {
+                "apikey": SUPABASE_KEY
+            }
+        }
+    );
+
+    console.log(
+        "SUPABASE ROLE:",
+        await response.text()
+    );
+
+};
