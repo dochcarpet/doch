@@ -41,7 +41,7 @@ export async function createOrder(customer) {
             headers: {
                 "apikey": SUPABASE_KEY,
                 "Content-Type": "application/json",
-                "Prefer": "return=representation"
+                "Prefer": "return=minimal"
             },
 
             body: JSON.stringify({
@@ -80,11 +80,7 @@ export async function createOrder(customer) {
     }
 
 
-    const data =
-        await response.json();
-
-
-    return data[0];
+    return true;
 
 }
 
