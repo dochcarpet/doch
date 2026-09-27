@@ -640,3 +640,34 @@ if (checkoutButton) {
 }
 
 console.log("DOCH checkout loaded");
+
+window.testCreateOrder = async function () {
+
+    try {
+
+        const order =
+            await createOrder({
+
+                name: "TEST DOCH",
+                email: "test@doch.test",
+                telegram: "@test",
+                instagram: null
+
+            });
+
+
+        console.log(
+            "ORDER CREATED:",
+            order
+        );
+
+    } catch (error) {
+
+        console.error(
+            "ORDER ERROR:",
+            error
+        );
+
+    }
+
+};
