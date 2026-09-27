@@ -351,10 +351,26 @@ export function updateCart() {
 
     }
 
+   export function getCart() {
 
-    /* -----------------------------------------
-       REMOVE EVENTS
-    ----------------------------------------- */
+    return [...cart];
+
+}
+
+
+export function getCartTotal() {
+
+    return cart.reduce(
+        (total, product) => {
+
+            return total +
+                Number(product.price || 0);
+
+        },
+        0
+    );
+
+}
 
    
     /* -----------------------------------------
