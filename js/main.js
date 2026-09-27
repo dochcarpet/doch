@@ -29,6 +29,10 @@ import {
     initProductHaptics
 } from "./haptic.js";
 
+import {
+    createOrder
+} from "./checkout.js";
+
 
 /* =========================================================
    STATE
