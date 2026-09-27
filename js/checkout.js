@@ -638,3 +638,5 @@ if (checkoutButton) {
     );
 
 }
+
+console.log("DOCH checkout loaded");
