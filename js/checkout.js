@@ -40,7 +40,6 @@ export async function createOrder(customer) {
 
             headers: {
                 "apikey": SUPABASE_KEY,
-                "Authorization": `Bearer ${SUPABASE_KEY}`,
                 "Content-Type": "application/json",
                 "Prefer": "return=representation"
             },
