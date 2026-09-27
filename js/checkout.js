@@ -202,9 +202,13 @@ let checkoutOpen =
 ========================================================= */
 
 function openCheckout() {
+   
+    console.log("CHECKOUT CLICKED");
 
     const cart =
-        getCart();
+          getCart();
+      
+    console.log("CHECKOUT CART:", cart);
 
 
     if (!cart.length) {
