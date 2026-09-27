@@ -420,27 +420,46 @@ function openCheckout() {
     );
 
    console.log("STEP 2: modal appended");
-   console.log(
-       "MODAL:",
-       document.getElementById("checkoutModal")
+
+   
+   /* -----------------------------------------
+      CLOSE — BUTTON / BACKGROUND / ESC
+   ----------------------------------------- */
+   
+   document
+       .getElementById("checkoutClose")
+       ?.addEventListener(
+           "click",
+           closeCheckout
+       );
+   
+   
+   modal.addEventListener(
+       "click",
+       event => {
+   
+           if (event.target === modal) {
+               closeCheckout();
+           }
+   
+       }
    );
-
-
-    document.body.classList.add(
-        "no-scroll"
-    );
-
-
-    /* -----------------------------------------
-       CLOSE
-    ----------------------------------------- */
-
-    document
-        .getElementById("checkoutClose")
-        ?.addEventListener(
-            "click",
-            closeCheckout
-        );
+   
+   
+   document.addEventListener(
+       "keydown",
+       handleCheckoutEscape
+   );
+      
+      console.log(
+          "MODAL:",
+          document.getElementById("checkoutModal")
+      );
+   
+   
+       document.body.classList.add(
+           "no-scroll"
+       );
 
 
     /* -----------------------------------------
@@ -453,6 +472,17 @@ function openCheckout() {
             "submit",
             handleCheckout
         );
+
+}
+
+
+function handleCheckoutEscape(event) {
+
+    if (event.key !== "Escape") {
+        return;
+    }
+
+    closeCheckout();
 
 }
 
@@ -482,6 +512,12 @@ function closeCheckout() {
 
     document.body.classList.remove(
         "no-scroll"
+    );
+
+
+    document.removeEventListener(
+        "keydown",
+        handleCheckoutEscape
     );
 
 }
