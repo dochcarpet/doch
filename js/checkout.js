@@ -10,7 +10,11 @@ import {
 import {
     SUPABASE_URL,
     SUPABASE_KEY
-} from "./config.js";
+} from "./config.js
+
+import {
+    PAYMENT_CONFIG
+} from "./payment-config.js";
 
 
 /* =========================================================
@@ -45,23 +49,40 @@ export async function createOrder(customer) {
             },
 
             body: JSON.stringify({
-
+            
                 name: customer.name,
                 email: customer.email,
                 telegram: customer.telegram || null,
                 instagram: customer.instagram || null,
-
+            
+                description: customer.address || null,
+            
                 price: total,
-                currency: "EUR",
-
+                currency: PAYMENT_CONFIG.displayCurrency,
+            
+                payment_region:
+                    PAYMENT_CONFIG.region,
+            
+                payment_currency:
+                    PAYMENT_CONFIG.providers[
+                        PAYMENT_CONFIG.region
+                    ].currency,
+            
+                payment_provider:
+                    PAYMENT_CONFIG.providers[
+                        PAYMENT_CONFIG.region
+                    ].provider,
+            
+                payment_amount:
+                    total,
+            
                 order_status: "AWAITING_PAYMENT",
                 payment_status: "PENDING",
-
-                payment_provider: null,
+            
                 payment_id: null,
-
+            
                 status: "new"
-
+            
             })
 
         }
